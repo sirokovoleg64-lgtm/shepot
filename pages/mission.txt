@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Твоя миссия</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            padding: 20px 18px 120px;
+            z-index: 1;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .page-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        /* Прогресс */
+        .progress-section {
+            width: 100%;
+            max-width: 310px;
+            background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(201, 169, 110, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), #D4B87A);
+            border-radius: 10px;
+            transition: width 0.6s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Блоки */
+        .section-block {
+            width: 100%;
+            max-width: 310px;
+            background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-family: var(--font-body);
+        }
+
+        /* Список желаний */
+        .wish-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .wish-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(20, 16, 18, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(201, 169, 110, 0.06);
+            transition: all 0.3s;
+        }
+
+        .wish-item.done {
+            opacity: 0.5;
+            border-color: rgba(76, 175, 80, 0.2);
+        }
+
+        .wish-item.done .wish-text {
+            text-decoration: line-through;
+        }
+
+        .wish-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(201, 169, 110, 0.3);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .wish-item.done .wish-check {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: #0D1117;
+        }
+
+        .wish-check:hover {
+            border-color: var(--gold);
+        }
+
+        .wish-text {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .wish-author {
+            font-size: 10px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .wish-delete {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.3;
+            transition: all 0.3s;
+        }
+
+        .wish-delete:hover {
+            opacity: 1;
+            color: var(--rose);
+        }
+
+        .empty-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 8px 0;
+            text-align: center;
+        }
+
+        /* Добавление желания */
+        .add-wish-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .add-wish-input {
+            flex: 1;
+            background: rgba(245, 240, 232, 0.05);
+            border: 1px solid rgba(201, 169, 110, 0.15);
+            border-radius: 20px;
+            padding: 8px 14px;
+            color: var(--text-primary);
+            font-size: 12px;
+            outline: none;
+            font-family: var(--font-body);
+        }
+
+        .add-wish-input:focus {
+            border-color: var(--gold);
+        }
+
+        .add-wish-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: var(--gold);
+            color: #0D1117;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .add-wish-btn:hover {
+            box-shadow: 0 4px 15px rgba(201, 169, 110, 0.4);
+        }
+
+        .add-wish-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Кнопки действий */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+            width: 100%;
+            max-width: 310px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 10px;
+            border-radius: 16px;
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-action:hover {
+            border-color: var(--gold);
+            color: var(--text-primary);
+        }
+
+        .btn-action.primary {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: #0D1117;
+            font-weight: 600;
+        }
+
+        .btn-action.primary:hover {
+            box-shadow: 0 4px 20px rgba(201, 169, 110, 0.4);
+        }
+
+        /* Модалка */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(20, 16, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--gold);
+            border-radius: 24px;
+            padding: 24px 18px;
+            width: 90%;
+            max-width: 320px;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        .modal-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .btn-save {
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: none;
+            background: var(--gold);
+            color: #0D1117;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-cancel {
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-back-main {
+            padding: 10px 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            background: rgba(20, 16, 18, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 16px;
+        }
+
+        .btn-back-main:hover {
+            border-color: var(--gold);
+            color: var(--text-primary);
+        }
+
+        .celebration {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 0;
+        }
+
+        .celebration.show {
+            display: flex;
+        }
+
+        .celebration-icon {
+            font-size: 48px;
+        }
+
+        .celebration-title {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            color: var(--gold);
+        }
+
+        .celebration-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            max-width: 280px;
+            line-height: 1.6;
+        }
+
+        .celebration .btn-action {
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainScreen">
+            <div class="page-title">🎯 Твоя миссия</div>
+            <div class="page-sub">7 желаний для партнёра</div>
+
+            <!-- Прогресс -->
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span>📊 Прогресс</span>
+                    <span id="progressText">0 из 7</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+                <div class="progress-text" id="progressStatus">Напишите желания для партнёра</div>
+            </div>
+
+            <!-- Мои желания для партнёра -->
+            <div class="section-block">
+                <div class="section-title">
+                    ✍️ Мои желания для партнёра
+                    <span class="section-count" id="myCount">0 из 7</span>
+                </div>
+                <div class="wish-list" id="myWishes">
+                    <div class="empty-text">Пока нет желаний</div>
+                </div>
+                <div class="add-wish-row">
+                    <input type="text" class="add-wish-input" id="myWishInput" placeholder="Напиши желание..." maxlength="200">
+                    <button class="add-wish-btn" id="addMyWishBtn" onclick="addMyWish()">➕</button>
+                </div>
+                <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px;">Осталось: <span id="myRemaining">7</span></div>
+            </div>
+
+            <!-- Желания партнёра для меня -->
+            <div class="section-block">
+                <div class="section-title">
+                    ❤️ Желания партнёра для меня
+                    <span class="section-count" id="partnerCount">0 из 7</span>
+                </div>
+                <div class="wish-list" id="partnerWishes">
+                    <div class="empty-text">Партнёр ещё не написал желания</div>
+                </div>
+            </div>
+
+            <!-- Поздравление -->
+            <div class="celebration" id="celebration">
+                <div class="celebration-icon">🎉</div>
+                <div class="celebration-title">ВСЕ ЖЕЛАНИЯ ВЫПОЛНЕНЫ!</div>
+                <div class="celebration-text">Вы сделали это! ❤️<br>Партнёр выполнил все 7 желаний.<br>Пора написать новые!</div>
+                <button class="btn-action primary" onclick="resetWishes()">📝 Написать новые желания</button>
+            </div>
+
+            <button class="btn-back-main" onclick="navigate('games')">← Назад к играм</button>
+        </div>
+
+        <!-- Модалка -->
+        <div class="modal" id="modal">
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle">Подтверждение</div>
+                <div class="modal-desc" id="modalDesc">Вы уверены?</div>
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button class="btn-save" id="modalConfirmBtn">Да</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')">
+                <span class="tab-icon">🏠</span> Сегодня
+            </div>
+            <div class="tab" onclick="navigate('questions')">
+                <span class="tab-icon">💬</span> Вопросы
+            </div>
+            <div class="tab active" onclick="navigate('games')">
+                <span class="tab-icon">🎲</span> Игры
+            </div>
+            <div class="tab" onclick="navigate('beyond')">
+                <span class="tab-icon">🔥</span> За гранью
+            </div>
+            <div class="tab" onclick="navigate('moments')">
+                <span class="tab-icon">📸</span> Моменты
+            </div>
+            <div class="tab" onclick="navigate('we')">
+                <span class="tab-icon">💌</span> Мы
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const myName = localStorage.getItem('shepot_my_name') || 'Я';
+        const partnerName = localStorage.getItem('shepot_partner_name') || 'Партнёр';
+
+        // Хранилище: { myWishes: [{id, text, done}], partnerWishes: [{id, text, done}] }
+        let data = JSON.parse(localStorage.getItem('shepot_mission_data')) || {
+            myWishes: [],
+            partnerWishes: []
+        };
+
+        let wishIdCounter = 0;
+
+        function getNextId() {
+            const allWishes = [...data.myWishes, ...data.partnerWishes];
+            return allWishes.reduce((max, w) => Math.max(max, w.id || 0), 0) + 1;
+        }
+
+        function saveData() {
+            localStorage.setItem('shepot_mission_data', JSON.stringify(data));
+        }
+
+        function render() {
+            renderMyWishes();
+            renderPartnerWishes();
+            updateProgress();
+            checkCelebration();
+        }
+
+        function renderMyWishes() {
+            const container = document.getElementById('myWishes');
+            const list = data.myWishes;
+
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty-text">Пока нет желаний</div>';
+            } else {
+                container.innerHTML = list.map((wish, index) => `
+                    <div class="wish-item ${wish.done ? 'done' : ''}">
+                        <div class="wish-check" onclick="toggleMyWish(${index})">${wish.done ? '✓' : ''}</div>
+                        <div class="wish-text">${escapeHtml(wish.text)}</div>
+                        <button class="wish-delete" onclick="deleteMyWish(${index})">×</button>
+                    </div>
+                `).join('');
+            }
+
+            const total = list.length;
+            const done = list.filter(w => w.done).length;
+            document.getElementById('myCount').textContent = `${done} из ${total}`;
+            document.getElementById('myRemaining').textContent = Math.max(0, 7 - total);
+            document.getElementById('addMyWishBtn').disabled = total >= 7;
+        }
+
+        function renderPartnerWishes() {
+            const container = document.getElementById('partnerWishes');
+            const list = data.partnerWishes;
+
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty-text">Партнёр ещё не написал желания</div>';
+            } else {
+                container.innerHTML = list.map((wish, index) => `
+                    <div class="wish-item ${wish.done ? 'done' : ''}">
+                        <div class="wish-check" onclick="togglePartnerWish(${index})">${wish.done ? '✓' : ''}</div>
+                        <div class="wish-text">${escapeHtml(wish.text)}</div>
+                        <div class="wish-author">для меня</div>
+                    </div>
+                `).join('');
+            }
+
+            const total = list.length;
+            const done = list.filter(w => w.done).length;
+            document.getElementById('partnerCount').textContent = `${done} из ${total}`;
+        }
+
+        function updateProgress() {
+            const allWishes = data.partnerWishes;
+            const total = allWishes.length;
+            const done = allWishes.filter(w => w.done).length;
+
+            document.getElementById('progressText').textContent = `${done} из ${total}`;
+            const percent = total > 0 ? (done / total) * 100 : 0;
+            document.getElementById('progressFill').style.width = `${Math.min(percent, 100)}%`;
+
+            if (total === 0) {
+                document.getElementById('progressStatus').textContent = 'Напишите желания для партнёра';
+            } else if (done === total && total > 0) {
+                document.getElementById('progressStatus').textContent = '🎉 Все желания выполнены!';
+            } else {
+                document.getElementById('progressStatus').textContent = `Выполнено ${done} из ${total} желаний`;
+            }
+        }
+
+        function checkCelebration() {
+            const total = data.partnerWishes.length;
+            const done = data.partnerWishes.filter(w => w.done).length;
+            const celebration = document.getElementById('celebration');
+            const mainScreen = document.getElementById('mainScreen');
+
+            if (total >= 7 && done === total) {
+                celebration.classList.add('show');
+                mainScreen.style.display = 'none';
+            } else {
+                celebration.classList.remove('show');
+                mainScreen.style.display = 'flex';
+            }
+        }
+
+        // === Мои желания ===
+
+        function addMyWish() {
+            const input = document.getElementById('myWishInput');
+            const text = input.value.trim();
+
+            if (!text) {
+                showModal('Пустое желание', 'Напиши, что ты хочешь от партнёра.');
+                return;
+            }
+
+            if (data.myWishes.length >= 7) {
+                showModal('Лимит достигнут', 'Ты уже написал(а) 7 желаний. Дождись, пока партнёр выполнит их.');
+                return;
+            }
+
+            data.myWishes.push({
+                id: getNextId(),
+                text: text,
+                done: false
+            });
+
+            saveData();
+            input.value = '';
+            render();
+        }
+
+        function toggleMyWish(index) {
+            const wish = data.myWishes[index];
+            // Нельзя отметить как выполненное своё же желание — это делает партнёр
+            showModal(
+                'Отметить выполненным?',
+                `Ты хочешь отметить желание "${wish.text}" как выполненное? Это действие выполняет партнёр, когда делает что-то для тебя.`,
+                function() {
+                    // Это логика для партнёра, но в демо-режиме разрешаем
+                    wish.done = !wish.done;
+                    saveData();
+                    render();
+                }
+            );
+        }
+
+        function deleteMyWish(index) {
+            const wish = data.myWishes[index];
+            if (wish.done) {
+                showModal('Нельзя удалить', 'Выполненное желание нельзя удалить.');
+                return;
+            }
+
+            showModal(
+                'Удалить желание?',
+                `Ты уверен(а), что хочешь удалить желание "${wish.text}"?`,
+                function() {
+                    data.myWishes.splice(index, 1);
+                    saveData();
+                    render();
+                }
+            );
+        }
+
+        // === Желания партнёра ===
+
+        function togglePartnerWish(index) {
+            const wish = data.partnerWishes[index];
+            wish.done = !wish.done;
+            saveData();
+            render();
+        }
+
+        // === Сброс ===
+
+        function resetWishes() {
+            showModal(
+                'Новый круг желаний',
+                'Все желания будут удалены. Ты сможешь написать новые 7 желаний для партнёра.',
+                function() {
+                    data.myWishes = [];
+                    data.partnerWishes = [];
+                    saveData();
+                    render();
+                    document.getElementById('celebration').classList.remove('show');
+                    document.getElementById('mainScreen').style.display = 'flex';
+                }
+            );
+        }
+
+        // === Модалка ===
+
+        let modalCallback = null;
+
+        function showModal(title, desc, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalDesc').textContent = desc;
+            document.getElementById('modal').classList.add('show');
+
+            if (callback) {
+                modalCallback = callback;
+                document.getElementById('modalConfirmBtn').style.display = 'block';
+                document.getElementById('modalConfirmBtn').onclick = function() {
+                    closeModal();
+                    if (modalCallback) {
+                        modalCallback();
+                        modalCallback = null;
+                    }
+                };
+            } else {
+                document.getElementById('modalConfirmBtn').style.display = 'none';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+            modalCallback = null;
+        }
+
+        // === Утилиты ===
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function navigate(page) {
+            const pages = {
+                'today': 'today.html',
+                'questions': 'questions.html',
+                'games': 'games.html',
+                'beyond': 'beyond.html',
+                'moments': 'moments.html',
+                'we': 'we.html',
+                'main': 'main.html'
+            };
+            if (pages[page]) {
+                window.location.href = pages[page];
+            }
+        }
+
+        // Инициализация
+        render();
+    </script>
+</body>
+</html>

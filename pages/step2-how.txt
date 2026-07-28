@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — О приложении</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .onboard-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 24px;
+            z-index: 1;
+            animation: fadeIn 0.8s ease;
+            width: 100%;
+            height: 100%;
+        }
+
+        .onboard-logo {
+            font-size: 48px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 0 20px rgba(201, 169, 110, 0.5));
+            animation: flicker 3s ease-in-out infinite;
+        }
+
+        .onboard-title {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            color: var(--text-primary);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .onboard-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 36px;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 36px;
+        }
+
+        .feature-card {
+            background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 18px;
+            padding: 18px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            text-align: left;
+            transition: all 0.3s;
+        }
+
+        .feature-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+            width: 40px;
+            text-align: center;
+        }
+
+        .feature-title {
+            font-family: var(--font-heading);
+            font-size: 15px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .feature-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .feature-highlight {
+            color: var(--gold);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 10%; left: 15%;"></div>
+            <div class="sparkle" style="top: 22%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 28%; left: 25%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 18%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 44%; left: 8%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 40%; right: 8%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="onboard-screen">
+            <div class="onboard-logo">
+                <svg width="48" height="60" viewBox="0 0 64 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <radialGradient id="flameGrad2" cx="50%" cy="60%" r="50%">
+                            <stop offset="0%" stop-color="#FFF5D1"/>
+                            <stop offset="30%" stop-color="#E8C97A"/>
+                            <stop offset="70%" stop-color="#C9A96E"/>
+                            <stop offset="100%" stop-color="#A68A4E"/>
+                        </radialGradient>
+                    </defs>
+                    <path d="M32 0C32 0 12 28 12 44C12 55 20.5 64 32 64C43.5 64 52 55 52 44C52 28 32 0 32 0Z" fill="url(#flameGrad2)"/>
+                    <path d="M32 20C32 20 22 38 22 48C22 54 26.5 60 32 60C37.5 60 42 54 42 48C42 38 32 20 32 20Z" fill="#FFF5D1" opacity="0.6"/>
+                </svg>
+            </div>
+            <div class="onboard-title">Шёпот</div>
+            <div class="onboard-subtitle">приложение только для вас двоих</div>
+
+            <div class="feature-list">
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <div>
+                        <div class="feature-title">Узнайте друг друга<br><span class="feature-highlight">по-настоящему</span></div>
+                        <div class="feature-desc">Отвечайте на вопросы. Совпадения видны обоим. Различия — повод стать ближе.</div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔥</div>
+                    <div>
+                        <div class="feature-title">Верните <span class="feature-highlight">искру</span></div>
+                        <div class="feature-desc">Игры, миссии, свидания. Даже если вы вместе 10 лет — здесь вы почувствуете себя заново.</div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💌</div>
+                    <div>
+                        <div class="feature-title">Храните<br><span class="feature-highlight">моменты</span></div>
+                        <div class="feature-desc">Фото, письма в будущее, календарь отношений. Ваша история — в одном месте.</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="window.location.href='step3-name.html'">Начать</button>
+        </div>
+    </div>
+
+</body>
+</html>

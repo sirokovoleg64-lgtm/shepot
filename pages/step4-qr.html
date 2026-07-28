@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Подключение пары</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .connect-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            padding: 30px 20px;
+            z-index: 1;
+            animation: fadeIn 0.8s ease;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .connect-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .connect-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .method-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            border-radius: var(--radius-card);
+            padding: 18px 16px;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .method-card:hover {
+            border: 1px solid var(--gold);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .method-card.active-method {
+            border: 1px solid var(--gold);
+            box-shadow: var(--shadow-gold);
+            background: rgba(201, 169, 110, 0.08);
+        }
+
+        .method-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .method-title {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .method-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .method-content {
+            display: none;
+            margin-top: 10px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(201, 169, 110, 0.15);
+        }
+
+        .method-card.active-method .method-content {
+            display: block;
+        }
+
+        .qr-box {
+            background: white;
+            padding: 12px;
+            border-radius: 16px;
+            display: inline-block;
+            margin-bottom: 10px;
+            box-shadow: 0 0 25px rgba(201, 169, 110, 0.3);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .qr-timer {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .qr-timer span {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .code-display {
+            font-family: 'Inter', monospace;
+            font-size: 36px;
+            font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 8px;
+            margin: 10px 0;
+            text-shadow: 0 0 20px rgba(201, 169, 110, 0.4);
+        }
+
+        .code-input {
+            background: var(--bg-input);
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            border-radius: var(--radius-button);
+            color: var(--text-primary);
+            font-family: 'Inter', monospace;
+            font-size: 22px;
+            letter-spacing: 6px;
+            padding: 12px 16px;
+            width: 100%;
+            max-width: 200px;
+            outline: none;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .code-input:focus {
+            border: 1px solid var(--gold);
+        }
+
+        .link-display {
+            background: var(--bg-input);
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            border-radius: var(--radius-button);
+            color: var(--gold);
+            font-size: 13px;
+            padding: 10px 14px;
+            margin: 10px 0;
+            word-break: break-all;
+            user-select: all;
+        }
+
+        .btn-small {
+            padding: 8px 20px;
+            font-size: 12px;
+            margin-top: 6px;
+            cursor: pointer;
+        }
+
+        .divider {
+            width: 100%;
+            max-width: 300px;
+            height: 1px;
+            background: rgba(201, 169, 110, 0.15);
+            margin: 6px 0;
+        }
+
+        .bottom-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .btn-primary {
+            padding: 12px 24px;
+            border-radius: 30px;
+            border: none;
+            background: var(--gold);
+            color: #0D1117;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3);
+        }
+
+        .btn-secondary {
+            padding: 12px 24px;
+            border-radius: 30px;
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--gold);
+            color: var(--text-primary);
+        }
+
+        .hint-text {
+            font-size: 10px;
+            color: var(--text-secondary);
+            opacity: 0.6;
+            margin-top: 8px;
+            text-align: center;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 10%; left: 18%;"></div>
+            <div class="sparkle" style="top: 22%; right: 22%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 28%; left: 26%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 18%; right: 20%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 44%; left: 8%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 40%; right: 8%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="connect-screen">
+            <div class="connect-title">Подключите телефоны</div>
+            <div class="connect-subtitle">Выберите способ</div>
+
+            <div class="method-card" id="methodQr" onclick="selectMethod('qr')">
+                <div class="method-icon">📱</div>
+                <div class="method-title">Рядом</div>
+                <div class="method-desc">Покажите QR-код партнёру</div>
+                <div class="method-content">
+                    <div class="qr-box">
+                        <div id="qrContainer"></div>
+                    </div>
+                    <div class="qr-timer">Действителен: <span id="timer">05:00</span></div>
+                    <button class="btn btn-small" onclick="event.stopPropagation(); refreshCode()">Обновить код</button>
+                </div>
+            </div>
+
+            <div class="method-card" id="methodCode" onclick="selectMethod('code')">
+                <div class="method-icon">🔢</div>
+                <div class="method-title">На связи</div>
+                <div class="method-desc">Продиктуйте 6 цифр или введите код партнёра</div>
+                <div class="method-content">
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Ваш код:</div>
+                    <div class="code-display" id="myCode">------</div>
+                    <div class="divider"></div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin: 10px 0 6px;">Введите код партнёра:</div>
+                    <input type="text" class="code-input" id="partnerCodeInput" placeholder="______" maxlength="6" autocomplete="off">
+                    <br>
+                    <button class="btn btn-small" onclick="event.stopPropagation(); connectViaCode()">Подключить</button>
+                    <div id="codeStatus" style="font-size: 11px; margin-top: 6px; color: var(--rose);"></div>
+                </div>
+            </div>
+
+            <div class="method-card" id="methodLink" onclick="selectMethod('link')">
+                <div class="method-icon">🔗</div>
+                <div class="method-title">На расстоянии</div>
+                <div class="method-desc">Отправьте ссылку партнёру в любой мессенджер</div>
+                <div class="method-content">
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Скопируйте и отправьте:</div>
+                    <div class="link-display" id="linkDisplay" onclick="copyLink()">shepot.app/join/------</div>
+                    <button class="btn btn-small" onclick="event.stopPropagation(); copyLink()">Копировать</button>
+                    <div id="linkCopied" style="font-size: 11px; margin-top: 4px; color: var(--gold); display: none;">Скопировано!</div>
+                </div>
+            </div>
+
+            <div class="bottom-buttons">
+                <button class="btn-primary" onclick="goToMain()">
+                    Готово, продолжить
+                </button>
+                <button class="btn-secondary" onclick="skipAndGo()">
+                    Пропустить, подключу позже
+                </button>
+            </div>
+
+            <div class="hint-text">
+                Вы всегда сможете подключить партнёра в разделе «Профиль»
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/qrcode.min.js"></script>
+    <script>
+        let timerInterval;
+        let secondsLeft = 300;
+        let pairCode = '';
+
+        // Проверяем, есть ли уже сохранённый код пары
+        const savedPairCode = localStorage.getItem('shepot_pair_code');
+        if (savedPairCode) {
+            pairCode = savedPairCode;
+        } else {
+            pairCode = generatePairCode();
+        }
+
+        function generatePairCode() {
+            const code = 'SHEPOT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            localStorage.setItem('shepot_pair_code', code);
+            pairCode = code;
+            return code;
+        }
+
+        function selectMethod(method) {
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active-method'));
+            const methodMap = { 'qr': 'Qr', 'code': 'Code', 'link': 'Link' };
+            document.getElementById('method' + methodMap[method]).classList.add('active-method');
+
+            if (method === 'qr') {
+                setTimeout(() => {
+                    document.getElementById('qrContainer').innerHTML = '';
+                    new QRCode(document.getElementById('qrContainer'), {
+                        text: pairCode,
+                        width: 150,
+                        height: 150,
+                        colorDark: '#0D1117',
+                        colorLight: '#FFFFFF',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                }, 100);
+                startTimer();
+            }
+            if (method === 'code') {
+                generateCode();
+            }
+            if (method === 'link') {
+                generateLink();
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            secondsLeft = 300;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                secondsLeft--;
+                updateTimerDisplay();
+                if (secondsLeft <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timer').textContent = 'Истёк';
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const min = Math.floor(secondsLeft / 60);
+            const sec = secondsLeft % 60;
+            document.getElementById('timer').textContent =
+                String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+        }
+
+        function refreshCode() {
+            generatePairCode();
+            document.getElementById('qrContainer').innerHTML = '';
+            new QRCode(document.getElementById('qrContainer'), {
+                text: pairCode,
+                width: 150,
+                height: 150,
+                colorDark: '#0D1117',
+                colorLight: '#FFFFFF',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+            startTimer();
+            generateCode();
+            generateLink();
+        }
+
+        function generateCode() {
+            const codePart = pairCode.split('-')[1];
+            let numeric = '';
+            for (let c of codePart) {
+                numeric += /\d/.test(c) ? c : (c.charCodeAt(0) % 10).toString();
+            }
+            while (numeric.length < 6) numeric += '0';
+            numeric = numeric.substring(0, 6);
+            document.getElementById('myCode').textContent = numeric;
+            localStorage.setItem('shepot_numeric_code', numeric);
+        }
+
+        function connectViaCode() {
+            const input = document.getElementById('partnerCodeInput').value.replace(/\s/g, '');
+            const myNumeric = localStorage.getItem('shepot_numeric_code');
+            const statusEl = document.getElementById('codeStatus');
+
+            if (input.length !== 6 || !/^\d{6}$/.test(input)) {
+                statusEl.textContent = 'Введите 6 цифр';
+                statusEl.style.color = 'var(--rose)';
+                return;
+            }
+
+            if (input === myNumeric) {
+                statusEl.textContent = 'Это ваш код. Введите код партнёра.';
+                statusEl.style.color = 'var(--rose)';
+                return;
+            }
+
+            localStorage.setItem('shepot_partner_code', input);
+            statusEl.textContent = '✓ Партнёр подключен!';
+            statusEl.style.color = '#4CAF50';
+        }
+
+        function generateLink() {
+            const link = 'shepot.app/join/' + pairCode.split('-')[1];
+            document.getElementById('linkDisplay').textContent = link;
+            localStorage.setItem('shepot_link', link);
+        }
+
+        function copyLink() {
+            const link = document.getElementById('linkDisplay').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                const el = document.getElementById('linkCopied');
+                el.style.display = 'block';
+                setTimeout(() => { el.style.display = 'none'; }, 2000);
+            });
+        }
+
+        function goToMain() {
+            const partnerConnected = localStorage.getItem('shepot_partner_code');
+            
+            if (!partnerConnected) {
+                if (confirm('Партнёр ещё не подключен. Вы можете продолжить без партнёра и подключить его позже в Профиле. Продолжить?')) {
+                    window.location.href = 'main.html';
+                }
+            } else {
+                window.location.href = 'main.html';
+            }
+        }
+
+        function skipAndGo() {
+            localStorage.setItem('shepot_skip_connect', 'true');
+            window.location.href = 'main.html';
+        }
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

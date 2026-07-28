@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Больше чем слова</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        * { box-sizing: border-box; }
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            text-align: center; padding: 20px 18px 100px; z-index: 1; width: 100%; min-height: 100vh; overflow-y: auto;
+        }
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 2px; padding-top: 10px; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 14px; }
+
+        .setup-block {
+            width: 100%; max-width: 310px; background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 16px; padding: 18px; margin-bottom: 14px; text-align: left;
+        }
+        .setup-title { font-family: var(--font-heading); font-size: 16px; color: var(--gold); margin-bottom: 8px; }
+        .setup-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; }
+        .setup-desc strong { color: var(--text-primary); }
+
+        .setup-input {
+            width: 100%; background: rgba(245, 240, 232, 0.05); border: 1px solid rgba(201, 169, 110, 0.2);
+            border-radius: 12px; padding: 10px 14px; color: var(--text-primary); font-size: 14px;
+            outline: none; font-family: var(--font-body); margin-bottom: 12px;
+        }
+        .setup-input:focus { border-color: var(--gold); }
+
+        .setup-check { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; cursor: pointer; }
+        .setup-check input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); cursor: pointer; flex-shrink: 0; }
+        .setup-check label { font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+
+        .btn-action {
+            padding: 12px 24px; border-radius: 30px; border: none; background: var(--gold);
+            color: #0D1117; font-size: 14px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s; font-family: var(--font-body); width: 100%;
+        }
+        .btn-action:hover:not(:disabled) { box-shadow: 0 4px 20px rgba(201, 169, 110, 0.4); transform: translateY(-1px); }
+        .btn-action:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-action.secondary { background: transparent; border: 1px solid rgba(201, 169, 110, 0.2); color: var(--text-secondary); width: auto; }
+        .btn-action.secondary:hover:not(:disabled) { border-color: var(--gold); color: var(--text-primary); box-shadow: none; transform: none; }
+
+        .hidden-screen { display: none; }
+
+        .progress-section {
+            width: 100%; max-width: 310px; background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 16px; padding: 14px 18px; margin-bottom: 12px;
+        }
+        .progress-item { margin-bottom: 8px; }
+        .progress-item:last-child { margin-bottom: 0; }
+        .progress-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-primary); margin-bottom: 4px; }
+        .progress-header .count { color: var(--text-secondary); }
+        .progress-bar { width: 100%; height: 6px; background: rgba(201, 169, 110, 0.15); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 10px; transition: width 0.6s ease; width: 0%; }
+        .progress-fill.her { background: linear-gradient(90deg, #D4A5A5, #C9A96E); }
+        .progress-fill.his { background: linear-gradient(90deg, #6BA3C9, #C9A96E); }
+        .progress-fill.common { background: linear-gradient(90deg, #6BBF8E, #C9A96E); }
+
+        .menu-buttons { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 12px; }
+        .menu-btn {
+            padding: 12px 16px; border-radius: 14px; border: 1px solid rgba(201, 169, 110, 0.15);
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px); color: var(--text-primary);
+            font-size: 13px; cursor: pointer; transition: all 0.3s;
+            display: flex; justify-content: space-between; align-items: center; font-family: var(--font-body);
+        }
+        .menu-btn:hover { border-color: rgba(201, 169, 110, 0.4); background: rgba(201, 169, 110, 0.05); }
+        .menu-btn .arrow { color: var(--gold); opacity: 0.4; }
+        .menu-btn .badge { font-size: 11px; color: var(--text-secondary); }
+
+        .round-info { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+
+        .task-card {
+            background: rgba(20, 16, 18, 0.6); backdrop-filter: blur(15px);
+            border: 1px solid rgba(201, 169, 110, 0.15); border-radius: 20px;
+            padding: 20px 18px; width: 100%; max-width: 310px; margin-bottom: 12px;
+            text-align: left; min-height: 160px; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .task-number { font-size: 10px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 8px; }
+        .task-text { font-family: var(--font-heading); font-size: 17px; color: var(--text-primary); line-height: 1.5; margin-bottom: 12px; }
+        .task-diff { font-size: 10px; color: var(--gold); margin-bottom: 12px; }
+        .task-timer { font-size: 12px; color: var(--text-secondary); text-align: center; padding: 8px 0; }
+        .task-timer span { color: var(--gold); font-weight: 600; font-family: 'Inter', monospace; }
+        .task-done-text { font-size: 14px; color: #4CAF50; text-align: center; padding: 8px 0; font-family: var(--font-heading); }
+        .task-completed-all { text-align: center; padding: 20px 0; font-family: var(--font-heading); font-size: 18px; color: var(--gold); }
+
+        .btn-row { display: flex; gap: 10px; width: 100%; max-width: 310px; margin-top: 4px; }
+        .btn-row .btn-action { flex: 1; text-align: center; padding: 10px 12px; font-size: 13px; }
+
+        .celebration { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0; }
+        .celebration.show { display: flex; }
+        .celebration-icon { font-size: 48px; }
+        .celebration-title { font-family: var(--font-heading); font-size: 22px; color: var(--gold); }
+        .celebration-text { font-size: 14px; color: var(--text-secondary); max-width: 280px; line-height: 1.6; }
+        .celebration-prize { font-size: 16px; color: var(--text-primary); font-family: var(--font-heading); }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 6%; left: 12%;"></div>
+            <div class="sparkle" style="top: 18%; right: 18%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 22%; left: 22%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 14%; right: 16%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 38%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 34%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainScreen">
+            <div id="setupScreen">
+                <div class="page-title">📝 Больше чем слова</div>
+                <div class="page-sub">Игра-марафон для пары</div>
+
+                <div class="setup-block">
+                    <div class="setup-title">📖 Правила игры</div>
+                    <div class="setup-desc">
+                        <strong>•</strong> У каждого из вас по <strong>30 заданий</strong>.<br>
+                        <strong>•</strong> Кто выполнит все свои задания первым — <strong>тот победил</strong>!<br>
+                        <strong>•</strong> Также есть <strong>20 общих заданий</strong>.<br>
+                        <strong>•</strong> Можно выполнять <strong>не более 1 задания в сутки</strong>.<br>
+                        <strong>•</strong> Игра рассчитана на <strong>1-2 месяца</strong>.
+                    </div>
+                </div>
+
+                <div class="setup-block">
+                    <div class="setup-title">🏆 Приз победителя</div>
+                    <div class="setup-desc">Напишите, что получит победитель.</div>
+                    <input type="text" class="setup-input" id="prizeInput" placeholder="Например: Ужин в ресторане">
+                    <div class="setup-check">
+                        <input type="checkbox" id="agreeCheck" onchange="updateStartButton()">
+                        <label for="agreeCheck">Мы оба согласны с правилами и призом</label>
+                    </div>
+                    <button class="btn-action" id="startBtn" onclick="startGame()" disabled>🚀 Начать игру</button>
+                </div>
+            </div>
+
+            <div id="gameScreen" class="hidden-screen" style="width:100%;display:none;flex-direction:column;align-items:center;">
+                <div class="page-title">📝 Больше чем слова</div>
+                <div class="page-sub" id="prizeDisplay">🏆 Приз: —</div>
+                <div class="round-info" id="roundDisplay">Круг №1</div>
+
+                <div class="progress-section">
+                    <div class="progress-item">
+                        <div class="progress-header"><span id="myLabel">👩 Мои задания</span><span class="count" id="myProgressText">0 из 30</span></div>
+                        <div class="progress-bar"><div class="progress-fill her" id="myProgressFill" style="width:0%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-header"><span>👫 Общие задания</span><span class="count" id="commonProgressText">0 из 20</span></div>
+                        <div class="progress-bar"><div class="progress-fill common" id="commonProgressFill" style="width:0%;"></div></div>
+                    </div>
+                </div>
+
+                <div class="menu-buttons">
+                    <button class="menu-btn" onclick="openTasks('my')"><span>🎯 Мои задания</span><span class="badge" id="myBadge">0/30</span><span class="arrow">→</span></button>
+                    <button class="menu-btn" onclick="openTasks('common')"><span>👫 Общие задания</span><span class="badge" id="commonBadge">0/20</span><span class="arrow">→</span></button>
+                </div>
+
+                <button class="btn-back" onclick="navigate('games')">← Назад к играм</button>
+            </div>
+
+            <div id="tasksScreen" class="hidden-screen" style="width:100%;display:none;flex-direction:column;align-items:center;">
+                <div class="page-title" id="tasksTitle">Мои задания</div>
+                <div class="page-sub" id="tasksSub">0 из 30 выполнено</div>
+                <div id="tasksContainer"></div>
+                <button class="btn-back" onclick="closeTasks()">← Назад</button>
+            </div>
+
+            <div id="celebrationScreen" class="hidden-screen" style="width:100%;display:none;flex-direction:column;align-items:center;">
+                <div class="celebration show">
+                    <div class="celebration-icon" id="celebrationIcon">🎉</div>
+                    <div class="celebration-title" id="celebrationTitle">ПОБЕДА!</div>
+                    <div class="celebration-text" id="celebrationText">Поздравляем!</div>
+                    <div class="celebration-prize" id="celebrationPrize">🏆 Приз: —</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;" id="celebrationRemaining"></div>
+                    <div class="btn-row" style="margin-top:12px;">
+                        <button class="btn-action secondary" onclick="resetGame()">🔄 Новый круг</button>
+                        <button class="btn-action secondary" onclick="closeCelebration()">📊 К игре</button>
+                    </div>
+                    <button class="btn-back" onclick="navigate('games')" style="margin-top:8px;">← Назад к играм</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="modal">
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle">Подтверждение</div>
+                <div class="modal-desc" id="modalDesc">Вы уверены?</div>
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button class="btn-save" id="modalConfirmBtn">Да</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab active" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 300 ЗАДАНИЙ ДЛЯ НЕЁ
+        // ============================================================
+        const HER_TASKS_POOL = [
+            { id: 1, text: "Скажи ему 5 искренних комплиментов о его характере", difficulty: "easy" },
+            { id: 2, text: "Напиши ему письмо от руки и положи в карман его куртки", difficulty: "easy" },
+            { id: 3, text: "Приготовь его любимый десерт", difficulty: "easy" },
+            { id: 4, text: "Сделай ему массаж головы перед сном", difficulty: "easy" },
+            { id: 5, text: "Расскажи ему о вашем первом свидании в деталях", difficulty: "easy" },
+            { id: 6, text: "Устрой вечер без телефонов, рассказывайте истории", difficulty: "easy" },
+            { id: 7, text: "Сделай ему чай с его любимыми сладостями", difficulty: "easy" },
+            { id: 8, text: "Скажи ему «спасибо» за 3 вещи, которые он делает для тебя", difficulty: "easy" },
+            { id: 9, text: "Прочитай ему вслух книгу или статью 15 минут", difficulty: "easy" },
+            { id: 10, text: "Заведи общий список «100 мест, куда поедем вместе»", difficulty: "easy" },
+            { id: 11, text: "Сделай ему комплимент о его внешности", difficulty: "easy" },
+            { id: 12, text: "Напомни ему о его лучшем качестве", difficulty: "easy" },
+            { id: 13, text: "Скажи ему «я тебя люблю» 3 раза за день", difficulty: "easy" },
+            { id: 14, text: "Сделай ему чай с мёдом и лимоном", difficulty: "easy" },
+            { id: 15, text: "Поцелуй его без причины", difficulty: "easy" },
+            { id: 16, text: "Сделай ему завтрак с его любимыми продуктами", difficulty: "easy" },
+            { id: 17, text: "Напиши ему милое сообщение утром", difficulty: "easy" },
+            { id: 18, text: "Обними его первой, когда он придёт домой", difficulty: "easy" },
+            { id: 19, text: "Включи его любимую музыку, когда он дома", difficulty: "easy" },
+            { id: 20, text: "Проведи с ним 30 минут без телефонов", difficulty: "easy" },
+            { id: 21, text: "Сделай ему массаж шеи", difficulty: "easy" },
+            { id: 22, text: "Сделай ему массаж рук", difficulty: "easy" },
+            { id: 23, text: "Сделай ему чай с травами", difficulty: "easy" },
+            { id: 24, text: "Расскажи ему, за что ты его ценишь", difficulty: "easy" },
+            { id: 25, text: "Сделай ему кофе в постель", difficulty: "easy" },
+            { id: 26, text: "Скажи ему, что он самый лучший", difficulty: "easy" },
+            { id: 27, text: "Сделай ему его любимый смузи", difficulty: "easy" },
+            { id: 28, text: "Приготовь ему тост с его любимой начинкой", difficulty: "easy" },
+            { id: 29, text: "Сделай ему сюрприз из его любимых мелочей", difficulty: "easy" },
+            { id: 30, text: "Сделай ему его любимый коктейль", difficulty: "easy" },
+            { id: 31, text: "Скажи ему, что ты гордишься им", difficulty: "easy" },
+            { id: 32, text: "Сделай ему его любимый бутерброд", difficulty: "easy" },
+            { id: 33, text: "Напиши ему записку с тёплыми словами и положи в обед", difficulty: "easy" },
+            { id: 34, text: "Сделай ему чай с имбирём и мёдом", difficulty: "easy" },
+            { id: 35, text: "Скажи ему, какой он заботливый", difficulty: "easy" },
+            { id: 36, text: "Приготовь ему его любимый салат", difficulty: "easy" },
+            { id: 37, text: "Сделай ему его любимый напиток со льдом", difficulty: "easy" },
+            { id: 38, text: "Скажи ему, что он твой герой", difficulty: "easy" },
+            { id: 39, text: "Сделай ему его любимый десерт с фруктами", difficulty: "easy" },
+            { id: 40, text: "Проведи с ним вечер за разговорами", difficulty: "easy" },
+            { id: 41, text: "Сделай ему его любимый сок", difficulty: "easy" },
+            { id: 42, text: "Скажи ему, что он самый умный", difficulty: "easy" },
+            { id: 43, text: "Сделай ему его любимый торт", difficulty: "easy" },
+            { id: 44, text: "Сделай ему массаж ступней", difficulty: "easy" },
+            { id: 45, text: "Скажи ему, что он самый сильный", difficulty: "easy" },
+            { id: 46, text: "Сделай ему его любимый пирог", difficulty: "easy" },
+            { id: 47, text: "Сделай ему его любимый чай с молоком", difficulty: "easy" },
+            { id: 48, text: "Скажи ему, что он самый красивый", difficulty: "easy" },
+            { id: 49, text: "Сделай ему его любимый десерт с шоколадом", difficulty: "easy" },
+            { id: 50, text: "Скажи ему, что он самый добрый", difficulty: "easy" },
+            { id: 51, text: "Сделай ему его любимый напиток с мятой", difficulty: "easy" },
+            { id: 52, text: "Скажи ему, что он самый надёжный", difficulty: "easy" },
+            { id: 53, text: "Сделай ему его любимый хлеб", difficulty: "easy" },
+            { id: 54, text: "Скажи ему, что он самый верный", difficulty: "easy" },
+            { id: 55, text: "Сделай ему его любимый десерт с орехами", difficulty: "easy" },
+            { id: 56, text: "Скажи ему, что он самый лучший друг", difficulty: "easy" },
+            { id: 57, text: "Сделай ему его любимый напиток с лимоном", difficulty: "easy" },
+            { id: 58, text: "Скажи ему, что он самый любимый", difficulty: "easy" },
+            { id: 59, text: "Сделай ему его любимый десерт с ягодами", difficulty: "easy" },
+            { id: 60, text: "Скажи ему, что он самый родной", difficulty: "easy" },
+            { id: 61, text: "Организуй вечер воспоминаний с фотоальбомом", difficulty: "medium" },
+            { id: 62, text: "Приготовь его любимое блюдо по рецепту его бабушки", difficulty: "medium" },
+            { id: 63, text: "Напиши ему 10 причин, почему ты его любишь, и зачитай вслух", difficulty: "medium" },
+            { id: 64, text: "Устрой романтический ужин при свечах с его любимой музыкой", difficulty: "medium" },
+            { id: 65, text: "Сделай ему сюрприз с его любимыми сладостями и напитками", difficulty: "medium" },
+            { id: 66, text: "Найди его любимый фильм детства и посмотрите вместе", difficulty: "medium" },
+            { id: 67, text: "Пиши ему тёплые сообщения каждый день в течение недели", difficulty: "medium" },
+            { id: 68, text: "Приготовь ему ужин, который он ел в детстве", difficulty: "medium" },
+            { id: 69, text: "Устрой «день без проблем» — сама решай все бытовые вопросы", difficulty: "medium" },
+            { id: 70, text: "Сделай ему открытку своими руками с тёплыми словами", difficulty: "medium" },
+            { id: 71, text: "Сделай ему альбом с вашими совместными фото", difficulty: "medium" },
+            { id: 72, text: "Организуй вечер с его любимой музыкой и танцами", difficulty: "medium" },
+            { id: 73, text: "Сделай ему сюрприз с его друзьями", difficulty: "medium" },
+            { id: 74, text: "Сделай ему массаж с маслом", difficulty: "medium" },
+            { id: 75, text: "Приготовь его любимый салат с морепродуктами", difficulty: "medium" },
+            { id: 76, text: "Сделай ему его любимый коктейль с фруктами", difficulty: "medium" },
+            { id: 77, text: "Организуй киновечер с его любимыми фильмами", difficulty: "medium" },
+            { id: 78, text: "Сделай ему коробку с его любимыми вещами", difficulty: "medium" },
+            { id: 79, text: "Сделай ему его любимый торт с кремом", difficulty: "medium" },
+            { id: 80, text: "Организуй свидание в парке с пикником", difficulty: "medium" },
+            { id: 81, text: "Сделай ему его любимый чай с травами и мёдом", difficulty: "medium" },
+            { id: 82, text: "Сделай ему ароматическую ванну с солью", difficulty: "medium" },
+            { id: 83, text: "Сделай ему его любимый десерт с мороженым", difficulty: "medium" },
+            { id: 84, text: "Организуй вечер с настольными играми вдвоём", difficulty: "medium" },
+            { id: 85, text: "Сделай ему его любимую закуску с сыром", difficulty: "medium" },
+            { id: 86, text: "Сделай ему его любимый суп с гренками", difficulty: "medium" },
+            { id: 87, text: "Организуй пикник на балконе с видом на город", difficulty: "medium" },
+            { id: 88, text: "Сделай ему его любимый салат с овощами", difficulty: "medium" },
+            { id: 89, text: "Сделай ему его любимый напиток с имбирём и лимоном", difficulty: "medium" },
+            { id: 90, text: "Сделай ему его любимый хлеб с чесноком", difficulty: "medium" },
+            { id: 91, text: "Организуй вечер с его любимыми сериалами", difficulty: "medium" },
+            { id: 92, text: "Сделай ему его любимый десерт с творогом", difficulty: "medium" },
+            { id: 93, text: "Сделай ему его любимый напиток с ягодами", difficulty: "medium" },
+            { id: 94, text: "Организуй вечер с его любимой книгой", difficulty: "medium" },
+            { id: 95, text: "Сделай ему его любимый салат с курицей", difficulty: "medium" },
+            { id: 96, text: "Сделай ему его любимый десерт с орехами и мёдом", difficulty: "medium" },
+            { id: 97, text: "Организуй вечер с его любимой музыкой и вином", difficulty: "medium" },
+            { id: 98, text: "Сделай ему его любимый суп с фрикадельками", difficulty: "medium" },
+            { id: 99, text: "Сделай ему его любимый напиток с мятой и лаймом", difficulty: "medium" },
+            { id: 100, text: "Организуй вечер с его любимыми играми на телефоне", difficulty: "medium" },
+            { id: 101, text: "Сделай ему его любимый десерт с шоколадом и орехами", difficulty: "medium" },
+            { id: 102, text: "Сделай ему его любимый салат с рыбой", difficulty: "medium" },
+            { id: 103, text: "Организуй вечер с его любимыми мемами", difficulty: "medium" },
+            { id: 104, text: "Сделай ему его любимый напиток с апельсином", difficulty: "medium" },
+            { id: 105, text: "Организуй вечер с его любимыми подкастами", difficulty: "medium" },
+            { id: 106, text: "Сделай ему его любимый десерт с клубникой", difficulty: "medium" },
+            { id: 107, text: "Сделай ему его любимый суп с грибами", difficulty: "medium" },
+            { id: 108, text: "Организуй вечер с его любимыми документалками", difficulty: "medium" },
+            { id: 109, text: "Сделай ему его любимый напиток с гранатом", difficulty: "medium" },
+            { id: 110, text: "Организуй вечер с его любимыми рассказами", difficulty: "medium" },
+            { id: 111, text: "Сделай ему его любимый десерт с бананом", difficulty: "medium" },
+            { id: 112, text: "Сделай ему его любимый салат с авокадо", difficulty: "medium" },
+            { id: 113, text: "Организуй вечер с его любимыми стихами", difficulty: "medium" },
+            { id: 114, text: "Сделай ему его любимый напиток с клубникой", difficulty: "medium" },
+            { id: 115, text: "Организуй вечер с его любимыми загадками", difficulty: "medium" },
+            { id: 116, text: "Сделай ему его любимый десерт с вишней", difficulty: "medium" },
+            { id: 117, text: "Сделай ему его любимый суп с креветками", difficulty: "medium" },
+            { id: 118, text: "Организуй вечер с его любимыми комиксами", difficulty: "medium" },
+            { id: 119, text: "Сделай ему его любимый напиток с малиной", difficulty: "medium" },
+            { id: 120, text: "Организуй вечер с его любимыми анекдотами", difficulty: "medium" },
+            { id: 121, text: "Организуй для него день, где он может делать только то, что хочет", difficulty: "hard" },
+            { id: 122, text: "Сделай альбом или коллаж из ваших совместных фотографий", difficulty: "hard" },
+            { id: 123, text: "Напиши ему длинное письмо о том, как он изменил твою жизнь", difficulty: "hard" },
+            { id: 124, text: "Организуй вечер в стиле его любимой эпохи", difficulty: "hard" },
+            { id: 125, text: "Сделай ему книгу «100 причин, почему я тебя люблю»", difficulty: "hard" },
+            { id: 126, text: "Устрой сюрприз с его друзьями (позови их тайно)", difficulty: "hard" },
+            { id: 127, text: "Организуй выходной по его идеальному сценарию", difficulty: "hard" },
+            { id: 128, text: "Сделай ему подарок, связанный с его хобби", difficulty: "hard" },
+            { id: 129, text: "Запиши подкаст или аудиописьмо о ваших отношениях", difficulty: "hard" },
+            { id: 130, text: "Исполни его мечту из блока «Мечты»", difficulty: "hard" },
+            { id: 131, text: "Организуй для него охоту за сокровищами по дому", difficulty: "hard" },
+            { id: 132, text: "Сделай ему настенную картину с вашей любовью", difficulty: "hard" },
+            { id: 133, text: "Организуй для него день спонтанности", difficulty: "hard" },
+            { id: 134, text: "Сделай ему видео о вашей любви с его любимой музыкой", difficulty: "hard" },
+            { id: 135, text: "Организуй для него вечер с его любимым делом", difficulty: "hard" },
+            { id: 136, text: "Сделай ему подарок в стиле конверта с заданиями", difficulty: "hard" },
+            { id: 137, text: "Организуй для него романтический ужин на крыше", difficulty: "hard" },
+            { id: 138, text: "Сделай ему его любимый ресторан дома", difficulty: "hard" },
+            { id: 139, text: "Организуй для него вечер с его любимыми играми", difficulty: "hard" },
+            { id: 140, text: "Сделай ему альбом с его мечтами", difficulty: "hard" },
+            { id: 141, text: "Организуй для него свидание в стиле 90-х", difficulty: "hard" },
+            { id: 142, text: "Сделай ему книгу с его лучшими качествами", difficulty: "hard" },
+            { id: 143, text: "Организуй для него день с его любимыми животными", difficulty: "hard" },
+            { id: 144, text: "Сделай ему его любимый парк дома", difficulty: "hard" },
+            { id: 145, text: "Организуй для него вечер с его любимыми людьми", difficulty: "hard" },
+            { id: 146, text: "Сделай ему его любимый город дома", difficulty: "hard" },
+            { id: 147, text: "Организуй для него его любимый праздник", difficulty: "hard" },
+            { id: 148, text: "Сделай ему его любимый фильм в реальности", difficulty: "hard" },
+            { id: 149, text: "Организуй для него его любимый спорт дома", difficulty: "hard" },
+            { id: 150, text: "Сделай ему его любимую книгу в формате аудио", difficulty: "hard" },
+            { id: 151, text: "Организуй для него день с его любимым хобби", difficulty: "hard" },
+            { id: 152, text: "Сделай ему его любимый парк аттракционов дома", difficulty: "hard" },
+            { id: 153, text: "Организуй для него вечер с его любимыми блюдами", difficulty: "hard" },
+            { id: 154, text: "Сделай ему его любимый музей дома", difficulty: "hard" },
+            { id: 155, text: "Организуй для него день с его любимым временем года", difficulty: "hard" },
+            { id: 156, text: "Сделай ему его любимый океан дома", difficulty: "hard" },
+            { id: 157, text: "Организуй для него вечер с его любимыми звёздами", difficulty: "hard" },
+            { id: 158, text: "Сделай ему его любимый лес дома", difficulty: "hard" },
+            { id: 159, text: "Организуй для него день с его любимым цветом", difficulty: "hard" },
+            { id: 160, text: "Сделай ему его любимый закат дома", difficulty: "hard" },
+            { id: 161, text: "Организуй для него вечер с его любимыми ароматами", difficulty: "hard" },
+            { id: 162, text: "Сделай ему его любимый рассвет дома", difficulty: "hard" },
+            { id: 163, text: "Организуй для него день с его любимыми звуками", difficulty: "hard" },
+            { id: 164, text: "Сделай ему его любимый водопад дома", difficulty: "hard" },
+            { id: 165, text: "Организуй для него вечер с его любимыми воспоминаниями", difficulty: "hard" },
+            { id: 166, text: "Сделай ему его любимый маяк дома", difficulty: "hard" },
+            { id: 167, text: "Организуй для него день с его любимыми мечтами", difficulty: "hard" },
+            { id: 168, text: "Сделай ему его любимый корабль дома", difficulty: "hard" },
+            { id: 169, text: "Организуй для него вечер с его любимыми целями", difficulty: "hard" },
+            { id: 170, text: "Сделай ему его любимый замок дома", difficulty: "hard" },
+            { id: 171, text: "Организуй для него день с его любимыми надеждами", difficulty: "hard" },
+            { id: 172, text: "Сделай ему его любимый дворец дома", difficulty: "hard" },
+            { id: 173, text: "Организуй для него вечер с его любимыми секретами", difficulty: "hard" },
+            { id: 174, text: "Сделай ему его любимый сад дома", difficulty: "hard" },
+            { id: 175, text: "Организуй для него день с его любимыми тайнами", difficulty: "hard" },
+            { id: 176, text: "Сделай ему его любимый фонтан дома", difficulty: "hard" },
+            { id: 177, text: "Организуй для него вечер с его любимыми открытиями", difficulty: "hard" },
+            { id: 178, text: "Сделай ему его любимый храм дома", difficulty: "hard" },
+            { id: 179, text: "Организуй для него день с его любимыми чудесами", difficulty: "hard" },
+            { id: 180, text: "Сделай ему его любимый театр дома", difficulty: "hard" },
+            { id: 181, text: "Организуй вечер с его любимыми комедиями", difficulty: "medium" },
+            { id: 182, text: "Сделай ему его любимый десерт с маскарпоне", difficulty: "medium" },
+            { id: 183, text: "Сделай ему его любимый напиток с манго", difficulty: "medium" },
+            { id: 184, text: "Организуй вечер с его любимыми короткометражками", difficulty: "medium" },
+            { id: 185, text: "Сделай ему его любимый салат с тунцом", difficulty: "medium" },
+            { id: 186, text: "Сделай ему его любимый десерт с творогом и ягодами", difficulty: "medium" },
+            { id: 187, text: "Организуй вечер с его любимыми мюзиклами", difficulty: "medium" },
+            { id: 188, text: "Сделай ему его любимый суп с индейкой", difficulty: "medium" },
+            { id: 189, text: "Сделай ему его любимый напиток с персиком", difficulty: "medium" },
+            { id: 190, text: "Организуй вечер с его любимыми операми", difficulty: "medium" },
+            { id: 191, text: "Сделай ему его любимый десерт с карамелью", difficulty: "medium" },
+            { id: 192, text: "Сделай ему его любимый салат с креветками", difficulty: "medium" },
+            { id: 193, text: "Организуй вечер с его любимыми балетами", difficulty: "medium" },
+            { id: 194, text: "Сделай ему его любимый напиток с арбузом", difficulty: "medium" },
+            { id: 195, text: "Организуй вечер с его любимыми драмами", difficulty: "medium" },
+            { id: 196, text: "Сделай ему его любимый десерт с малиной", difficulty: "medium" },
+            { id: 197, text: "Сделай ему его любимый суп с лососем", difficulty: "medium" },
+            { id: 198, text: "Организуй вечер с его любимыми мелодрамами", difficulty: "medium" },
+            { id: 199, text: "Сделай ему его любимый напиток с вишней", difficulty: "medium" },
+            { id: 200, text: "Организуй вечер с его любимыми фэнтези", difficulty: "medium" },
+            { id: 201, text: "Сделай ему его любимый десерт с ежевикой", difficulty: "medium" },
+            { id: 202, text: "Сделай ему его любимый салат с фетой", difficulty: "medium" },
+            { id: 203, text: "Организуй вечер с его любимыми научными фильмами", difficulty: "medium" },
+            { id: 204, text: "Сделай ему его любимый напиток с ежевикой", difficulty: "medium" },
+            { id: 205, text: "Организуй вечер с его любимыми путешествиями", difficulty: "medium" },
+            { id: 206, text: "Сделай ему его любимый десерт с абрикосом", difficulty: "medium" },
+            { id: 207, text: "Сделай ему его любимый суп с уткой", difficulty: "medium" },
+            { id: 208, text: "Организуй вечер с его любимыми животными", difficulty: "medium" },
+            { id: 209, text: "Сделай ему его любимый напиток с клубникой", difficulty: "medium" },
+            { id: 210, text: "Организуй вечер с его любимыми растениями", difficulty: "medium" },
+            { id: 211, text: "Скажи ему, что он самый заботливый", difficulty: "easy" },
+            { id: 212, text: "Сделай ему его любимый десерт с яблоками", difficulty: "easy" },
+            { id: 213, text: "Скажи ему, что он самый понимающий", difficulty: "easy" },
+            { id: 214, text: "Сделай ему его любимый напиток с яблоком", difficulty: "easy" },
+            { id: 215, text: "Скажи ему, что он самый терпеливый", difficulty: "easy" },
+            { id: 216, text: "Сделай ему его любимый десерт с грушей", difficulty: "easy" },
+            { id: 217, text: "Скажи ему, что он самый внимательный", difficulty: "easy" },
+            { id: 218, text: "Сделай ему его любимый напиток с грушей", difficulty: "easy" },
+            { id: 219, text: "Скажи ему, что он самый чуткий", difficulty: "easy" },
+            { id: 220, text: "Сделай ему его любимый десерт с персиком", difficulty: "easy" },
+            { id: 221, text: "Скажи ему, что он самый щедрый", difficulty: "easy" },
+            { id: 222, text: "Сделай ему его любимый напиток с персиком", difficulty: "easy" },
+            { id: 223, text: "Скажи ему, что он самый весёлый", difficulty: "easy" },
+            { id: 224, text: "Сделай ему его любимый десерт с ананасом", difficulty: "easy" },
+            { id: 225, text: "Скажи ему, что он самый остроумный", difficulty: "easy" },
+            { id: 226, text: "Сделай ему его любимый напиток с ананасом", difficulty: "easy" },
+            { id: 227, text: "Скажи ему, что он самый нежный", difficulty: "easy" },
+            { id: 228, text: "Сделай ему его любимый десерт с манго", difficulty: "easy" },
+            { id: 229, text: "Скажи ему, что он самый страстный", difficulty: "easy" },
+            { id: 230, text: "Сделай ему его любимый напиток с манго", difficulty: "easy" },
+            { id: 231, text: "Скажи ему, что он самый смелый", difficulty: "easy" },
+            { id: 232, text: "Сделай ему его любимый десерт с киви", difficulty: "easy" },
+            { id: 233, text: "Скажи ему, что он самый решительный", difficulty: "easy" },
+            { id: 234, text: "Сделай ему его любимый напиток с киви", difficulty: "easy" },
+            { id: 235, text: "Скажи ему, что он самый мудрый", difficulty: "easy" },
+            { id: 236, text: "Сделай ему его любимый десерт с бананом", difficulty: "easy" },
+            { id: 237, text: "Скажи ему, что он самый талантливый", difficulty: "easy" },
+            { id: 238, text: "Сделай ему его любимый напиток с бананом", difficulty: "easy" },
+            { id: 239, text: "Скажи ему, что он самый уникальный", difficulty: "easy" },
+            { id: 240, text: "Сделай ему его любимый десерт с кокосом", difficulty: "easy" },
+            { id: 241, text: "Организуй для него день с его любимыми местами", difficulty: "medium" },
+            { id: 242, text: "Сделай ему его любимый суп с кроликом", difficulty: "medium" },
+            { id: 243, text: "Организуй для него вечер с его любимыми запахами", difficulty: "medium" },
+            { id: 244, text: "Сделай ему его любимый напиток с апельсином и мятой", difficulty: "medium" },
+            { id: 245, text: "Организуй для него день с его любимыми цветами", difficulty: "medium" },
+            { id: 246, text: "Сделай ему его любимый десерт с орехами и шоколадом", difficulty: "medium" },
+            { id: 247, text: "Организуй для него вечер с его любимыми чувствами", difficulty: "medium" },
+            { id: 248, text: "Сделай ему его любимый салат с мясом", difficulty: "medium" },
+            { id: 249, text: "Организуй для него день с его любимыми моментами", difficulty: "medium" },
+            { id: 250, text: "Сделай ему его любимый напиток с клубникой и лимоном", difficulty: "medium" },
+            { id: 251, text: "Организуй для него вечер с его любимыми людьми", difficulty: "medium" },
+            { id: 252, text: "Сделай ему его любимый десерт с ванилью", difficulty: "medium" },
+            { id: 253, text: "Организуй для него день с его любимыми вкусами", difficulty: "medium" },
+            { id: 254, text: "Сделай ему его любимый суп с бараниной", difficulty: "medium" },
+            { id: 255, text: "Организуй для него вечер с его любимыми звуками", difficulty: "medium" },
+            { id: 256, text: "Сделай ему его любимый напиток с малиной и мятой", difficulty: "medium" },
+            { id: 257, text: "Организуй для него день с его любимыми красками", difficulty: "medium" },
+            { id: 258, text: "Сделай ему его любимый десерт с карамелью и орехами", difficulty: "medium" },
+            { id: 259, text: "Организуй для него вечер с его любимыми текстами", difficulty: "medium" },
+            { id: 260, text: "Сделай ему его любимый салат с курицей и ананасом", difficulty: "medium" },
+            { id: 261, text: "Организуй для него день с его любимыми эмоциями", difficulty: "medium" },
+            { id: 262, text: "Сделай ему его любимый напиток с вишней и лимоном", difficulty: "medium" },
+            { id: 263, text: "Организуй для него вечер с его любимыми представлениями", difficulty: "medium" },
+            { id: 264, text: "Сделай ему его любимый десерт с ягодами и сливками", difficulty: "medium" },
+            { id: 265, text: "Организуй для него день с его любимыми образами", difficulty: "medium" },
+            { id: 266, text: "Сделай ему его любимый суп с рыбой и овощами", difficulty: "medium" },
+            { id: 267, text: "Организуй для него вечер с его любимыми ритмами", difficulty: "medium" },
+            { id: 268, text: "Сделай ему его любимый напиток с голубикой", difficulty: "medium" },
+            { id: 269, text: "Организуй для него день с его любимыми традициями", difficulty: "medium" },
+            { id: 270, text: "Сделай ему его любимый десерт с апельсином и шоколадом", difficulty: "medium" },
+            { id: 271, text: "Организуй для него виртуальное путешествие в его мечты", difficulty: "hard" },
+            { id: 272, text: "Сделай ему его любимый сад внутри дома", difficulty: "hard" },
+            { id: 273, text: "Организуй для него вечер в стиле его любимой страны", difficulty: "hard" },
+            { id: 274, text: "Сделай ему его любимый аквариум дома", difficulty: "hard" },
+            { id: 275, text: "Организуй для него день с его любимыми знаменитостями", difficulty: "hard" },
+            { id: 276, text: "Сделай ему его любимый театр с вашей историей", difficulty: "hard" },
+            { id: 277, text: "Организуй для него вечер с его любимыми эпохами", difficulty: "hard" },
+            { id: 278, text: "Сделай ему его любимый музей с вашими моментами", difficulty: "hard" },
+            { id: 279, text: "Организуй для него день с его любимыми занятиями", difficulty: "hard" },
+            { id: 280, text: "Сделай ему его любимый парк с вашими воспоминаниями", difficulty: "hard" },
+            { id: 281, text: "Организуй для него вечер с его любимыми историями", difficulty: "hard" },
+            { id: 282, text: "Сделай ему его любимый альбом с вашей жизнью", difficulty: "hard" },
+            { id: 283, text: "Организуй для него день с его любимыми открытиями", difficulty: "hard" },
+            { id: 284, text: "Сделай ему его любимый фильм о вашей любви", difficulty: "hard" },
+            { id: 285, text: "Организуй для него вечер с его любимыми секретами", difficulty: "hard" },
+            { id: 286, text: "Сделай ему его любимую книгу о вашей истории", difficulty: "hard" },
+            { id: 287, text: "Организуй для него день с его любимыми чудесами", difficulty: "hard" },
+            { id: 288, text: "Сделай ему его любимый спектакль о вашей любви", difficulty: "hard" },
+            { id: 289, text: "Организуй для него вечер с его любимыми мечтами", difficulty: "hard" },
+            { id: 290, text: "Сделай ему его любимый портрет ваших отношений", difficulty: "hard" },
+            { id: 291, text: "Организуй для него день с его любимыми надеждами", difficulty: "hard" },
+            { id: 292, text: "Сделай ему его любимый коллаж вашей жизни", difficulty: "hard" },
+            { id: 293, text: "Организуй для него вечер с его любимыми планами", difficulty: "hard" },
+            { id: 294, text: "Сделай ему его любимый дневник ваших отношений", difficulty: "hard" },
+            { id: 295, text: "Организуй для него день с его любимыми целями", difficulty: "hard" },
+            { id: 296, text: "Сделай ему его любимый календарь вашей любви", difficulty: "hard" },
+            { id: 297, text: "Организуй для него вечер с его любимыми результатами", difficulty: "hard" },
+            { id: 298, text: "Сделай ему его любимый альбом ваших побед", difficulty: "hard" },
+            { id: 299, text: "Организуй для него день с его любимыми достижениями", difficulty: "hard" },
+            { id: 300, text: "Сделай ему его любимый фильм о вашем будущем", difficulty: "hard" }
+        ];
+
+        // ============================================================
+        // 300 ЗАДАНИЙ ДЛЯ НЕГО
+        // ============================================================
+        const HIS_TASKS_POOL = [
+            { id: 1, text: "Уберись в доме и сделай так, чтобы она не заметила", difficulty: "easy" },
+            { id: 2, text: "Купи её любимые цветы и поставь в вазу без её просьбы", difficulty: "easy" },
+            { id: 3, text: "Сделай ей завтрак в постель с её любимым кофе", difficulty: "easy" },
+            { id: 4, text: "Закажи её любимую еду на дом без её просьбы", difficulty: "easy" },
+            { id: 5, text: "Сделай ей чай и принеси с её любимой книгой", difficulty: "easy" },
+            { id: 6, text: "Запиши короткое видео с тёплыми словами", difficulty: "easy" },
+            { id: 7, text: "Купи её любимый напиток и оставь в холодильнике с запиской", difficulty: "easy" },
+            { id: 8, text: "Испеки или купи её любимый десерт", difficulty: "easy" },
+            { id: 9, text: "Напиши список 10 вещей, за которые ты ей благодарен", difficulty: "easy" },
+            { id: 10, text: "Сделай ей массаж стоп с кремом", difficulty: "easy" },
+            { id: 11, text: "Сделай ей массаж рук", difficulty: "easy" },
+            { id: 12, text: "Сделай ей комплимент о её внешности", difficulty: "easy" },
+            { id: 13, text: "Сделай ей чай с мёдом и лимоном", difficulty: "easy" },
+            { id: 14, text: "Поцелуй её без причины", difficulty: "easy" },
+            { id: 15, text: "Сделай ей завтрак с её любимыми продуктами", difficulty: "easy" },
+            { id: 16, text: "Напиши ей милое сообщение утром", difficulty: "easy" },
+            { id: 17, text: "Обними её первой, когда она придёт домой", difficulty: "easy" },
+            { id: 18, text: "Включи её любимую музыку, когда она дома", difficulty: "easy" },
+            { id: 19, text: "Сделай ей комплимент о её работе", difficulty: "easy" },
+            { id: 20, text: "Проведи с ней 30 минут без телефонов", difficulty: "easy" },
+            { id: 21, text: "Сделай ей массаж шеи", difficulty: "easy" },
+            { id: 22, text: "Сделай ей массаж ног", difficulty: "easy" },
+            { id: 23, text: "Сделай ей чай с травами", difficulty: "easy" },
+            { id: 24, text: "Расскажи ей, за что ты её ценишь", difficulty: "easy" },
+            { id: 25, text: "Сделай ей кофе в постель", difficulty: "easy" },
+            { id: 26, text: "Скажи ей, что она самая лучшая", difficulty: "easy" },
+            { id: 27, text: "Сделай ей её любимый смузи", difficulty: "easy" },
+            { id: 28, text: "Приготовь ей тост с её любимой начинкой", difficulty: "easy" },
+            { id: 29, text: "Сделай ей сюрприз из её любимых мелочей", difficulty: "easy" },
+            { id: 30, text: "Сделай ей её любимый коктейль", difficulty: "easy" },
+            { id: 31, text: "Скажи ей, что ты гордишься ей", difficulty: "easy" },
+            { id: 32, text: "Сделай ей её любимый бутерброд", difficulty: "easy" },
+            { id: 33, text: "Напиши ей записку с тёплыми словами и положи в сумку", difficulty: "easy" },
+            { id: 34, text: "Сделай ей чай с имбирём и мёдом", difficulty: "easy" },
+            { id: 35, text: "Скажи ей, какая она заботливая", difficulty: "easy" },
+            { id: 36, text: "Приготовь ей её любимый салат", difficulty: "easy" },
+            { id: 37, text: "Сделай ей её любимый напиток со льдом", difficulty: "easy" },
+            { id: 38, text: "Скажи ей, что она твоя героиня", difficulty: "easy" },
+            { id: 39, text: "Сделай ей её любимый десерт с фруктами", difficulty: "easy" },
+            { id: 40, text: "Проведи с ней вечер за разговорами", difficulty: "easy" },
+            { id: 41, text: "Сделай ей её любимый сок", difficulty: "easy" },
+            { id: 42, text: "Скажи ей, что она самая умная", difficulty: "easy" },
+            { id: 43, text: "Сделай ей её любимый торт", difficulty: "easy" },
+            { id: 44, text: "Сделай ей массаж ступней", difficulty: "easy" },
+            { id: 45, text: "Скажи ей, что она самая сильная", difficulty: "easy" },
+            { id: 46, text: "Сделай ей её любимый пирог", difficulty: "easy" },
+            { id: 47, text: "Сделай ей её любимый чай с молоком", difficulty: "easy" },
+            { id: 48, text: "Скажи ей, что она самая красивая", difficulty: "easy" },
+            { id: 49, text: "Сделай ей её любимый десерт с шоколадом", difficulty: "easy" },
+            { id: 50, text: "Скажи ей, что она самая добрая", difficulty: "easy" },
+            { id: 51, text: "Сделай ей её любимый напиток с мятой", difficulty: "easy" },
+            { id: 52, text: "Скажи ей, что она самая надёжная", difficulty: "easy" },
+            { id: 53, text: "Сделай ей её любимый хлеб", difficulty: "easy" },
+            { id: 54, text: "Скажи ей, что она самая верная", difficulty: "easy" },
+            { id: 55, text: "Сделай ей её любимый десерт с орехами", difficulty: "easy" },
+            { id: 56, text: "Скажи ей, что она самый лучший друг", difficulty: "easy" },
+            { id: 57, text: "Сделай ей её любимый напиток с лимоном", difficulty: "easy" },
+            { id: 58, text: "Скажи ей, что она самая любимая", difficulty: "easy" },
+            { id: 59, text: "Сделай ей её любимый десерт с ягодами", difficulty: "easy" },
+            { id: 60, text: "Скажи ей, что она самая родная", difficulty: "easy" },
+            { id: 61, text: "Организуй пикник в парке или на балконе", difficulty: "medium" },
+            { id: 62, text: "Сделай ей ванну с пеной и свечами", difficulty: "medium" },
+            { id: 63, text: "Напиши ей стихотворение и положи под подушку", difficulty: "medium" },
+            { id: 64, text: "Закажи столик в ресторане, где она давно хотела побывать", difficulty: "medium" },
+            { id: 65, text: "Сделай ей массаж всего тела с маслом", difficulty: "medium" },
+            { id: 66, text: "Приготовь ей ужин по её любимому рецепту", difficulty: "medium" },
+            { id: 67, text: "Устрой «киновечер» с её любимыми фильмами и попкорном", difficulty: "medium" },
+            { id: 68, text: "Купи ей то, что она давно хотела (до 1000 руб)", difficulty: "medium" },
+            { id: 69, text: "Сделай ей сюрприз — организуй встречу с её подругой", difficulty: "medium" },
+            { id: 70, text: "Делай ей комплименты 7 дней подряд", difficulty: "medium" },
+            { id: 71, text: "Сделай ей её любимый салат с креветками", difficulty: "medium" },
+            { id: 72, text: "Сделай ей её любимый десерт с мороженым", difficulty: "medium" },
+            { id: 73, text: "Организуй вечер с настольными играми", difficulty: "medium" },
+            { id: 74, text: "Сделай ей её любимую закуску", difficulty: "medium" },
+            { id: 75, text: "Сделай ей её любимый суп", difficulty: "medium" },
+            { id: 76, text: "Организуй пикник на крыше", difficulty: "medium" },
+            { id: 77, text: "Сделай ей её любимый салат с морепродуктами", difficulty: "medium" },
+            { id: 78, text: "Сделай ей её любимый напиток с имбирём", difficulty: "medium" },
+            { id: 79, text: "Сделай ей её любимый хлеб или выпечку", difficulty: "medium" },
+            { id: 80, text: "Организуй вечер с её любимой музыкой", difficulty: "medium" },
+            { id: 81, text: "Сделай ей её любимый торт или пирог", difficulty: "medium" },
+            { id: 82, text: "Организуй свидание в парке", difficulty: "medium" },
+            { id: 83, text: "Сделай ей её любимый чай с травами", difficulty: "medium" },
+            { id: 84, text: "Сделай ей ароматическую ванну", difficulty: "medium" },
+            { id: 85, text: "Сделай ей её любимый десерт с фруктами", difficulty: "medium" },
+            { id: 86, text: "Организуй вечер с настольными играми", difficulty: "medium" },
+            { id: 87, text: "Сделай ей её любимую закуску с сыром", difficulty: "medium" },
+            { id: 88, text: "Сделай ей её любимый суп с гренками", difficulty: "medium" },
+            { id: 89, text: "Организуй пикник на балконе", difficulty: "medium" },
+            { id: 90, text: "Сделай ей её любимый салат с овощами", difficulty: "medium" },
+            { id: 91, text: "Организуй вечер с её любимыми сериалами", difficulty: "medium" },
+            { id: 92, text: "Сделай ей её любимый десерт с творогом", difficulty: "medium" },
+            { id: 93, text: "Сделай ей её любимый напиток с ягодами", difficulty: "medium" },
+            { id: 94, text: "Организуй вечер с её любимой книгой", difficulty: "medium" },
+            { id: 95, text: "Сделай ей её любимый салат с курицей", difficulty: "medium" },
+            { id: 96, text: "Сделай ей её любимый десерт с орехами и мёдом", difficulty: "medium" },
+            { id: 97, text: "Организуй вечер с её любимой музыкой и вином", difficulty: "medium" },
+            { id: 98, text: "Сделай ей её любимый суп с фрикадельками", difficulty: "medium" },
+            { id: 99, text: "Сделай ей её любимый напиток с мятой и лаймом", difficulty: "medium" },
+            { id: 100, text: "Организуй вечер с её любимыми играми на телефоне", difficulty: "medium" },
+            { id: 101, text: "Сделай ей её любимый десерт с шоколадом и орехами", difficulty: "medium" },
+            { id: 102, text: "Сделай ей её любимый салат с рыбой", difficulty: "medium" },
+            { id: 103, text: "Организуй вечер с её любимыми мемами", difficulty: "medium" },
+            { id: 104, text: "Сделай ей её любимый напиток с апельсином", difficulty: "medium" },
+            { id: 105, text: "Организуй вечер с её любимыми подкастами", difficulty: "medium" },
+            { id: 106, text: "Сделай ей её любимый десерт с клубникой", difficulty: "medium" },
+            { id: 107, text: "Сделай ей её любимый суп с грибами", difficulty: "medium" },
+            { id: 108, text: "Организуй вечер с её любимыми документалками", difficulty: "medium" },
+            { id: 109, text: "Сделай ей её любимый напиток с гранатом", difficulty: "medium" },
+            { id: 110, text: "Организуй вечер с её любимыми рассказами", difficulty: "medium" },
+            { id: 111, text: "Сделай ей её любимый десерт с бананом", difficulty: "medium" },
+            { id: 112, text: "Сделай ей её любимый салат с авокадо", difficulty: "medium" },
+            { id: 113, text: "Организуй вечер с её любимыми стихами", difficulty: "medium" },
+            { id: 114, text: "Сделай ей её любимый напиток с клубникой", difficulty: "medium" },
+            { id: 115, text: "Организуй вечер с её любимыми загадками", difficulty: "medium" },
+            { id: 116, text: "Сделай ей её любимый десерт с вишней", difficulty: "medium" },
+            { id: 117, text: "Сделай ей её любимый суп с креветками", difficulty: "medium" },
+            { id: 118, text: "Организуй вечер с её любимыми комиксами", difficulty: "medium" },
+            { id: 119, text: "Сделай ей её любимый напиток с малиной", difficulty: "medium" },
+            { id: 120, text: "Организуй вечер с её любимыми анекдотами", difficulty: "medium" },
+            { id: 121, text: "Организуй поездку за город на выходные", difficulty: "hard" },
+            { id: 122, text: "Сделай ей романтическое видео о ваших отношениях", difficulty: "hard" },
+            { id: 123, text: "Исполни её мечту из блока «Мечты»", difficulty: "hard" },
+            { id: 124, text: "Организуй сюрприз с её друзьями или семьёй", difficulty: "hard" },
+            { id: 125, text: "Сделай ей подарок, связанный с её хобби", difficulty: "hard" },
+            { id: 126, text: "Устрой для неё «день без забот» — сам всё реши и организуй", difficulty: "hard" },
+            { id: 127, text: "Организуй квест или охоту за сокровищами для неё", difficulty: "hard" },
+            { id: 128, text: "Запиши подкаст или аудиописьмо о ваших отношениях", difficulty: "hard" },
+            { id: 129, text: "Сделай ей книгу «100 причин, почему я тебя люблю»", difficulty: "hard" },
+            { id: 130, text: "Организуй полноценный выходной по её идеальному сценарию", difficulty: "hard" },
+            { id: 131, text: "Организуй для неё охоту за сокровищами по дому", difficulty: "hard" },
+            { id: 132, text: "Сделай ей настенную картину с вашей любовью", difficulty: "hard" },
+            { id: 133, text: "Организуй для неё день спонтанности", difficulty: "hard" },
+            { id: 134, text: "Сделай ей видео о вашей любви с её любимой музыкой", difficulty: "hard" },
+            { id: 135, text: "Организуй для неё вечер с её любимым делом", difficulty: "hard" },
+            { id: 136, text: "Сделай ей подарок в стиле конверта с заданиями", difficulty: "hard" },
+            { id: 137, text: "Организуй для неё романтический ужин на крыше", difficulty: "hard" },
+            { id: 138, text: "Сделай ей её любимый ресторан дома", difficulty: "hard" },
+            { id: 139, text: "Организуй для неё вечер с её любимыми играми", difficulty: "hard" },
+            { id: 140, text: "Сделай ей альбом с её мечтами", difficulty: "hard" },
+            { id: 141, text: "Организуй для неё свидание в стиле 90-х", difficulty: "hard" },
+            { id: 142, text: "Сделай ей книгу с её лучшими качествами", difficulty: "hard" },
+            { id: 143, text: "Организуй для неё день с её любимыми животными", difficulty: "hard" },
+            { id: 144, text: "Сделай ей её любимый парк дома", difficulty: "hard" },
+            { id: 145, text: "Организуй для неё вечер с её любимыми людьми", difficulty: "hard" },
+            { id: 146, text: "Сделай ей её любимый город дома", difficulty: "hard" },
+            { id: 147, text: "Организуй для неё её любимый праздник", difficulty: "hard" },
+            { id: 148, text: "Сделай ей её любимый фильм в реальности", difficulty: "hard" },
+            { id: 149, text: "Организуй для неё её любимый спорт дома", difficulty: "hard" },
+            { id: 150, text: "Сделай ей её любимую книгу в формате аудио", difficulty: "hard" },
+            { id: 151, text: "Организуй для неё день с её любимым хобби", difficulty: "hard" },
+            { id: 152, text: "Сделай ей её любимый парк аттракционов дома", difficulty: "hard" },
+            { id: 153, text: "Организуй для неё вечер с её любимыми блюдами", difficulty: "hard" },
+            { id: 154, text: "Сделай ей её любимый музей дома", difficulty: "hard" },
+            { id: 155, text: "Организуй для неё день с её любимым временем года", difficulty: "hard" },
+            { id: 156, text: "Сделай ей её любимый океан дома", difficulty: "hard" },
+            { id: 157, text: "Организуй для неё вечер с её любимыми звёздами", difficulty: "hard" },
+            { id: 158, text: "Сделай ей её любимый лес дома", difficulty: "hard" },
+            { id: 159, text: "Организуй для неё день с её любимым цветом", difficulty: "hard" },
+            { id: 160, text: "Сделай ей её любимый закат дома", difficulty: "hard" },
+            { id: 161, text: "Организуй для неё вечер с её любимыми ароматами", difficulty: "hard" },
+            { id: 162, text: "Сделай ей её любимый рассвет дома", difficulty: "hard" },
+            { id: 163, text: "Организуй для неё день с её любимыми звуками", difficulty: "hard" },
+            { id: 164, text: "Сделай ей её любимый водопад дома", difficulty: "hard" },
+            { id: 165, text: "Организуй для неё вечер с её любимыми воспоминаниями", difficulty: "hard" },
+            { id: 166, text: "Сделай ей её любимый маяк дома", difficulty: "hard" },
+            { id: 167, text: "Организуй для неё день с её любимыми мечтами", difficulty: "hard" },
+            { id: 168, text: "Сделай ей её любимый корабль дома", difficulty: "hard" },
+            { id: 169, text: "Организуй для неё вечер с её любимыми целями", difficulty: "hard" },
+            { id: 170, text: "Сделай ей её любимый замок дома", difficulty: "hard" },
+            { id: 171, text: "Организуй для неё день с её любимыми надеждами", difficulty: "hard" },
+            { id: 172, text: "Сделай ей её любимый дворец дома", difficulty: "hard" },
+            { id: 173, text: "Организуй для неё вечер с её любимыми секретами", difficulty: "hard" },
+            { id: 174, text: "Сделай ей её любимый сад дома", difficulty: "hard" },
+            { id: 175, text: "Организуй для неё день с её любимыми тайнами", difficulty: "hard" },
+            { id: 176, text: "Сделай ей её любимый фонтан дома", difficulty: "hard" },
+            { id: 177, text: "Организуй для неё вечер с её любимыми открытиями", difficulty: "hard" },
+            { id: 178, text: "Сделай ей её любимый храм дома", difficulty: "hard" },
+            { id: 179, text: "Организуй для неё день с её любимыми чудесами", difficulty: "hard" },
+            { id: 180, text: "Сделай ей её любимый театр дома", difficulty: "hard" },
+            { id: 181, text: "Организуй вечер с её любимыми комедиями", difficulty: "medium" },
+            { id: 182, text: "Сделай ей её любимый десерт с маскарпоне", difficulty: "medium" },
+            { id: 183, text: "Сделай ей её любимый напиток с манго", difficulty: "medium" },
+            { id: 184, text: "Организуй вечер с её любимыми короткометражками", difficulty: "medium" },
+            { id: 185, text: "Сделай ей её любимый салат с тунцом", difficulty: "medium" },
+            { id: 186, text: "Сделай ей её любимый десерт с творогом и ягодами", difficulty: "medium" },
+            { id: 187, text: "Организуй вечер с её любимыми мюзиклами", difficulty: "medium" },
+            { id: 188, text: "Сделай ей её любимый суп с индейкой", difficulty: "medium" },
+            { id: 189, text: "Сделай ей её любимый напиток с персиком", difficulty: "medium" },
+            { id: 190, text: "Организуй вечер с её любимыми операми", difficulty: "medium" },
+            { id: 191, text: "Сделай ей её любимый десерт с карамелью", difficulty: "medium" },
+            { id: 192, text: "Сделай ей её любимый салат с креветками", difficulty: "medium" },
+            { id: 193, text: "Организуй вечер с её любимыми балетами", difficulty: "medium" },
+            { id: 194, text: "Сделай ей её любимый напиток с арбузом", difficulty: "medium" },
+            { id: 195, text: "Организуй вечер с её любимыми драмами", difficulty: "medium" },
+            { id: 196, text: "Сделай ей её любимый десерт с малиной", difficulty: "medium" },
+            { id: 197, text: "Сделай ей её любимый суп с лососем", difficulty: "medium" },
+            { id: 198, text: "Организуй вечер с её любимыми мелодрамами", difficulty: "medium" },
+            { id: 199, text: "Сделай ей её любимый напиток с вишней", difficulty: "medium" },
+            { id: 200, text: "Организуй вечер с её любимыми фэнтези", difficulty: "medium" },
+            { id: 201, text: "Сделай ей её любимый десерт с ежевикой", difficulty: "medium" },
+            { id: 202, text: "Сделай ей её любимый салат с фетой", difficulty: "medium" },
+            { id: 203, text: "Организуй вечер с её любимыми научными фильмами", difficulty: "medium" },
+            { id: 204, text: "Сделай ей её любимый напиток с ежевикой", difficulty: "medium" },
+            { id: 205, text: "Организуй вечер с её любимыми путешествиями", difficulty: "medium" },
+            { id: 206, text: "Сделай ей её любимый десерт с абрикосом", difficulty: "medium" },
+            { id: 207, text: "Сделай ей её любимый суп с уткой", difficulty: "medium" },
+            { id: 208, text: "Организуй вечер с её любимыми животными", difficulty: "medium" },
+            { id: 209, text: "Сделай ей её любимый напиток с клубникой", difficulty: "medium" },
+            { id: 210, text: "Организуй вечер с её любимыми растениями", difficulty: "medium" },
+            { id: 211, text: "Скажи ей, что она самая заботливая", difficulty: "easy" },
+            { id: 212, text: "Сделай ей её любимый десерт с яблоками", difficulty: "easy" },
+            { id: 213, text: "Скажи ей, что она самая понимающая", difficulty: "easy" },
+            { id: 214, text: "Сделай ей её любимый напиток с яблоком", difficulty: "easy" },
+            { id: 215, text: "Скажи ей, что она самая терпеливая", difficulty: "easy" },
+            { id: 216, text: "Сделай ей её любимый десерт с грушей", difficulty: "easy" },
+            { id: 217, text: "Скажи ей, что она самая внимательная", difficulty: "easy" },
+            { id: 218, text: "Сделай ей её любимый напиток с грушей", difficulty: "easy" },
+            { id: 219, text: "Скажи ей, что она самая чуткая", difficulty: "easy" },
+            { id: 220, text: "Сделай ей её любимый десерт с персиком", difficulty: "easy" },
+            { id: 221, text: "Скажи ей, что она самая щедрая", difficulty: "easy" },
+            { id: 222, text: "Сделай ей её любимый напиток с персиком", difficulty: "easy" },
+            { id: 223, text: "Скажи ей, что она самая весёлая", difficulty: "easy" },
+            { id: 224, text: "Сделай ей её любимый десерт с ананасом", difficulty: "easy" },
+            { id: 225, text: "Скажи ей, что она самая остроумная", difficulty: "easy" },
+            { id: 226, text: "Сделай ей её любимый напиток с ананасом", difficulty: "easy" },
+            { id: 227, text: "Скажи ей, что она самая нежная", difficulty: "easy" },
+            { id: 228, text: "Сделай ей её любимый десерт с манго", difficulty: "easy" },
+            { id: 229, text: "Скажи ей, что она самая страстная", difficulty: "easy" },
+            { id: 230, text: "Сделай ей её любимый напиток с манго", difficulty: "easy" },
+            { id: 231, text: "Скажи ей, что она самая смелая", difficulty: "easy" },
+            { id: 232, text: "Сделай ей её любимый десерт с киви", difficulty: "easy" },
+            { id: 233, text: "Скажи ей, что она самая решительная", difficulty: "easy" },
+            { id: 234, text: "Сделай ей её любимый напиток с киви", difficulty: "easy" },
+            { id: 235, text: "Скажи ей, что она самая мудрая", difficulty: "easy" },
+            { id: 236, text: "Сделай ей её любимый десерт с бананом", difficulty: "easy" },
+            { id: 237, text: "Скажи ей, что она самая талантливая", difficulty: "easy" },
+            { id: 238, text: "Сделай ей её любимый напиток с бананом", difficulty: "easy" },
+            { id: 239, text: "Скажи ей, что она самая уникальная", difficulty: "easy" },
+            { id: 240, text: "Сделай ей её любимый десерт с кокосом", difficulty: "easy" },
+            { id: 241, text: "Организуй для неё день с её любимыми местами", difficulty: "medium" },
+            { id: 242, text: "Сделай ей её любимый суп с кроликом", difficulty: "medium" },
+            { id: 243, text: "Организуй для неё вечер с её любимыми запахами", difficulty: "medium" },
+            { id: 244, text: "Сделай ей её любимый напиток с апельсином и мятой", difficulty: "medium" },
+            { id: 245, text: "Организуй для неё день с её любимыми цветами", difficulty: "medium" },
+            { id: 246, text: "Сделай ей её любимый десерт с орехами и шоколадом", difficulty: "medium" },
+            { id: 247, text: "Организуй для неё вечер с её любимыми чувствами", difficulty: "medium" },
+            { id: 248, text: "Сделай ей её любимый салат с мясом", difficulty: "medium" },
+            { id: 249, text: "Организуй для неё день с её любимыми моментами", difficulty: "medium" },
+            { id: 250, text: "Сделай ей её любимый напиток с клубникой и лимоном", difficulty: "medium" },
+            { id: 251, text: "Организуй для неё вечер с её любимыми людьми", difficulty: "medium" },
+            { id: 252, text: "Сделай ей её любимый десерт с ванилью", difficulty: "medium" },
+            { id: 253, text: "Организуй для неё день с её любимыми вкусами", difficulty: "medium" },
+            { id: 254, text: "Сделай ей её любимый суп с бараниной", difficulty: "medium" },
+            { id: 255, text: "Организуй для неё вечер с её любимыми звуками", difficulty: "medium" },
+            { id: 256, text: "Сделай ей её любимый напиток с малиной и мятой", difficulty: "medium" },
+            { id: 257, text: "Организуй для неё день с её любимыми красками", difficulty: "medium" },
+            { id: 258, text: "Сделай ей её любимый десерт с карамелью и орехами", difficulty: "medium" },
+            { id: 259, text: "Организуй для неё вечер с её любимыми текстами", difficulty: "medium" },
+            { id: 260, text: "Сделай ей её любимый салат с курицей и ананасом", difficulty: "medium" },
+            { id: 261, text: "Организуй для неё день с её любимыми эмоциями", difficulty: "medium" },
+            { id: 262, text: "Сделай ей её любимый напиток с вишней и лимоном", difficulty: "medium" },
+            { id: 263, text: "Организуй для неё вечер с её любимыми представлениями", difficulty: "medium" },
+            { id: 264, text: "Сделай ей её любимый десерт с ягодами и сливками", difficulty: "medium" },
+            { id: 265, text: "Организуй для неё день с её любимыми образами", difficulty: "medium" },
+            { id: 266, text: "Сделай ей её любимый суп с рыбой и овощами", difficulty: "medium" },
+            { id: 267, text: "Организуй для неё вечер с её любимыми ритмами", difficulty: "medium" },
+            { id: 268, text: "Сделай ей её любимый напиток с голубикой", difficulty: "medium" },
+            { id: 269, text: "Организуй для неё день с её любимыми традициями", difficulty: "medium" },
+            { id: 270, text: "Сделай ей её любимый десерт с апельсином и шоколадом", difficulty: "medium" },
+            { id: 271, text: "Организуй для неё виртуальное путешествие в её мечты", difficulty: "hard" },
+            { id: 272, text: "Сделай ей её любимый сад внутри дома", difficulty: "hard" },
+            { id: 273, text: "Организуй для неё вечер в стиле её любимой страны", difficulty: "hard" },
+            { id: 274, text: "Сделай ей её любимый аквариум дома", difficulty: "hard" },
+            { id: 275, text: "Организуй для неё день с её любимыми знаменитостями", difficulty: "hard" },
+            { id: 276, text: "Сделай ей её любимый театр с вашей историей", difficulty: "hard" },
+            { id: 277, text: "Организуй для неё вечер с её любимыми эпохами", difficulty: "hard" },
+            { id: 278, text: "Сделай ей её любимый музей с вашими моментами", difficulty: "hard" },
+            { id: 279, text: "Организуй для неё день с её любимыми занятиями", difficulty: "hard" },
+            { id: 280, text: "Сделай ей её любимый парк с вашими воспоминаниями", difficulty: "hard" },
+            { id: 281, text: "Организуй для неё вечер с её любимыми историями", difficulty: "hard" },
+            { id: 282, text: "Сделай ей её любимый альбом с вашей жизнью", difficulty: "hard" },
+            { id: 283, text: "Организуй для неё день с её любимыми открытиями", difficulty: "hard" },
+            { id: 284, text: "Сделай ей её любимый фильм о вашей любви", difficulty: "hard" },
+            { id: 285, text: "Организуй для неё вечер с её любимыми секретами", difficulty: "hard" },
+            { id: 286, text: "Сделай ей её любимую книгу о вашей истории", difficulty: "hard" },
+            { id: 287, text: "Организуй для неё день с её любимыми чудесами", difficulty: "hard" },
+            { id: 288, text: "Сделай ей её любимый спектакль о вашей любви", difficulty: "hard" },
+            { id: 289, text: "Организуй для неё вечер с её любимыми мечтами", difficulty: "hard" },
+            { id: 290, text: "Сделай ей её любимый портрет ваших отношений", difficulty: "hard" },
+            { id: 291, text: "Организуй для неё день с её любимыми надеждами", difficulty: "hard" },
+            { id: 292, text: "Сделай ей её любимый коллаж вашей жизни", difficulty: "hard" },
+            { id: 293, text: "Организуй для неё вечер с её любимыми планами", difficulty: "hard" },
+            { id: 294, text: "Сделай ей её любимый дневник ваших отношений", difficulty: "hard" },
+            { id: 295, text: "Организуй для неё день с её любимыми целями", difficulty: "hard" },
+            { id: 296, text: "Сделай ей её любимый календарь вашей любви", difficulty: "hard" },
+            { id: 297, text: "Организуй для неё вечер с её любимыми результатами", difficulty: "hard" },
+            { id: 298, text: "Сделай ей её любимый альбом ваших побед", difficulty: "hard" },
+            { id: 299, text: "Организуй для неё день с её любимыми достижениями", difficulty: "hard" },
+            { id: 300, text: "Сделай ей её любимый фильм о вашем будущем", difficulty: "hard" }
+        ];
+
+        // ============================================================
+        // 100 ОБЩИХ ЗАДАНИЙ
+        // ============================================================
+        const COMMON_TASKS_POOL = [
+            { id: 1, text: "Посмотрите фильм, обнявшись", difficulty: "easy" },
+            { id: 2, text: "Погуляйте час без телефонов", difficulty: "easy" },
+            { id: 3, text: "Танцуйте под медленную музыку на кухне", difficulty: "easy" },
+            { id: 4, text: "Расскажите друг другу по 3 вещи, за которые благодарны", difficulty: "easy" },
+            { id: 5, text: "Загадайте желание одновременно", difficulty: "easy" },
+            { id: 6, text: "Сделайте совместное фото", difficulty: "easy" },
+            { id: 7, text: "Скажите друг другу «я тебя люблю» и обнимитесь", difficulty: "easy" },
+            { id: 8, text: "Выпейте чай или кофе вместе без телефонов", difficulty: "easy" },
+            { id: 9, text: "Посмотрите закат вместе", difficulty: "easy" },
+            { id: 10, text: "Сделайте комплимент друг другу", difficulty: "easy" },
+            { id: 11, text: "Обнимитесь и молчите 5 минут", difficulty: "easy" },
+            { id: 12, text: "Поделитесь самыми лучшими воспоминаниями", difficulty: "easy" },
+            { id: 13, text: "Сделайте друг другу массаж рук", difficulty: "easy" },
+            { id: 14, text: "Поговорите о планах на завтра", difficulty: "easy" },
+            { id: 15, text: "Почитайте вместе книгу 15 минут", difficulty: "easy" },
+            { id: 16, text: "Сделайте вместе зарядку", difficulty: "easy" },
+            { id: 17, text: "Послушайте вместе музыку и обсудите её", difficulty: "easy" },
+            { id: 18, text: "Скажите друг другу, что любите", difficulty: "easy" },
+            { id: 19, text: "Обнимитесь на минуту без слов", difficulty: "easy" },
+            { id: 20, text: "Поделитесь тем, что вас вдохновляет", difficulty: "easy" },
+            { id: 21, text: "Приготовьте ужин вместе", difficulty: "medium" },
+            { id: 22, text: "Устройте свидание при свечах дома", difficulty: "medium" },
+            { id: 23, text: "Сходите в музей или на выставку", difficulty: "medium" },
+            { id: 24, text: "Сыграйте в настольную игру до победителя", difficulty: "medium" },
+            { id: 25, text: "Посмотрите старые фотографии вместе", difficulty: "medium" },
+            { id: 26, text: "Заведите общий список целей на год", difficulty: "medium" },
+            { id: 27, text: "Почитайте друг другу вслух по ролям", difficulty: "medium" },
+            { id: 28, text: "Сделайте совместную ванну или душ", difficulty: "medium" },
+            { id: 29, text: "Организуйте вечер с настольными играми", difficulty: "medium" },
+            { id: 30, text: "Сделайте вместе пиццу или бургеры", difficulty: "medium" },
+            { id: 31, text: "Сделайте совместное видео", difficulty: "medium" },
+            { id: 32, text: "Организуйте вечер с любимыми фильмами", difficulty: "medium" },
+            { id: 33, text: "Сделайте вместе альбом с фотографиями", difficulty: "medium" },
+            { id: 34, text: "Организуйте вечер с любимой музыкой", difficulty: "medium" },
+            { id: 35, text: "Сделайте вместе десерт", difficulty: "medium" },
+            { id: 36, text: "Организуйте свидание в парке", difficulty: "medium" },
+            { id: 37, text: "Сделайте вместе завтрак в постель", difficulty: "medium" },
+            { id: 38, text: "Организуйте вечер с любимыми книгами", difficulty: "medium" },
+            { id: 39, text: "Сделайте вместе фотосессию", difficulty: "medium" },
+            { id: 40, text: "Организуйте вечер с любимыми играми", difficulty: "medium" },
+            { id: 41, text: "Планируйте и забронируйте совместный отпуск", difficulty: "hard" },
+            { id: 42, text: "Организуйте свидание в новом месте", difficulty: "hard" },
+            { id: 43, text: "Сделайте совместный проект (альбом или видео)", difficulty: "hard" },
+            { id: 44, text: "Проведите выходной без интернета", difficulty: "hard" },
+            { id: 45, text: "Напишите друг другу письма на год вперёд", difficulty: "hard" },
+            { id: 46, text: "Организуйте романтический уикенд", difficulty: "hard" },
+            { id: 47, text: "Сделайте вместе что-то, что давно хотели", difficulty: "hard" },
+            { id: 48, text: "Организуйте вечер воспоминаний и мечт", difficulty: "hard" },
+            { id: 49, text: "Сделайте вместе видео о вашей любви", difficulty: "hard" },
+            { id: 50, text: "Организуйте сюрприз друг для друга", difficulty: "hard" },
+            { id: 51, text: "Сделайте вместе книгу «Наша история»", difficulty: "hard" },
+            { id: 52, text: "Организуйте путешествие в неизвестное место", difficulty: "hard" },
+            { id: 53, text: "Сделайте вместе ванну с пеной и свечами", difficulty: "hard" },
+            { id: 54, text: "Организуйте вечер с любимыми людьми", difficulty: "hard" },
+            { id: 55, text: "Сделайте вместе масло для массажа", difficulty: "hard" },
+            { id: 56, text: "Организуйте день без планов и обязательств", difficulty: "hard" },
+            { id: 57, text: "Сделайте вместе подкаст о ваших отношениях", difficulty: "hard" },
+            { id: 58, text: "Организуйте вечер с любимыми играми", difficulty: "hard" },
+            { id: 59, text: "Сделайте вместе коллаж из фотографий", difficulty: "hard" },
+            { id: 60, text: "Организуйте романтический ужин на крыше", difficulty: "hard" },
+            { id: 61, text: "Сделайте вместе совместный плейлист", difficulty: "medium" },
+            { id: 62, text: "Организуйте день без бытовых дел", difficulty: "medium" },
+            { id: 63, text: "Сделайте вместе завтрак с блинчиками", difficulty: "medium" },
+            { id: 64, text: "Организуйте вечер с любимыми стихами", difficulty: "medium" },
+            { id: 65, text: "Сделайте вместе свечи или мыло", difficulty: "medium" },
+            { id: 66, text: "Организуйте вечер с любимыми играми", difficulty: "medium" },
+            { id: 67, text: "Сделайте вместе совместное дерево желаний", difficulty: "medium" },
+            { id: 68, text: "Организуйте день с любимыми местами", difficulty: "medium" },
+            { id: 69, text: "Сделайте вместе капсулу времени", difficulty: "medium" },
+            { id: 70, text: "Организуйте вечер с любимыми воспоминаниями", difficulty: "medium" },
+            { id: 71, text: "Сделайте вместе поделку из глины", difficulty: "medium" },
+            { id: 72, text: "Организуйте день с любимыми животными", difficulty: "medium" },
+            { id: 73, text: "Сделайте вместе картину на холсте", difficulty: "medium" },
+            { id: 74, text: "Организуйте вечер с любимыми историями", difficulty: "medium" },
+            { id: 75, text: "Сделайте вместе книгу рецептов", difficulty: "medium" },
+            { id: 76, text: "Организуйте день без обязательств", difficulty: "medium" },
+            { id: 77, text: "Сделайте вместе альбом с мечтами", difficulty: "medium" },
+            { id: 78, text: "Организуйте вечер с любимыми ароматами", difficulty: "medium" },
+            { id: 79, text: "Сделайте вместе террариум", difficulty: "medium" },
+            { id: 80, text: "Организуйте день с любимыми ритмами", difficulty: "medium" },
+            { id: 81, text: "Сделайте вместе календарь на год", difficulty: "hard" },
+            { id: 82, text: "Организуйте свидание в стиле 80-х", difficulty: "hard" },
+            { id: 83, text: "Сделайте вместе книгу о ваших отношениях", difficulty: "hard" },
+            { id: 84, text: "Организуйте день с любимыми занятиями", difficulty: "hard" },
+            { id: 85, text: "Сделайте вместе видео-альбом", difficulty: "hard" },
+            { id: 86, text: "Организуйте вечер с любимыми открытиями", difficulty: "hard" },
+            { id: 87, text: "Сделайте вместе карту вашей любви", difficulty: "hard" },
+            { id: 88, text: "Организуйте день с любимыми мечтами", difficulty: "hard" },
+            { id: 89, text: "Сделайте вместе портрет друг друга", difficulty: "hard" },
+            { id: 90, text: "Организуйте вечер с любимыми целями", difficulty: "hard" },
+            { id: 91, text: "Сделайте вместе альбом достижений", difficulty: "hard" },
+            { id: 92, text: "Организуйте день с любимыми чудесами", difficulty: "hard" },
+            { id: 93, text: "Сделайте вместе скульптуру из глины", difficulty: "hard" },
+            { id: 94, text: "Организуйте вечер с любимыми надеждами", difficulty: "hard" },
+            { id: 95, text: "Сделайте вместе книгу желаний", difficulty: "hard" },
+            { id: 96, text: "Организуйте день с любимыми секретами", difficulty: "hard" },
+            { id: 97, text: "Сделайте вместе коллаж мечтаний", difficulty: "hard" },
+            { id: 98, text: "Организуйте вечер с любимыми планами", difficulty: "hard" },
+            { id: 99, text: "Сделайте вместе альбом будущего", difficulty: "hard" },
+            { id: 100, text: "Организуйте романтический уикенд с сюрпризами", difficulty: "hard" }
+        ];
+
+        // ============================================================
+        // ЛОГИКА ИГРЫ
+        // ============================================================
+
+        const myName = localStorage.getItem('shepot_my_name') || 'Я';
+        const partnerName = localStorage.getItem('shepot_partner_name') || 'Партнёр';
+
+        let data = JSON.parse(localStorage.getItem('shepot_morethanwords_data')) || null;
+        let timerInterval = null;
+
+        function getDefaultData() {
+            return { gameStarted: false, prize: '', round: 1, herTasks: [], hisTasks: [], commonTasks: [], herCompleted: false, hisCompleted: false, herCompletedDate: null, hisCompletedDate: null, herLastDone: null, hisLastDone: null, commonLastDone: null, usedHerIds: [], usedHisIds: [], usedCommonIds: [], history: [] };
+        }
+
+        function saveData() { localStorage.setItem('shepot_morethanwords_data', JSON.stringify(data)); }
+
+        function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+
+        function selectTasks(pool, usedIds, count) { const available = pool.filter(t => !usedIds.includes(t.id)); const shuffled = shuffleArray([...available]); const selected = shuffled.slice(0, count); return { tasks: selected, ids: selected.map(t => t.id) }; }
+
+        function getDifficultyEmoji(diff) { if (diff === 'easy') return '🟢'; if (diff === 'medium') return '🟡'; return '🔴'; }
+        function getDifficultyLabel(diff) { if (diff === 'easy') return 'Лёгкое'; if (diff === 'medium') return 'Среднее'; return 'Сложное'; }
+
+        function getMyGender() { const name = myName.toLowerCase(); const endings = ['а', 'я', 'ия', 'ка', 'на', 'ра', 'ла', 'та', 'ша', 'ва', 'га', 'да', 'за']; for (let e of endings) { if (name.endsWith(e)) return 'her'; } return 'his'; }
+
+        function getCurrentTaskIndex(tasks) { for (let i = 0; i < tasks.length; i++) { if (!tasks[i].done) return i; } return tasks.length; }
+        function canCompleteTask(lastDoneDate) { if (!lastDoneDate) return true; return (new Date() - new Date(lastDoneDate)) >= 24 * 60 * 60 * 1000; }
+        function getTimeRemaining(lastDoneDate) { if (!lastDoneDate) return null; const diff = 24 * 60 * 60 * 1000 - (new Date() - new Date(lastDoneDate)); return diff <= 0 ? null : diff; }
+        function formatTimeRemaining(ms) { if (!ms) return '00:00:00'; const h = Math.floor(ms / 3600000); const m = Math.floor((ms % 3600000) / 60000); const s = Math.floor((ms % 60000) / 1000); return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+
+        function startTimer(timeRemaining) { if (timerInterval) clearInterval(timerInterval); let remaining = timeRemaining; timerInterval = setInterval(() => { remaining -= 1000; if (remaining <= 0) { clearInterval(timerInterval); timerInterval = null; const timerEl = document.getElementById('taskTimer'); if (timerEl) { timerEl.textContent = '00:00:00'; setTimeout(() => openTasks('my'), 500); } return; } const timerEl = document.getElementById('taskTimer'); if (timerEl) timerEl.textContent = formatTimeRemaining(remaining); }, 1000); }
+
+        function completeTask(type) {
+            const myGender = getMyGender();
+            let tasks, lastDoneKey;
+            if (type === 'my') { tasks = myGender === 'her' ? data.herTasks : data.hisTasks; lastDoneKey = myGender === 'her' ? 'herLastDone' : 'hisLastDone'; }
+            else { tasks = data.commonTasks; lastDoneKey = 'commonLastDone'; }
+            if (!canCompleteTask(data[lastDoneKey])) { showModal('Подождите', 'Следующее задание станет доступно через 24 часа.'); return; }
+            const currentIndex = getCurrentTaskIndex(tasks);
+            if (currentIndex >= tasks.length) { showModal('Все задания выполнены', 'Поздравляем! Вы выполнили все задания.'); return; }
+            tasks[currentIndex].done = true; data[lastDoneKey] = new Date().toISOString(); saveData(); renderGame(); openTasks(type);
+        }
+
+        function updateStartButton() { document.getElementById('startBtn').disabled = !(document.getElementById('prizeInput').value.trim() && document.getElementById('agreeCheck').checked); }
+
+        document.addEventListener('DOMContentLoaded', function() { document.getElementById('prizeInput').addEventListener('input', updateStartButton); document.getElementById('agreeCheck').addEventListener('change', updateStartButton); updateStartButton(); });
+
+        function startGame() {
+            const prize = document.getElementById('prizeInput').value.trim();
+            if (!prize || !document.getElementById('agreeCheck').checked) { showModal('Ошибка', 'Введите приз и согласитесь с правилами!'); return; }
+            data = getDefaultData(); data.gameStarted = true; data.prize = prize;
+            const herResult = selectTasks(HER_TASKS_POOL, [], 30);
+            const hisResult = selectTasks(HIS_TASKS_POOL, [], 30);
+            const commonResult = selectTasks(COMMON_TASKS_POOL, [], 20);
+            data.herTasks = herResult.tasks; data.hisTasks = hisResult.tasks; data.commonTasks = commonResult.tasks;
+            data.usedHerIds = herResult.ids; data.usedHisIds = hisResult.ids; data.usedCommonIds = commonResult.ids;
+            saveData(); renderGame();
+        }
+
+        function renderGame() {
+            if (!data || !data.gameStarted) { document.getElementById('setupScreen').style.display = 'block'; document.getElementById('gameScreen').style.display = 'none'; document.getElementById('tasksScreen').style.display = 'none'; document.getElementById('celebrationScreen').style.display = 'none'; return; }
+            document.getElementById('setupScreen').style.display = 'none'; document.getElementById('gameScreen').style.display = 'flex'; document.getElementById('tasksScreen').style.display = 'none'; document.getElementById('celebrationScreen').style.display = 'none';
+            const myGender = getMyGender();
+            const myTasks = myGender === 'her' ? data.herTasks : data.hisTasks;
+            const myDone = myTasks.filter(t => t.done).length;
+            const commonDone = data.commonTasks.filter(t => t.done).length;
+            document.getElementById('myLabel').textContent = myGender === 'her' ? '👩 Мои задания' : '👨 Мои задания';
+            document.getElementById('myProgressText').textContent = myDone + ' из ' + myTasks.length;
+            document.getElementById('myProgressFill').style.width = (myDone / myTasks.length * 100) + '%';
+            document.getElementById('myBadge').textContent = myDone + '/' + myTasks.length;
+            document.getElementById('commonProgressText').textContent = commonDone + ' из ' + data.commonTasks.length;
+            document.getElementById('commonProgressFill').style.width = (commonDone / data.commonTasks.length * 100) + '%';
+            document.getElementById('commonBadge').textContent = commonDone + '/' + data.commonTasks.length;
+            document.getElementById('prizeDisplay').textContent = '🏆 Приз: ' + data.prize;
+            document.getElementById('roundDisplay').textContent = 'Круг №' + data.round;
+            checkWinner();
+        }
+
+        function openTasks(type) {
+            const myGender = getMyGender();
+            let tasks, title, lastDoneKey;
+            if (type === 'my') { tasks = myGender === 'her' ? data.herTasks : data.hisTasks; title = myGender === 'her' ? '👩 Мои задания' : '👨 Мои задания'; lastDoneKey = myGender === 'her' ? 'herLastDone' : 'hisLastDone'; }
+            else { tasks = data.commonTasks; title = '👫 Общие задания'; lastDoneKey = 'commonLastDone'; }
+            const total = tasks.length; const done = tasks.filter(t => t.done).length;
+            const currentIndex = getCurrentTaskIndex(tasks);
+            const currentTask = currentIndex < total ? tasks[currentIndex] : null;
+            const canComplete = canCompleteTask(data[lastDoneKey]);
+            const timeRemaining = getTimeRemaining(data[lastDoneKey]);
+            document.getElementById('tasksTitle').textContent = title;
+            document.getElementById('tasksSub').textContent = done + ' из ' + total + ' выполнено';
+            let html = `<div style="width:100%;max-width:310px;margin-bottom:12px;"><div class="progress-bar"><div class="progress-fill her" style="width:${(done/total*100)}%;height:6px;"></div></div></div>`;
+            if (currentTask) {
+                html += `<div class="task-card"><div><div class="task-number">Задание ${currentIndex+1} из ${total}</div><div class="task-text">${escapeHtml(currentTask.text)}</div><div class="task-diff">${getDifficultyEmoji(currentTask.difficulty)} ${getDifficultyLabel(currentTask.difficulty)}</div></div>${canComplete ? `<button class="btn-action" onclick="completeTask('${type}')" style="width:100%;margin-top:8px;">✅ Отметить выполненным</button>` : `<div class="task-timer">⏳ Следующее задание через<br><span id="taskTimer">${formatTimeRemaining(timeRemaining)}</span></div>`}${done > 0 ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:8px;text-align:center;">✅ Выполнено: ${done} заданий</div>` : ''}</div>`;
+                if (!canComplete && timeRemaining) startTimer(timeRemaining);
+            } else { html += `<div class="task-card" style="justify-content:center;align-items:center;min-height:120px;"><div class="task-completed-all">🎉 Все задания выполнены!</div></div>`; }
+            document.getElementById('tasksContainer').innerHTML = html;
+            document.getElementById('gameScreen').style.display = 'none'; document.getElementById('tasksScreen').style.display = 'flex'; document.getElementById('celebrationScreen').style.display = 'none';
+        }
+
+        function closeTasks() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } document.getElementById('tasksScreen').style.display = 'none'; document.getElementById('gameScreen').style.display = 'flex'; renderGame(); }
+
+        function checkWinner() {
+            const herDone = data.herTasks.filter(t => t.done).length;
+            const hisDone = data.hisTasks.filter(t => t.done).length;
+            let winner = null;
+            if (herDone === data.herTasks.length && !data.herCompleted) { data.herCompleted = true; data.herCompletedDate = new Date().toISOString(); winner = 'her'; }
+            if (hisDone === data.hisTasks.length && !data.hisCompleted) { data.hisCompleted = true; data.hisCompletedDate = new Date().toISOString(); winner = 'his'; }
+            if (winner) { saveData(); showCelebration(winner); return; }
+            if (data.herCompleted && data.hisCompleted) { showCelebration(data.herCompletedDate < data.hisCompletedDate ? 'her' : 'his'); return; }
+            if (data.herCompleted) { showCelebration('her', true); return; }
+            if (data.hisCompleted) { showCelebration('his', true); return; }
+        }
+
+        function showCelebration(winner, partial = false) {
+            const winnerName = winner === 'her' ? myName : partnerName;
+            const loserName = winner === 'her' ? partnerName : myName;
+            document.getElementById('celebrationIcon').textContent = partial ? '🔥' : '🎉';
+            document.getElementById('celebrationTitle').textContent = partial ? winnerName + ' уже выполнил(а) все задания!' : '🏆 ' + winnerName + ' ПОБЕДИЛ(А)!';
+            document.getElementById('celebrationText').textContent = partial ? 'Осталось подождать партнёра.' : winnerName + ' выполнил(а) все 30 заданий!';
+            document.getElementById('celebrationPrize').textContent = '🏆 Приз: ' + data.prize;
+            document.getElementById('celebrationRemaining').textContent = loserName + ' осталось: ' + getRemainingTasks(winner) + ' заданий';
+            if (!partial) { data.history.push({ round: data.round, winner, prize: data.prize, date: new Date().toISOString() }); saveData(); }
+            document.getElementById('gameScreen').style.display = 'none'; document.getElementById('tasksScreen').style.display = 'none'; document.getElementById('celebrationScreen').style.display = 'flex';
+        }
+
+        function getRemainingTasks(winner) { const tasks = winner === 'her' ? data.hisTasks : data.herTasks; return tasks.filter(t => !t.done).length; }
+        function closeCelebration() { document.getElementById('celebrationScreen').style.display = 'none'; document.getElementById('gameScreen').style.display = 'flex'; renderGame(); }
+
+        function resetGame() {
+            showModal('Новый круг', 'Все задания будут заменены на новые. Продолжить?', function() {
+                const herResult = selectTasks(HER_TASKS_POOL, data.usedHerIds, 30);
+                const hisResult = selectTasks(HIS_TASKS_POOL, data.usedHisIds, 30);
+                const commonResult = selectTasks(COMMON_TASKS_POOL, data.usedCommonIds, 20);
+                data.herTasks = herResult.tasks; data.hisTasks = hisResult.tasks; data.commonTasks = commonResult.tasks;
+                data.usedHerIds = [...data.usedHerIds, ...herResult.ids];
+                data.usedHisIds = [...data.usedHisIds, ...hisResult.ids];
+                data.usedCommonIds = [...data.usedCommonIds, ...commonResult.ids];
+                data.herCompleted = false; data.hisCompleted = false; data.herCompletedDate = null; data.hisCompletedDate = null;
+                data.herLastDone = null; data.hisLastDone = null; data.commonLastDone = null; data.round++;
+                saveData(); document.getElementById('celebrationScreen').style.display = 'none'; renderGame();
+            });
+        }
+
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        let modalCallback = null;
+        function showModal(title, desc, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalDesc').textContent = desc;
+            document.getElementById('modal').classList.add('show');
+            if (callback) { modalCallback = callback; document.getElementById('modalConfirmBtn').style.display = 'block'; document.getElementById('modalConfirmBtn').onclick = function() { closeModal(); if (modalCallback) { modalCallback(); modalCallback = null; } }; }
+            else { document.getElementById('modalConfirmBtn').style.display = 'none'; }
+        }
+        function closeModal() { document.getElementById('modal').classList.remove('show'); modalCallback = null; }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+
+        if (data && data.gameStarted) { renderGame(); }
+        else { data = getDefaultData(); saveData(); document.getElementById('setupScreen').style.display = 'block'; document.getElementById('gameScreen').style.display = 'none'; document.getElementById('tasksScreen').style.display = 'none'; document.getElementById('celebrationScreen').style.display = 'none'; }
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

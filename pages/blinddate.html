@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Свидание вслепую</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        * { box-sizing: border-box; }
+
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            text-align: center; padding: 40px 18px 100px; z-index: 1; width: 100%; min-height: 100vh; overflow-y: auto;
+        }
+
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 2px; padding-top: 30px; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 14px; }
+
+        .game-description {
+            width: 100%; max-width: 310px; background: rgba(201, 169, 110, 0.06);
+            border: 1px solid rgba(201, 169, 110, 0.12); border-radius: 14px;
+            padding: 14px 16px; margin-bottom: 16px; text-align: left;
+        }
+        .game-description p { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+        .game-description strong { color: var(--gold); }
+
+        .category-grid { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 310px; margin-bottom: 14px; }
+
+        .category-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08); border-radius: 16px;
+            padding: 14px 16px; cursor: pointer; transition: all 0.3s;
+            display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 12px;
+        }
+        .category-card:hover { border-color: rgba(201, 169, 110, 0.3); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+        .category-card .left { display: flex; align-items: center; gap: 12px; }
+        .category-card .icon { font-size: 28px; }
+        .category-card .info .name { font-family: var(--font-heading); font-size: 14px; color: var(--text-primary); }
+        .category-card .info .desc { font-size: 11px; color: var(--text-secondary); }
+        .category-card .right { text-align: right; }
+        .category-card .count { font-size: 12px; color: var(--gold); font-weight: 600; }
+        .category-card .progress-mini { width: 60px; height: 4px; background: rgba(201, 169, 110, 0.15); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+        .category-card .progress-mini .fill { height: 100%; background: var(--gold); border-radius: 4px; transition: width 0.6s ease; }
+
+        .action-row { display: flex; gap: 10px; width: 100%; max-width: 310px; margin-bottom: 8px; flex-wrap: wrap; }
+        .action-row .btn-action {
+            flex: 1; padding: 10px 12px; border-radius: 14px;
+            border: 1px solid rgba(201, 169, 110, 0.15); background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px); color: var(--text-primary); font-size: 12px;
+            cursor: pointer; transition: all 0.3s; font-family: var(--font-body); text-align: center; min-width: 80px;
+        }
+        .action-row .btn-action:hover { border-color: rgba(201, 169, 110, 0.4); background: rgba(201, 169, 110, 0.05); }
+        .action-row .btn-action.active-filter { border-color: var(--gold); background: rgba(201, 169, 110, 0.1); color: var(--gold); }
+
+        .date-screen { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .date-screen.active { display: flex; }
+
+        .date-card {
+            background: rgba(20, 16, 18, 0.6); backdrop-filter: blur(15px);
+            border: 1px solid rgba(201, 169, 110, 0.15); border-radius: 20px;
+            padding: 24px 20px; width: 100%; max-width: 310px; margin-bottom: 14px; text-align: left;
+        }
+        .date-category-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); margin-bottom: 6px; }
+        .date-number { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
+        .date-title { font-family: var(--font-heading); font-size: 20px; color: var(--text-primary); margin-bottom: 12px; line-height: 1.3; }
+
+        .date-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .date-tags .tag { background: rgba(201, 169, 110, 0.08); padding: 4px 12px; border-radius: 12px; font-size: 11px; color: var(--text-secondary); }
+        .date-tags .tag.budget-free { color: #4CAF50; }
+        .date-tags .tag.budget-low { color: #8BC34A; }
+        .date-tags .tag.budget-medium { color: #FFC107; }
+        .date-tags .tag.budget-any { color: #FF9800; }
+
+        .date-tip { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-top: 4px; border-top: 1px solid rgba(201, 169, 110, 0.08); padding-top: 12px; }
+        .date-tip strong { color: var(--gold); }
+
+        .date-actions { display: flex; gap: 10px; width: 100%; max-width: 310px; flex-wrap: wrap; }
+        .date-actions .btn-action {
+            flex: 1; padding: 12px 16px; border-radius: 30px; border: none;
+            background: var(--gold); color: #0D1117; font-size: 13px; cursor: pointer;
+            font-weight: 600; transition: all 0.3s; font-family: var(--font-body); text-align: center; min-width: 80px;
+        }
+        .date-actions .btn-action:hover { box-shadow: 0 4px 20px rgba(201, 169, 110, 0.4); transform: translateY(-1px); }
+        .date-actions .btn-action.secondary { background: transparent; border: 1px solid rgba(201, 169, 110, 0.2); color: var(--text-secondary); }
+        .date-actions .btn-action.secondary:hover { border-color: var(--gold); color: var(--text-primary); box-shadow: none; transform: none; }
+        .date-actions .btn-action.back-to-topics { flex: 0 0 100%; background: transparent; border: 1px solid rgba(201, 169, 110, 0.1); color: var(--text-secondary); font-weight: 400; font-size: 12px; padding: 8px 12px; }
+        .date-actions .btn-action.back-to-topics:hover { border-color: var(--gold); color: var(--text-primary); box-shadow: none; transform: none; }
+
+        .date-progress { width: 100%; max-width: 310px; margin-bottom: 14px; }
+        .date-progress .header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+        .date-progress .bar { width: 100%; height: 6px; background: rgba(201, 169, 110, 0.15); border-radius: 10px; overflow: hidden; }
+        .date-progress .bar .fill { height: 100%; background: linear-gradient(90deg, var(--gold), #D4B87A); border-radius: 10px; transition: width 0.6s ease; width: 0%; }
+
+        .completed-screen { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0; }
+        .completed-screen.active { display: flex; }
+        .completed-screen .icon { font-size: 48px; }
+        .completed-screen .title { font-family: var(--font-heading); font-size: 22px; color: var(--gold); }
+        .completed-screen .text { font-size: 14px; color: var(--text-secondary); max-width: 280px; line-height: 1.6; }
+        .completed-screen .btn-action { padding: 12px 32px; border-radius: 30px; border: none; background: var(--gold); color: #0D1117; font-size: 14px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-family: var(--font-body); }
+        .completed-screen .btn-action:hover { box-shadow: 0 4px 20px rgba(201, 169, 110, 0.4); }
+        .completed-screen .btn-action.secondary { background: transparent; border: 1px solid rgba(201, 169, 110, 0.2); color: var(--text-secondary); }
+        .completed-screen .btn-action.secondary:hover { border-color: var(--gold); color: var(--text-primary); box-shadow: none; }
+
+        .filters-block {
+            width: 100%; max-width: 310px; background: rgba(20, 16, 18, 0.4);
+            backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; display: none;
+        }
+        .filters-block.show { display: block; }
+
+        .filter-group { margin-bottom: 10px; text-align: left; }
+        .filter-group:last-child { margin-bottom: 0; }
+        .filter-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600; }
+
+        .filter-options { display: flex; flex-wrap: wrap; gap: 4px; }
+        .filter-options .filter-btn {
+            padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(201, 169, 110, 0.15);
+            background: transparent; color: var(--text-secondary); font-size: 10px;
+            cursor: pointer; transition: all 0.3s; font-family: var(--font-body);
+        }
+        .filter-options .filter-btn:hover { border-color: rgba(201, 169, 110, 0.3); }
+        .filter-options .filter-btn.active { border-color: var(--gold); background: rgba(201, 169, 110, 0.1); color: var(--gold); }
+
+        .filter-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .filter-actions .btn-action {
+            flex: 1; padding: 6px 12px; border-radius: 12px;
+            border: 1px solid rgba(201, 169, 110, 0.15); background: transparent;
+            color: var(--text-secondary); font-size: 11px; cursor: pointer;
+            transition: all 0.3s; font-family: var(--font-body); text-align: center;
+        }
+        .filter-actions .btn-action:hover { border-color: var(--gold); color: var(--text-primary); }
+        .filter-actions .btn-action.primary { background: var(--gold); color: #0D1117; border-color: var(--gold); font-weight: 600; }
+        .filter-actions .btn-action.primary:hover { box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 6%; left: 12%;"></div>
+            <div class="sparkle" style="top: 18%; right: 18%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 22%; left: 22%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 14%; right: 16%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 38%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 34%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainScreen">
+            <div id="mainContent">
+                <div class="page-title">🌹 Свидание вслепую</div>
+                <div class="page-sub">Найди идеальную идею для свидания</div>
+
+                <div class="game-description">
+                    <p><strong>Надоели скучные свидания?</strong><br>Эта игра подскажет вам, как провести время вместе.<br><br>Выберите категорию, настройте фильтры (бюджет, сезон, длительность) или нажмите <strong>«Случайное свидание»</strong> — и мы покажем вам идеальную идею!<br><br><strong>Вдохновляйтесь и создавайте незабываемые моменты ❤️</strong></p>
+                </div>
+
+                <div class="action-row">
+                    <button class="btn-action" onclick="randomDate()">🎲 Случайное свидание</button>
+                    <button class="btn-action" onclick="toggleFilters()">⚙️ Фильтры</button>
+                </div>
+
+                <div class="filters-block" id="filtersBlock">
+                    <div class="filter-group">
+                        <div class="filter-label">💰 Бюджет</div>
+                        <div class="filter-options" id="budgetFilters">
+                            <button class="filter-btn active" data-value="any" onclick="setFilter('budget', 'any')">Любой</button>
+                            <button class="filter-btn" data-value="free" onclick="setFilter('budget', 'free')">💰 Бесплатно</button>
+                            <button class="filter-btn" data-value="low" onclick="setFilter('budget', 'low')">💰💰 До 1000</button>
+                            <button class="filter-btn" data-value="medium" onclick="setFilter('budget', 'medium')">💰💰💰 До 3000</button>
+                            <button class="filter-btn" data-value="high" onclick="setFilter('budget', 'high')">💰💰💰💰 Любые</button>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-label">🌤️ Сезон</div>
+                        <div class="filter-options" id="seasonFilters">
+                            <button class="filter-btn active" data-value="all" onclick="setFilter('season', 'all')">Круглый год</button>
+                            <button class="filter-btn" data-value="spring" onclick="setFilter('season', 'spring')">🌸 Весна</button>
+                            <button class="filter-btn" data-value="summer" onclick="setFilter('season', 'summer')">☀️ Лето</button>
+                            <button class="filter-btn" data-value="autumn" onclick="setFilter('season', 'autumn')">🍂 Осень</button>
+                            <button class="filter-btn" data-value="winter" onclick="setFilter('season', 'winter')">❄️ Зима</button>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-label">⏱️ Длительность</div>
+                        <div class="filter-options" id="durationFilters">
+                            <button class="filter-btn active" data-value="any" onclick="setFilter('duration', 'any')">Любая</button>
+                            <button class="filter-btn" data-value="short" onclick="setFilter('duration', 'short')">⏱️ 1-2 ч</button>
+                            <button class="filter-btn" data-value="medium" onclick="setFilter('duration', 'medium')">⏱️⏱️ 3-5 ч</button>
+                            <button class="filter-btn" data-value="long" onclick="setFilter('duration', 'long')">⏱️⏱️⏱️ Весь день</button>
+                            <button class="filter-btn" data-value="full" onclick="setFilter('duration', 'full')">⏱️⏱️⏱️⏱️ Выходные</button>
+                        </div>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn-action primary" onclick="applyFilters()">📌 Применить</button>
+                        <button class="btn-action" onclick="resetFilters()">❌ Сбросить</button>
+                    </div>
+                </div>
+
+                <div class="category-grid" id="categoryGrid"></div>
+
+                <button class="btn-back" onclick="navigate('games')">← Назад к играм</button>
+            </div>
+
+            <div class="date-screen" id="dateScreen">
+                <div class="page-title">🌹 Свидание вслепую</div>
+                <div class="page-sub" id="dateCategoryLabel">Категория</div>
+
+                <div class="date-card">
+                    <div class="date-category-label" id="dateCategory">🏠 Домашнее</div>
+                    <div class="date-number" id="dateNumber">Идея 1 из 50</div>
+                    <div class="date-title" id="dateTitle">Название свидания</div>
+                    <div class="date-tags" id="dateTags"></div>
+                    <div class="date-tip" id="dateTip"><strong>Что нужно:</strong> Описание</div>
+                </div>
+
+                <div class="date-progress">
+                    <div class="header"><span>Прогресс</span><span id="dateProgressText">0 из 50</span></div>
+                    <div class="bar"><div class="fill" id="dateProgressFill" style="width:0%;"></div></div>
+                </div>
+
+                <div class="date-actions">
+                    <button class="btn-action secondary" onclick="previousDate()">← Назад</button>
+                    <button class="btn-action" onclick="nextDate()">🎲 Другая идея</button>
+                    <button class="btn-action back-to-topics" onclick="backToMain()">📂 Назад к категориям</button>
+                </div>
+            </div>
+
+            <div class="completed-screen" id="completedScreen">
+                <div class="icon">🎉</div>
+                <div class="title">Все идеи просмотрены!</div>
+                <div class="text" id="completedText">Вы просмотрели все 50 идей в этой категории.</div>
+                <button class="btn-action" onclick="resetCategory()">🔄 Начать заново</button>
+                <button class="btn-action secondary" onclick="backToMain()" style="margin-top:6px;">📂 Назад к категориям</button>
+            </div>
+        </div>
+
+        <div class="modal" id="modal">
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle">Подтверждение</div>
+                <div class="modal-desc" id="modalDesc">Вы уверены?</div>
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button class="btn-save" id="modalConfirmBtn">Да</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab active" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        const DATE_DATA = {
+            home: { icon: '🏠', name: 'Домашние', desc: 'Уютные вечера без выхода из дома', dates: [
+                { title: 'Киновечер с тематическими закусками', budget: 'free', season: 'all', duration: 'medium', tip: 'Выберите фильм, приготовьте попкорн, зажгите свечи.' },
+                { title: 'Приготовьте ужин по новому рецепту вместе', budget: 'low', season: 'all', duration: 'medium', tip: 'Найдите рецепт и готовьте вместе под музыку.' },
+                { title: 'Сделайте домашний спа-вечер с масками и массажем', budget: 'free', season: 'all', duration: 'short', tip: 'Маски, массаж, расслабляющая музыка.' },
+                { title: 'Организуйте караоке-батл дома', budget: 'free', season: 'all', duration: 'medium', tip: 'Караоке на YouTube, соревнование.' },
+                { title: 'Устройте пикник на полу с пледами и свечами', budget: 'free', season: 'all', duration: 'medium', tip: 'Пледы, подушки, свечи, закуски.' },
+                { title: 'Сделайте вместе коллаж из ваших фотографий', budget: 'free', season: 'all', duration: 'medium', tip: 'Распечатайте фото или используйте приложения.' },
+                { title: 'Постройте крепость из одеял и смотрите фильм', budget: 'free', season: 'all', duration: 'short', tip: 'Одеяла, стулья, гирлянды.' },
+                { title: 'Устройте вечер настольных игр с призами', budget: 'free', season: 'all', duration: 'long', tip: 'Настольные игры, небольшие призы.' },
+                { title: 'Сделайте домашнюю пиццу с необычными начинками', budget: 'low', season: 'all', duration: 'medium', tip: 'Готовое тесто, свои начинки.' },
+                { title: 'Устройте вечер воспоминаний с фотоальбомом', budget: 'free', season: 'all', duration: 'medium', tip: 'Старые фото, истории.' },
+                { title: 'Танцуйте под медленную музыку на кухне', budget: 'free', season: 'all', duration: 'short', tip: 'Любимые медленные песни.' },
+                { title: 'Сделайте вместе книгу желаний', budget: 'free', season: 'all', duration: 'medium', tip: 'Блокнот, записывайте желания.' },
+                { title: 'Устройте чайную церемонию с разными сортами', budget: 'low', season: 'all', duration: 'short', tip: 'Несколько сортов чая, обсуждайте вкусы.' },
+                { title: 'Сделайте совместный плейлист и слушайте', budget: 'free', season: 'all', duration: 'short', tip: 'По 5 песен от каждого.' },
+                { title: 'Устройте вечер с рисованием и бокалом вина', budget: 'low', season: 'all', duration: 'medium', tip: 'Краски, вино, рисуйте друг друга.' },
+                { title: 'Сделайте домашний квест для партнёра', budget: 'free', season: 'all', duration: 'medium', tip: 'Записки с подсказками, сюрприз в конце.' },
+                { title: 'Устройте вечер с дегустацией сыров', budget: 'medium', season: 'all', duration: 'medium', tip: 'Несколько видов сыра, виноград, орехи.' },
+                { title: 'Сделайте вместе скульптуру из глины', budget: 'low', season: 'all', duration: 'medium', tip: 'Глина или пластилин, создайте что-то символичное.' },
+                { title: 'Устройте вечер с любимыми сериалами и пледами', budget: 'free', season: 'all', duration: 'long', tip: 'Пересматривайте любимый сериал.' },
+                { title: 'Сделайте вместе завтрак в постель', budget: 'low', season: 'all', duration: 'short', tip: 'Приготовьте завтрак и принесите в постель.' }
+            ]},
+            city: { icon: '🌆', name: 'Городские', desc: 'Прогулки, кафе, парки, музеи', dates: [
+                { title: 'Сходите в музей, где никогда не были', budget: 'low', season: 'all', duration: 'medium', tip: 'Найдите новый музей, изучайте экспонаты.' },
+                { title: 'Гуляйте по городу и заходите в новые места', budget: 'free', season: 'all', duration: 'medium', tip: 'Без плана, заходите в кафе и парки.' },
+                { title: 'Сходите на стендап-концерт или в театр', budget: 'medium', season: 'all', duration: 'medium', tip: 'Купите билеты на комедийное шоу.' },
+                { title: 'Устройте фотоохоту — ищите красивые места', budget: 'free', season: 'all', duration: 'medium', tip: 'Ищите красивые локации для фото.' },
+                { title: 'Сходите в кафе с настольными играми', budget: 'low', season: 'all', duration: 'medium', tip: 'Найдите кафе с играми.' },
+                { title: 'Прогуляйтесь по набережной на закате', budget: 'free', season: 'spring', duration: 'short', tip: 'Набережная, закат.' },
+                { title: 'Посетите книжный и выберите книгу друг другу', budget: 'low', season: 'all', duration: 'medium', tip: 'Подарите друг другу книгу.' },
+                { title: 'Сходите на экскурсию в незнакомую часть города', budget: 'low', season: 'all', duration: 'long', tip: 'Экскурсия в новом районе.' },
+                { title: 'Посетите уличный рынок или ярмарку', budget: 'free', season: 'summer', duration: 'medium', tip: 'Прогуляйтесь по ярмарке.' },
+                { title: 'Сделайте бар-хоппинг — 3 новых места', budget: 'high', season: 'all', duration: 'long', tip: 'Посетите 3 новых бара или кафе.' },
+                { title: 'Сходите на концерт или в филармонию', budget: 'high', season: 'all', duration: 'medium', tip: 'Купите билеты на концерт.' },
+                { title: 'Устройте велопрогулку по городу', budget: 'free', season: 'summer', duration: 'long', tip: 'Арендуйте велосипеды.' },
+                { title: 'Посетите планетарий или обсерваторию', budget: 'low', season: 'all', duration: 'medium', tip: 'Смотрите на звёзды.' },
+                { title: 'Сходите в ботанический сад', budget: 'low', season: 'spring', duration: 'medium', tip: 'Прогуляйтесь среди цветов.' },
+                { title: 'Устройте пикник в городском парке', budget: 'low', season: 'summer', duration: 'medium', tip: 'Плед, еда, парк.' },
+                { title: 'Посетите зоопарк или океанариум', budget: 'medium', season: 'all', duration: 'long', tip: 'Наблюдайте за животными.' },
+                { title: 'Сходите в кино на фильм наугад', budget: 'low', season: 'all', duration: 'short', tip: 'Выберите фильм без спойлеров.' },
+                { title: 'Устройте прогулку по незнакомым улицам', budget: 'free', season: 'all', duration: 'medium', tip: 'Идите туда, где не были.' },
+                { title: 'Посетите выставку современного искусства', budget: 'low', season: 'all', duration: 'medium', tip: 'Обсуждайте искусство.' },
+                { title: 'Сходите на уличный фестиваль или праздник', budget: 'free', season: 'summer', duration: 'long', tip: 'Найдите ближайший фестиваль.' }
+            ]},
+            active: { icon: '🏃', name: 'Активные', desc: 'Спорт, приключения, движение', dates: [
+                { title: 'Сходите на совместную тренировку или йогу', budget: 'low', season: 'all', duration: 'short', tip: 'Найдите класс йоги для двоих.' },
+                { title: 'Арендуйте велосипеды и прокатитесь по парку', budget: 'low', season: 'summer', duration: 'medium', tip: 'Покатайтесь по живописным местам.' },
+                { title: 'Сходите на каток или в аквапарк', budget: 'medium', season: 'winter', duration: 'long', tip: 'Катайтесь на коньках или посетите аквапарк.' },
+                { title: 'Устройте пеший поход в лес или парк', budget: 'free', season: 'spring', duration: 'long', tip: 'Идите в поход с едой и водой.' },
+                { title: 'Сыграйте в мини-гольф или пейнтбол', budget: 'medium', season: 'all', duration: 'medium', tip: 'Активные игры, соревнование.' },
+                { title: 'Сходите на скалодром или в верёвочный парк', budget: 'medium', season: 'all', duration: 'medium', tip: 'Попробуйте себя на высоте.' },
+                { title: 'Устройте вечер танцев дома или в студии', budget: 'low', season: 'all', duration: 'medium', tip: 'Научитесь новому стилю.' },
+                { title: 'Сходите на курсы танцев для пар', budget: 'medium', season: 'all', duration: 'medium', tip: 'Запишитесь на танцевальный класс.' },
+                { title: 'Арендуйте лодку или катамаран', budget: 'medium', season: 'summer', duration: 'medium', tip: 'Плавайте на лодке.' },
+                { title: 'Сделайте пробежку вместе и устройте пикник', budget: 'free', season: 'summer', duration: 'medium', tip: 'Побегайте, потом отдохните с едой.' },
+                { title: 'Сходите в бассейн и плавайте', budget: 'low', season: 'all', duration: 'medium', tip: 'Плавайте вместе, отдыхайте в джакузи.' },
+                { title: 'Устройте день на лыжах или сноуборде', budget: 'high', season: 'winter', duration: 'long', tip: 'Катайтесь на горных склонах.' },
+                { title: 'Сходите в тренажёрный зал вместе', budget: 'low', season: 'all', duration: 'medium', tip: 'Тренируйтесь, мотивируйте друг друга.' },
+                { title: 'Устройте велосипедный маршрут за город', budget: 'low', season: 'summer', duration: 'long', tip: 'Прокатитесь за город.' },
+                { title: 'Сыграйте в теннис или бадминтон', budget: 'low', season: 'all', duration: 'medium', tip: 'Активные игры, соревнование.' },
+                { title: 'Сходите на йога-ретрит', budget: 'high', season: 'summer', duration: 'long', tip: 'Выходные для практики йоги.' },
+                { title: 'Устройте день в парке с активностями', budget: 'free', season: 'summer', duration: 'long', tip: 'Игры на улице.' },
+                { title: 'Сходите на мастер-класс по капоэйре', budget: 'medium', season: 'all', duration: 'medium', tip: 'Бразильское боевое искусство.' },
+                { title: 'Арендуйте самокаты и катайтесь по городу', budget: 'low', season: 'summer', duration: 'medium', tip: 'Катайтесь на самокатах.' },
+                { title: 'Сходите в боулинг', budget: 'low', season: 'all', duration: 'medium', tip: 'Играйте в боулинг.' }
+            ]},
+            romantic: { icon: '❤️', name: 'Романтические', desc: 'Свечи, ужины, закаты', dates: [
+                { title: 'Устройте ужин при свечах с живой музыкой', budget: 'medium', season: 'all', duration: 'medium', tip: 'Свечи, ужин, музыка.' },
+                { title: 'Смотрите закат с красивым видом и шампанским', budget: 'low', season: 'summer', duration: 'short', tip: 'Красивый закат, шампанское.' },
+                { title: 'Сходите в ресторан с необычной атмосферой', budget: 'high', season: 'all', duration: 'medium', tip: 'Ресторан с уникальным интерьером.' },
+                { title: 'Устройте пикник с шампанским и клубникой', budget: 'low', season: 'summer', duration: 'medium', tip: 'Плед, шампанское, клубника.' },
+                { title: 'Сделайте друг другу массаж с маслами и свечами', budget: 'low', season: 'all', duration: 'short', tip: 'Масло для массажа, свечи.' },
+                { title: 'Сходите в караоке и спойте друг другу', budget: 'low', season: 'all', duration: 'medium', tip: 'Спойте романтическую песню.' },
+                { title: 'Организуйте свидание на крыше с видом на город', budget: 'free', season: 'summer', duration: 'short', tip: 'Крыша, огни города.' },
+                { title: 'Сделайте совместную фотосессию на природе', budget: 'free', season: 'spring', duration: 'medium', tip: 'Красивые фото друг друга.' },
+                { title: 'Устройте романтическую прогулку под звёздами', budget: 'free', season: 'summer', duration: 'short', tip: 'Гуляйте ночью, смотрите на звёзды.' },
+                { title: 'Сделайте «письмо в будущее» друг другу', budget: 'free', season: 'all', duration: 'short', tip: 'Напишите письма, откройте через год.' },
+                { title: 'Устройте завтрак в постель с цветами', budget: 'low', season: 'all', duration: 'short', tip: 'Завтрак и цветы в постель.' },
+                { title: 'Сходите на романтический фильм в кино', budget: 'low', season: 'all', duration: 'short', tip: 'Романтический фильм, обсуждение.' },
+                { title: 'Устройте вечер с ванной, свечами и вином', budget: 'low', season: 'all', duration: 'medium', tip: 'Ванна, свечи, вино.' },
+                { title: 'Сделайте список «100 причин почему я тебя люблю»', budget: 'free', season: 'all', duration: 'long', tip: '100 причин любви.' },
+                { title: 'Устройте свидание на берегу моря', budget: 'high', season: 'summer', duration: 'long', tip: 'Романтический вечер у воды.' },
+                { title: 'Делайте друг другу комплименты весь вечер', budget: 'free', season: 'all', duration: 'short', tip: 'Комплименты каждый час.' },
+                { title: 'Устройте вечер с танцами под медленную музыку', budget: 'free', season: 'all', duration: 'short', tip: 'Танцуйте, чувствуйте друг друга.' },
+                { title: 'Сходите на романтический ужин с пианистом', budget: 'high', season: 'all', duration: 'medium', tip: 'Ресторан с живой музыкой.' },
+                { title: 'Устройте прогулку на лошадях вдвоём', budget: 'high', season: 'all', duration: 'long', tip: 'Покатайтесь на лошадях.' },
+                { title: 'Сделайте друг другу подарки с символизмом', budget: 'low', season: 'all', duration: 'short', tip: 'Подарки, связанные с отношениями.' }
+            ]},
+            unusual: { icon: '🎭', name: 'Необычные', desc: 'Квесты, мастер-классы, эксперименты', dates: [
+                { title: 'Сходите на квест в реальности', budget: 'medium', season: 'all', duration: 'long', tip: 'Выберите квест по вкусу.' },
+                { title: 'Запишитесь на мастер-класс (гончарное дело)', budget: 'medium', season: 'all', duration: 'long', tip: 'Создавайте что-то своими руками.' },
+                { title: 'Устройте тематический вечер в стиле другой страны', budget: 'low', season: 'all', duration: 'long', tip: 'Выберите страну, украсьте комнату.' },
+                { title: 'Сходите в зоопарк или океанариум', budget: 'medium', season: 'all', duration: 'long', tip: 'Наблюдайте за животными.' },
+                { title: 'Посетите планетарий или обсерваторию', budget: 'low', season: 'all', duration: 'medium', tip: 'Смотрите на звёзды.' },
+                { title: 'Сделайте коллаж мечтаний на большой бумаге', budget: 'free', season: 'all', duration: 'long', tip: 'Ватман, картинки, визуализация.' },
+                { title: 'Устройте вечер настольных ролевых игр', budget: 'free', season: 'all', duration: 'long', tip: 'D&D или другие ролевые игры.' },
+                { title: 'Сходите на дегустацию (вина, сыров, шоколада)', budget: 'medium', season: 'all', duration: 'medium', tip: 'Пробуйте вкусы.' },
+                { title: 'Организуйте охоту за сокровищами по городу', budget: 'free', season: 'summer', duration: 'long', tip: 'Маршрут, подсказки, соревнование.' },
+                { title: 'Запишитесь на парный мастер-класс по танцам', budget: 'medium', season: 'all', duration: 'medium', tip: 'Научитесь танцевать вместе.' },
+                { title: 'Устройте вечер с созданием своего коктейля', budget: 'low', season: 'all', duration: 'medium', tip: 'Придумайте свои коктейли.' },
+                { title: 'Сходите на курсы актёрского мастерства', budget: 'medium', season: 'all', duration: 'long', tip: 'Попробуйте себя в актёрской игре.' },
+                { title: 'Устройте день с японской чайной церемонией', budget: 'low', season: 'all', duration: 'medium', tip: 'Чайная церемония в японском стиле.' },
+                { title: 'Сходите на квест-концерт', budget: 'medium', season: 'all', duration: 'long', tip: 'Интерактивное шоу.' },
+                { title: 'Устройте вечер с созданием своего парфюма', budget: 'medium', season: 'all', duration: 'medium', tip: 'Создайте свои ароматы.' },
+                { title: 'Сходите на мастер-класс по каллиграфии', budget: 'low', season: 'all', duration: 'medium', tip: 'Пишите красиво.' },
+                { title: 'Устройте вечер с театром теней', budget: 'free', season: 'all', duration: 'medium', tip: 'Представление с тенью рук.' },
+                { title: 'Сходите на интерактивный спектакль', budget: 'medium', season: 'all', duration: 'medium', tip: 'Участвуйте в действии.' },
+                { title: 'Устройте день с приготовлением еды другой страны', budget: 'low', season: 'all', duration: 'long', tip: 'Блюда неизвестной кухни.' },
+                { title: 'Сходите на лекцию о том, что вас интересует', budget: 'free', season: 'all', duration: 'medium', tip: 'Открытая лекция.' }
+            ]}
+        };
+
+        const CATEGORY_KEYS = ['home', 'city', 'active', 'romantic', 'unusual'];
+        let data = JSON.parse(localStorage.getItem('shepot_blinddate_data')) || null;
+
+        function getDefaultData() { const p = {}; CATEGORY_KEYS.forEach(k => p[k] = []); return { progress: p, filters: { budget: 'any', season: 'all', duration: 'any' } }; }
+        function saveData() { localStorage.setItem('shepot_blinddate_data', JSON.stringify(data)); }
+        function getCategoryCount(key) { return DATE_DATA[key].dates.length; }
+        function getViewedCount(key) { return (data && data.progress && data.progress[key]) ? data.progress[key].length : 0; }
+        function getProgressPercent(key) { const t = getCategoryCount(key), v = getViewedCount(key); return t > 0 ? Math.round((v / t) * 100) : 0; }
+
+        function getNextDate(key, filters) {
+            let dates = DATE_DATA[key].dates;
+            const viewed = data.progress[key] || [];
+            if (filters) {
+                if (filters.budget && filters.budget !== 'any') dates = dates.filter(d => d.budget === filters.budget);
+                if (filters.season && filters.season !== 'all') dates = dates.filter(d => d.season === filters.season || d.season === 'all');
+                if (filters.duration && filters.duration !== 'any') dates = dates.filter(d => d.duration === filters.duration);
+            }
+            const available = dates.filter(d => !viewed.includes(dates.indexOf(d)));
+            if (available.length === 0) return null;
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
+        function getBudgetLabel(b) { const m = { free: '💰 Бесплатно', low: '💰💰 До 1000', medium: '💰💰💰 До 3000', high: '💰💰💰💰 Любые' }; return m[b] || b; }
+        function getBudgetClass(b) { const m = { free: 'budget-free', low: 'budget-low', medium: 'budget-medium', high: 'budget-any' }; return m[b] || ''; }
+        function getSeasonLabel(s) { const m = { all: '🟢 Круглый год', spring: '🌸 Весна', summer: '☀️ Лето', autumn: '🍂 Осень', winter: '❄️ Зима' }; return m[s] || s; }
+        function getDurationLabel(d) { const m = { short: '⏱️ 1-2 часа', medium: '⏱️⏱️ 3-5 часов', long: '⏱️⏱️⏱️ Весь день', full: '⏱️⏱️⏱️⏱️ Выходные' }; return m[d] || d; }
+
+        function renderCategories() {
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = CATEGORY_KEYS.map(key => {
+                const cat = DATE_DATA[key];
+                const total = getCategoryCount(key), viewed = getViewedCount(key), percent = getProgressPercent(key);
+                return `<div class="category-card" onclick="selectCategory('${key}')"><div class="left"><div class="icon">${cat.icon}</div><div class="info"><div class="name">${cat.name}</div><div class="desc">${cat.desc}</div></div></div><div class="right"><div class="count">${viewed}/${total}</div><div class="progress-mini"><div class="fill" style="width:${percent}%;"></div></div></div></div>`;
+            }).join('');
+        }
+
+        let currentCategory = null;
+        let currentDateIndex = null;
+        let dateHistory = [];
+
+        function selectCategory(key) {
+            currentCategory = key;
+            const cat = DATE_DATA[key];
+            const total = getCategoryCount(key), viewed = getViewedCount(key);
+            if (viewed === total && total > 0) { document.getElementById('completedText').textContent = 'Вы просмотрели все ' + total + ' идей в категории «' + cat.name + '».'; document.getElementById('mainContent').style.display = 'none'; document.getElementById('dateScreen').classList.remove('active'); document.getElementById('completedScreen').classList.add('active'); dateHistory = []; return; }
+            const filters = data.filters || { budget: 'any', season: 'all', duration: 'any' };
+            const next = getNextDate(key, filters);
+            if (!next) { document.getElementById('completedText').textContent = 'Вы просмотрели все подходящие идеи в категории «' + cat.name + '».'; document.getElementById('mainContent').style.display = 'none'; document.getElementById('dateScreen').classList.remove('active'); document.getElementById('completedScreen').classList.add('active'); dateHistory = []; return; }
+            const idx = DATE_DATA[key].dates.indexOf(next);
+            currentDateIndex = idx; dateHistory.push({ category: key, index: idx }); showDate(key, idx);
+        }
+
+        function showDate(key, idx) {
+            const cat = DATE_DATA[key];
+            const date = cat.dates[idx];
+            const total = getCategoryCount(key), viewed = getViewedCount(key);
+            document.getElementById('mainContent').style.display = 'none'; document.getElementById('dateScreen').classList.add('active'); document.getElementById('completedScreen').classList.remove('active');
+            document.getElementById('dateCategoryLabel').textContent = cat.icon + ' ' + cat.name;
+            document.getElementById('dateCategory').textContent = cat.icon + ' ' + cat.name;
+            document.getElementById('dateNumber').textContent = 'Идея ' + (viewed + 1) + ' из ' + total;
+            document.getElementById('dateTitle').textContent = date.title;
+            document.getElementById('dateTags').innerHTML = `<span class="tag ${getBudgetClass(date.budget)}">${getBudgetLabel(date.budget)}</span><span class="tag">${getSeasonLabel(date.season)}</span><span class="tag">${getDurationLabel(date.duration)}</span>`;
+            document.getElementById('dateTip').innerHTML = '<strong>Что нужно:</strong> ' + date.tip;
+            document.getElementById('dateProgressText').textContent = viewed + ' из ' + total;
+            document.getElementById('dateProgressFill').style.width = getProgressPercent(key) + '%';
+        }
+
+        function nextDate() {
+            if (!currentCategory || currentDateIndex === null) return;
+            if (!data.progress[currentCategory]) data.progress[currentCategory] = [];
+            if (!data.progress[currentCategory].includes(currentDateIndex)) { data.progress[currentCategory].push(currentDateIndex); saveData(); }
+            selectCategory(currentCategory);
+        }
+
+        function previousDate() {
+            if (dateHistory.length <= 1) { showModal('Назад нельзя', 'Это первая идея.'); return; }
+            dateHistory.pop();
+            const prev = dateHistory[dateHistory.length - 1];
+            currentCategory = prev.category; currentDateIndex = prev.index;
+            showDate(prev.category, prev.index);
+        }
+
+        function randomDate() {
+            const available = CATEGORY_KEYS.filter(k => getViewedCount(k) < getCategoryCount(k));
+            if (available.length === 0) { showModal('Все идеи просмотрены', 'Вы просмотрели все идеи! 🎉'); return; }
+            dateHistory = []; selectCategory(available[Math.floor(Math.random() * available.length)]);
+        }
+
+        function backToMain() { document.getElementById('mainContent').style.display = 'block'; document.getElementById('dateScreen').classList.remove('active'); document.getElementById('completedScreen').classList.remove('active'); dateHistory = []; renderCategories(); }
+
+        function resetCategory() {
+            if (!currentCategory) return;
+            showModal('Сбросить прогресс?', 'Все идеи в категории «' + DATE_DATA[currentCategory].name + '» будут сброшены.', function() { data.progress[currentCategory] = []; saveData(); dateHistory = []; backToMain(); });
+        }
+
+        function toggleFilters() { document.getElementById('filtersBlock').classList.toggle('show'); }
+        function setFilter(type, value) { document.getElementById(type + 'Filters').querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.value === value)); }
+
+        function applyFilters() {
+            const budgetBtn = document.querySelector('#budgetFilters .filter-btn.active');
+            const seasonBtn = document.querySelector('#seasonFilters .filter-btn.active');
+            const durationBtn = document.querySelector('#durationFilters .filter-btn.active');
+            data.filters = { budget: budgetBtn ? budgetBtn.dataset.value : 'any', season: seasonBtn ? seasonBtn.dataset.value : 'all', duration: durationBtn ? durationBtn.dataset.value : 'any' };
+            saveData(); document.getElementById('filtersBlock').classList.remove('show'); backToMain(); showModal('Фильтры применены', 'Теперь показываются только подходящие идеи.');
+        }
+
+        function resetFilters() {
+            data.filters = { budget: 'any', season: 'all', duration: 'any' }; saveData();
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.value === 'any' || b.dataset.value === 'all'));
+            document.getElementById('filtersBlock').classList.remove('show'); backToMain(); showModal('Фильтры сброшены', 'Показываются все идеи.');
+        }
+
+        let modalCallback = null;
+        function showModal(title, desc, callback) {
+            document.getElementById('modalTitle').textContent = title; document.getElementById('modalDesc').textContent = desc; document.getElementById('modal').classList.add('show');
+            if (callback) { modalCallback = callback; document.getElementById('modalConfirmBtn').style.display = 'block'; document.getElementById('modalConfirmBtn').onclick = function() { closeModal(); if (modalCallback) { modalCallback(); modalCallback = null; } }; }
+            else { document.getElementById('modalConfirmBtn').style.display = 'none'; }
+        }
+        function closeModal() { document.getElementById('modal').classList.remove('show'); modalCallback = null; }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+
+        if (!data) { data = getDefaultData(); saveData(); }
+        renderCategories();
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Колесо фортуны</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        * { box-sizing: border-box; }
+
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            padding: 40px 18px 100px;
+            z-index: 1;
+            width: 100%;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            padding-top: 30px;
+        }
+
+        .page-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+        }
+
+        .game-description {
+            width: 100%;
+            max-width: 310px;
+            background: rgba(201, 169, 110, 0.06);
+            border: 1px solid rgba(201, 169, 110, 0.12);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .game-description p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .game-description strong {
+            color: var(--gold);
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 10px auto 20px;
+        }
+
+        .wheel-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(201, 169, 110, 0.3), inset 0 0 40px rgba(201, 169, 110, 0.1);
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            cursor: default;
+        }
+
+        .wheel-canvas.spinning {
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 20px rgba(201, 169, 110, 0.5);
+            z-index: 2;
+            pointer-events: none;
+            border: 3px solid #0D1117;
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid var(--gold);
+            z-index: 3;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        }
+
+        .btn-spin {
+            padding: 14px 40px;
+            border-radius: 30px;
+            border: none;
+            background: linear-gradient(135deg, var(--gold), #D4B87A);
+            color: #0D1117;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: var(--font-body);
+            margin-top: 4px;
+        }
+
+        .btn-spin:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 4px 30px rgba(201, 169, 110, 0.5);
+        }
+
+        .btn-spin:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-back-main {
+            padding: 10px 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            background: rgba(20, 16, 18, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 16px;
+            font-family: var(--font-body);
+        }
+
+        .btn-back-main:hover {
+            border-color: var(--gold);
+            color: var(--text-primary);
+        }
+
+        /* Результат */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .result-screen.active {
+            display: flex;
+        }
+
+        .result-card {
+            background: rgba(20, 16, 18, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(201, 169, 110, 0.15);
+            border-radius: 20px;
+            padding: 24px 20px;
+            width: 100%;
+            max-width: 310px;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        .result-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .result-category {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--gold);
+            margin-bottom: 4px;
+            text-align: center;
+        }
+
+        .result-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .result-tip {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-top: 4px;
+            border-top: 1px solid rgba(201, 169, 110, 0.08);
+            padding-top: 12px;
+        }
+
+        .result-tip strong {
+            color: var(--gold);
+        }
+
+        .result-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .result-tags .tag {
+            background: rgba(201, 169, 110, 0.08);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 310px;
+            flex-wrap: wrap;
+        }
+
+        .result-actions .btn-action {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 30px;
+            border: none;
+            background: var(--gold);
+            color: #0D1117;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-family: var(--font-body);
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .result-actions .btn-action:hover {
+            box-shadow: 0 4px 20px rgba(201, 169, 110, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .result-actions .btn-action.secondary {
+            background: transparent;
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            color: var(--text-secondary);
+        }
+
+        .result-actions .btn-action.secondary:hover {
+            border-color: var(--gold);
+            color: var(--text-primary);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(13, 17, 23, 0.92);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(201, 169, 110, 0.08);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 10px;
+            z-index: 20;
+            max-width: 390px;
+            margin: 0 auto;
+        }
+
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 2px 6px;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            font-family: var(--font-body);
+            gap: 2px;
+        }
+
+        .tab .tab-icon { font-size: 20px; }
+        .tab.active { color: var(--gold); }
+        .tab:hover { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 6%; left: 12%;"></div>
+            <div class="sparkle" style="top: 18%; right: 18%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 22%; left: 22%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 14%; right: 16%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 38%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 34%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainScreen">
+            <div id="mainContent">
+                <div class="page-title">🎡 Колесо фортуны</div>
+                <div class="page-sub">Крути и узнавай, что делать</div>
+
+                <div class="game-description">
+                    <p>
+                        <strong>Не знаешь, чем заняться сегодня?</strong><br>
+                        Крути колесо! Оно выберет за тебя: кино, игры, готовку, книгу, отдых или музыку.
+                        <br><br>
+                        <strong>Нажми «Крутить!» и пусть судьба решает 🎡</strong>
+                    </p>
+                </div>
+
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <canvas id="wheelCanvas" class="wheel-canvas" width="400" height="400"></canvas>
+                    <div class="wheel-center">🎡</div>
+                </div>
+
+                <button class="btn-spin" id="spinBtn" onclick="spinWheel()">🎲 Крутить!</button>
+
+                <button class="btn-back-main" onclick="navigate('games')">← Назад к играм</button>
+            </div>
+
+            <!-- РЕЗУЛЬТАТ -->
+            <div class="result-screen" id="resultScreen">
+                <div class="page-title">🎡 Колесо фортуны</div>
+                <div class="page-sub" id="resultCategoryLabel">Категория</div>
+
+                <div class="result-card">
+                    <div class="result-icon" id="resultIcon">🎬</div>
+                    <div class="result-category" id="resultCategory">КИНО</div>
+                    <div class="result-title" id="resultTitle">Название идеи</div>
+                    <div class="result-tags" id="resultTags">
+                        <span class="tag">⏱️ 2-3 часа</span>
+                        <span class="tag">🏠 Домашнее</span>
+                    </div>
+                    <div class="result-tip" id="resultTip">
+                        <strong>Что нужно:</strong> Описание
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <button class="btn-action secondary" onclick="backToWheel()">📂 К колесу</button>
+                    <button class="btn-action" onclick="spinWheel()">🎲 Крутить ещё</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')">
+                <span class="tab-icon">🏠</span> Сегодня
+            </div>
+            <div class="tab" onclick="navigate('questions')">
+                <span class="tab-icon">💬</span> Вопросы
+            </div>
+            <div class="tab active" onclick="navigate('games')">
+                <span class="tab-icon">🎲</span> Игры
+            </div>
+            <div class="tab" onclick="navigate('beyond')">
+                <span class="tab-icon">🔥</span> За гранью
+            </div>
+            <div class="tab" onclick="navigate('moments')">
+                <span class="tab-icon">📸</span> Моменты
+            </div>
+            <div class="tab" onclick="navigate('we')">
+                <span class="tab-icon">💌</span> Мы
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // СЕКТОРЫ КОЛЕСА
+        // ============================================================
+
+        const SECTORS = [
+            { id: 'cinema', label: 'Кино', emoji: '🎬', color: '#6BBF8E' },
+            { id: 'games', label: 'Игры', emoji: '🎮', color: '#6BA3C9' },
+            { id: 'cook', label: 'Готовить', emoji: '🍳', color: '#FFA726' },
+            { id: 'book', label: 'Книга', emoji: '📚', color: '#E57373' },
+            { id: 'rest', label: 'Отдых', emoji: '🛋️', color: '#B39DDB' },
+            { id: 'music', label: 'Музыка', emoji: '🎵', color: '#FFD54F' }
+        ];
+
+        // ============================================================
+        // БАЗА ИДЕЙ
+        // ============================================================
+
+        const IDEAS = {
+            cinema: [
+                { title: 'Посмотрите фильм, который вы оба не видели', duration: '2-3 часа', place: 'Домашнее', tip: 'Выберите фильм наугад из рекомендаций. Сделайте попкорн и уютную атмосферу.' },
+                { title: 'Устройте киномарафон из 3 фильмов одной тематики', duration: '4-6 часов', place: 'Домашнее', tip: 'Выберите тематику: комедии, ужасы, фантастика. Запаситесь закусками.' },
+                { title: 'Пересмотрите ваш любимый фильм с комментариями', duration: '2-3 часа', place: 'Домашнее', tip: 'Останавливайте фильм и обсуждайте каждый момент.' },
+                { title: 'Посмотрите фильм по рекомендации друга', duration: '2-3 часа', place: 'Домашнее', tip: 'Спросите у друга, что он посоветует. Доверьтесь его вкусу.' },
+                { title: 'Посмотрите старый фильм из 80-90-х', duration: '2-3 часа', place: 'Домашнее', tip: 'Выберите классику. Узнайте, как снимали кино раньше.' },
+                { title: 'Устройте киновечер с попкорном и газировкой', duration: '2-3 часа', place: 'Домашнее', tip: 'Настоящий кинотеатр дома! Сделайте попкорн и откройте газировку.' },
+                { title: 'Смотрите фильм и делайте паузу, обсуждая каждый момент', duration: '3-4 часа', place: 'Домашнее', tip: 'Останавливайтесь на каждом повороте сюжета. Обсуждайте, что бы вы сделали.' },
+                { title: 'Посмотрите фильм с неожиданным концом', duration: '2-3 часа', place: 'Домашнее', tip: 'Найдите фильм с твистом. Угадайте концовку до того, как она наступит.' },
+                { title: 'Устройте вечер короткометражных фильмов', duration: '2 часа', place: 'Домашнее', tip: 'Смотрите короткометражки и обсуждайте каждую.' },
+                { title: 'Посмотрите фильм на языке оригинала с субтитрами', duration: '2-3 часа', place: 'Домашнее', tip: 'Изучайте язык и наслаждайтесь голосами актёров.' },
+                { title: 'Устройте кино-викторину по любимым фильмам', duration: '1-2 часа', place: 'Домашнее', tip: 'Задавайте вопросы друг другу о фильмах.' },
+                { title: 'Посмотрите фильм о путешествиях', duration: '2-3 часа', place: 'Домашнее', tip: 'Вдохновитесь на совместное путешествие.' },
+                { title: 'Устройте вечер мультфильмов для взрослых', duration: '2-3 часа', place: 'Домашнее', tip: 'Выберите мультфильм с глубоким смыслом.' },
+                { title: 'Смотрите фильм и рисуйте персонажей', duration: '3 часа', place: 'Домашнее', tip: 'Рисуйте портреты героев, пока идёт фильм.' },
+                { title: 'Посмотрите фильм о любви', duration: '2-3 часа', place: 'Домашнее', tip: 'Наслаждайтесь романтикой.' },
+                { title: 'Устройте кино-марафон по актёру', duration: '4-6 часов', place: 'Домашнее', tip: 'Выберите актёра и посмотрите его лучшие фильмы.' },
+                { title: 'Смотрите фильм с закрытыми глазами', duration: '2-3 часа', place: 'Домашнее', tip: 'Слушайте звуки и угадывайте сцены.' },
+                { title: 'Посмотрите документальный фильм', duration: '2 часа', place: 'Домашнее', tip: 'Узнайте что-то новое.' }
+            ],
+            games: [
+                { title: 'Сыграйте в настольную игру до победителя', duration: '2-4 часа', place: 'Домашнее', tip: 'Выберите любимую настолку. Победитель получает приз.' },
+                { title: 'Устройте турнир по видеоигре', duration: '2-3 часа', place: 'Домашнее', tip: 'Соревнуйтесь в любимой игре. Победитель выбирает следующий ужин.' },
+                { title: 'Поиграйте в игры на телефоне вдвоём', duration: '1-2 часа', place: 'Домашнее', tip: 'Найдите игры, в которые можно играть вдвоём на телефоне.' },
+                { title: 'Сделайте квест по дому с подсказками', duration: '2-3 часа', place: 'Домашнее', tip: 'Спрячьте записки с подсказками. В конце — сюрприз.' },
+                { title: 'Сыграйте в «Правда или действие» с заданиями', duration: '1-2 часа', place: 'Домашнее', tip: 'Придумайте честные вопросы и интересные задания.' },
+                { title: 'Соберите пазл на 1000 деталей', duration: '3-5 часов', place: 'Домашнее', tip: 'Устройте вечер за пазлом. Обсуждайте что угодно.' },
+                { title: 'Устройте соревнование по дартс или стрельбе из лука', duration: '1-2 часа', place: 'Домашнее', tip: 'Если есть игрушечное оружие — соревнуйтесь.' },
+                { title: 'Сыграйте в «Монополию» или другую экономическую игру', duration: '3-5 часов', place: 'Домашнее', tip: 'Устройте вечер большой игры.' },
+                { title: 'Поиграйте в слова или города', duration: '1-2 часа', place: 'Домашнее', tip: 'Классические игры в слова.' },
+                { title: 'Устройте турнир по шашкам или шахматам', duration: '1-3 часа', place: 'Домашнее', tip: 'Соревнуйтесь в интеллектуальных играх.' },
+                { title: 'Сыграйте в «Крокодила» или пантомиму', duration: '1-2 часа', place: 'Домашнее', tip: 'Показывайте слова жестами.' },
+                { title: 'Устройте вечер с играми на внимательность', duration: '1-2 часа', place: 'Домашнее', tip: 'Найдите отличия, ищите предметы.' },
+                { title: 'Поиграйте в настольный теннис', duration: '1-2 часа', place: 'Домашнее', tip: 'Если есть стол и ракетки.' },
+                { title: 'Сыграйте в игры с картами', duration: '1-3 часа', place: 'Домашнее', tip: 'Дурак, покер, фараон.' },
+                { title: 'Устройте игру в ассоциации', duration: '1-2 часа', place: 'Домашнее', tip: 'Называйте слова, ассоциирующиеся с ними.' },
+                { title: 'Сыграйте в «Мафию» вдвоём', duration: '1-2 часа', place: 'Домашнее', tip: 'Один — мафия, второй — шериф. Расследуйте.' },
+                { title: 'Устройте соревнование по настольному футболу', duration: '1-2 часа', place: 'Домашнее', tip: 'Если есть кикер.' }
+            ],
+            cook: [
+                { title: 'Приготовьте новое блюдо по рецепту из интернета', duration: '2-3 часа', place: 'Кухня', tip: 'Найдите интересный рецепт. Готовьте вместе.' },
+                { title: 'Устройте кулинарный баттл — кто приготовит лучше', duration: '2-3 часа', place: 'Кухня', tip: 'Каждый выбирает ингредиент. Кто приготовит вкуснее?' },
+                { title: 'Приготовьте завтрак в постель вместе', duration: '1-2 часа', place: 'Домашнее', tip: 'Сделайте завтрак и подайте в постель.' },
+                { title: 'Испеките пиццу с необычными начинками', duration: '2-3 часа', place: 'Кухня', tip: 'Купите тесто и придумайте свои начинки.' },
+                { title: 'Приготовьте блюдо из другой страны', duration: '2-3 часа', place: 'Кухня', tip: 'Выберите страну и приготовьте её национальное блюдо.' },
+                { title: 'Сделайте домашние пельмени или вареники', duration: '3-4 часа', place: 'Кухня', tip: 'Налепите пельменей вместе. Заморозьте и ешьте потом.' },
+                { title: 'Устройте дегустацию домашних блюд', duration: '2-3 часа', place: 'Домашнее', tip: 'Приготовьте несколько блюд. Дегустируйте и оценивайте.' },
+                { title: 'Приготовьте десерт с неожиданным ингредиентом', duration: '2-3 часа', place: 'Кухня', tip: 'Добавьте в десерт что-то необычное.' },
+                { title: 'Сделайте вместе завтрак в выходной день', duration: '1-2 часа', place: 'Кухня', tip: 'Сделайте омлет, блины или тосты.' },
+                { title: 'Приготовьте суп из тыквы или других овощей', duration: '2 часа', place: 'Кухня', tip: 'Согревающий ужин.' },
+                { title: 'Испеките печенье и украсьте его', duration: '2-3 часа', place: 'Кухня', tip: 'Выпечка и творчество.' },
+                { title: 'Приготовьте блюдо из того, что есть в холодильнике', duration: '2 часа', place: 'Кухня', tip: 'Импровизируйте. Включайте фантазию.' },
+                { title: 'Сделайте домашний лимонад или смузи', duration: '1 час', place: 'Кухня', tip: 'Свежие напитки.' },
+                { title: 'Приготовьте спагетти с соусом песто', duration: '1-2 часа', place: 'Кухня', tip: 'Итальянский вечер.' },
+                { title: 'Испеките хлеб или булочки', duration: '3-4 часа', place: 'Кухня', tip: 'Аромат свежего хлеба.' },
+                { title: 'Приготовьте роллы или суши', duration: '2-3 часа', place: 'Кухня', tip: 'Японский вечер.' },
+                { title: 'Сделайте заготовки на зиму', duration: '3-5 часов', place: 'Кухня', tip: 'Варенье, соленья.' }
+            ],
+            book: [
+                { title: 'Почитайте друг другу вслух 30 минут', duration: '30 мин', place: 'Домашнее', tip: 'Выберите книгу и читайте по очереди.' },
+                { title: 'Найдите книгу, которую вы оба хотели прочитать', duration: '2-3 часа', place: 'Домашнее', tip: 'Обсудите, что вас привлекло.' },
+                { title: 'Устройте вечер с книгой и чаем', duration: '2-3 часа', place: 'Домашнее', tip: 'Читайте и пейте чай. Идеальный уют.' },
+                { title: 'Напишите продолжение любимой книги', duration: '2-3 часа', place: 'Домашнее', tip: 'Придумайте, что было дальше.' },
+                { title: 'Сделайте книжный клуб для двоих', duration: '2-3 часа', place: 'Домашнее', tip: 'Обсуждайте книгу, как в настоящем клубе.' },
+                { title: 'Прочитайте книгу по ролям', duration: '2-3 часа', place: 'Домашнее', tip: 'Распределите персонажей и читайте.' },
+                { title: 'Сделайте коллаж по мотивам книги', duration: '2 часа', place: 'Домашнее', tip: 'Выразите визуальные впечатления.' },
+                { title: 'Посмотрите экранизацию и сравните с книгой', duration: '3-4 часа', place: 'Домашнее', tip: 'Посмотрите книгу и фильм. Обсудите разницу.' },
+                { title: 'Прочитайте стихи друг другу', duration: '1-2 часа', place: 'Домашнее', tip: 'Выберите любимые стихи. Читайте вслух.' },
+                { title: 'Найдите книгу и читайте по главе перед сном', duration: '1 час', place: 'Домашнее', tip: 'Вечерний ритуал.' },
+                { title: 'Напишите рецензию на прочитанную книгу', duration: '2 часа', place: 'Домашнее', tip: 'Обменяйтесь мнениями.' },
+                { title: 'Сделайте список книг на год', duration: '1-2 часа', place: 'Домашнее', tip: 'Планируйте чтение.' },
+                { title: 'Прочитайте одну книгу по-разному: вслух, тихо, в уме', duration: '2 часа', place: 'Домашнее', tip: 'Попробуйте разные способы.' },
+                { title: 'Напишите книгу вместе', duration: '3-4 часа', place: 'Домашнее', tip: 'Придумайте сюжет и пишите по главе.' },
+                { title: 'Прочитайте книгу о городе, в котором живёте', duration: '2-3 часа', place: 'Домашнее', tip: 'Узнайте историю места.' },
+                { title: 'Сделайте закладку для книги', duration: '1 час', place: 'Домашнее', tip: 'Творчество.' }
+            ],
+            rest: [
+                { title: 'Просто лежите в обнимку и молчите 15 минут', duration: '15 мин', place: 'Домашнее', tip: 'Обнимайтесь и наслаждайтесь тишиной.' },
+                { title: 'Сделайте друг другу массаж без разговоров', duration: '30 мин', place: 'Домашнее', tip: 'Массаж в тишине. Просто чувствуйте друг друга.' },
+                { title: 'Устройте вечер с ванной и свечами', duration: '1-2 часа', place: 'Домашнее', tip: 'Наполните ванну, зажгите свечи. Расслабляйтесь.' },
+                { title: 'Слушайте звуки природы и расслабляйтесь', duration: '30 мин', place: 'Домашнее', tip: 'Включите звуки леса, океана. Медитируйте.' },
+                { title: 'Сделайте дыхательную гимнастику вместе', duration: '15 мин', place: 'Домашнее', tip: 'Дышите в одном ритме. Успокаивает.' },
+                { title: 'Устройте «день без телефонов» хотя бы на час', duration: '1 час', place: 'Домашнее', tip: 'Отключите телефоны и просто будьте вместе.' },
+                { title: 'Просто смотрите в потолок и обсуждайте, что видите', duration: '30 мин', place: 'Домашнее', tip: 'Игра воображения.' },
+                { title: 'Сделайте медитацию для двоих', duration: '20 мин', place: 'Домашнее', tip: 'Закройте глаза и сосредоточьтесь на дыхании.' },
+                { title: 'Устройте вечер с пледами и горячим чаем', duration: '2 часа', place: 'Домашнее', tip: 'Уютный вечер без обязательств.' },
+                { title: 'Просто смотрите в окно и обсуждайте прохожих', duration: '30 мин', place: 'Домашнее', tip: 'Придумывайте истории про людей.' },
+                { title: 'Сделайте упражнение «5 чувств»', duration: '30 мин', place: 'Домашнее', tip: 'Назовите 5 вещей, которые вы видите, слышите и т.д.' },
+                { title: 'Устройте вечер с любимыми подушками', duration: '1-2 часа', place: 'Домашнее', tip: 'Лежите, разговаривайте, расслабляйтесь.' },
+                { title: 'Сделайте растяжку вместе', duration: '30 мин', place: 'Домашнее', tip: 'Утренняя или вечерняя растяжка.' },
+                { title: 'Просто помолчите вместе, глядя друг на друга', duration: '15 мин', place: 'Домашнее', tip: 'Не говорите. Просто смотрите и чувствуйте.' },
+                { title: 'Устройте вечер с любимыми ароматами', duration: '1-2 часа', place: 'Домашнее', tip: 'Зажгите свечи с ароматами.' }
+            ],
+            music: [
+                { title: 'Включите плейлист из песен вашей молодости', duration: '2 часа', place: 'Домашнее', tip: 'Ностальгия и воспоминания.' },
+                { title: 'Спойте караоке — кто лучше', duration: '1-2 часа', place: 'Домашнее', tip: 'Соревнуйтесь в вокале.' },
+                { title: 'Научитесь играть простую мелодию вместе', duration: '2-3 часа', place: 'Домашнее', tip: 'Пианино, гитара или приложение.' },
+                { title: 'Устройте дискотеку на кухне', duration: '1-2 часа', place: 'Домашнее', tip: 'Танцуйте на кухне под музыку.' },
+                { title: 'Сделайте плейлист «Наши песни» и слушайте', duration: '2 часа', place: 'Домашнее', tip: 'Собирайте песни ваших отношений.' },
+                { title: 'Потанцуйте под медленную музыку', duration: '30 мин', place: 'Домашнее', tip: 'Романтический вечер.' },
+                { title: 'Включите неизвестную музыку и угадывайте жанры', duration: '1-2 часа', place: 'Домашнее', tip: 'Игра на угадывание.' },
+                { title: 'Сделайте кавер на любимую песню', duration: '2-3 часа', place: 'Домашнее', tip: 'Запишите свою версию.' },
+                { title: 'Устройте вечер с виниловыми пластинками', duration: '2 часа', place: 'Домашнее', tip: 'Аналоговый звук.' },
+                { title: 'Сделайте плейлист для сна', duration: '1 час', place: 'Домашнее', tip: 'Расслабляющая музыка.' },
+                { title: 'Поиграйте в «Угадай мелодию»', duration: '1-2 часа', place: 'Домашнее', tip: 'Один играет, второй угадывает.' },
+                { title: 'Устройте вечер с любимыми группами', duration: '2-3 часа', place: 'Домашнее', tip: 'Слушайте альбомы.' },
+                { title: 'Сделайте подборку песен для разного настроения', duration: '1-2 часа', place: 'Домашнее', tip: 'Для грусти, радости и любви.' },
+                { title: 'Потанцуйте под разные ритмы', duration: '1-2 часа', place: 'Домашнее', tip: 'Меняйте стили и настроение.' },
+                { title: 'Напишите текст своей песни', duration: '2 часа', place: 'Домашнее', tip: 'Творческий вечер.' },
+                { title: 'Сделайте караоке по вашим любимым песням', duration: '2-3 часа', place: 'Домашнее', tip: 'Поём на кухне.' }
+            ]
+        };
+
+        // ============================================================
+        // ОТРИСОВКА КОЛЕСА
+        // ============================================================
+
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = 200;
+        const centerY = 200;
+        const radius = 180;
+
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        function drawWheel(rotation) {
+            const sectorAngle = (2 * Math.PI) / SECTORS.length;
+            ctx.clearRect(0, 0, 400, 400);
+
+            SECTORS.forEach((sector, index) => {
+                const startAngle = index * sectorAngle + rotation;
+                const endAngle = startAngle + sectorAngle;
+
+                // Рисуем сектор
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = sector.color;
+                ctx.fill();
+                ctx.strokeStyle = '#0D1117';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Текст в секторе
+                const textAngle = startAngle + sectorAngle / 2;
+                const textRadius = radius * 0.65;
+                const x = centerX + Math.cos(textAngle) * textRadius;
+                const y = centerY + Math.sin(textAngle) * textRadius;
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(textAngle + Math.PI / 2);
+                ctx.font = 'bold 18px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#FFFFFF';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 8;
+                ctx.fillText(sector.emoji, 0, 0);
+                ctx.restore();
+
+                // Название категории
+                const labelRadius = radius * 0.85;
+                const lx = centerX + Math.cos(textAngle) * labelRadius;
+                const ly = centerY + Math.sin(textAngle) * labelRadius;
+                ctx.save();
+                ctx.translate(lx, ly);
+                ctx.rotate(textAngle + Math.PI / 2);
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#FFFFFF';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 6;
+                ctx.fillText(sector.label, 0, 0);
+                ctx.restore();
+            });
+
+            // Внешняя обводка
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Декоративные точки
+            for (let i = 0; i < SECTORS.length; i++) {
+                const angle = i * sectorAngle + sectorAngle / 2 + rotation;
+                const dotR = radius - 12;
+                const dx = centerX + Math.cos(angle) * dotR;
+                const dy = centerY + Math.sin(angle) * dotR;
+                ctx.beginPath();
+                ctx.arc(dx, dy, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fill();
+            }
+        }
+
+        drawWheel(0);
+
+        // ============================================================
+        // ВРАЩЕНИЕ КОЛЕСА
+        // ============================================================
+
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            // Случайный сектор
+            const targetIndex = Math.floor(Math.random() * SECTORS.length);
+
+            // Случайное количество оборотов (5-8)
+            const extraSpins = 5 + Math.random() * 3;
+
+            // Угол одного сектора
+            const sectorAngle = (2 * Math.PI) / SECTORS.length;
+
+            // Целевой угол: чтобы сектор оказался под стрелкой (сверху = -90 градусов)
+            // Стрелка указывает вверх, то есть на угол -PI/2
+            const pointerAngle = -Math.PI / 2;
+
+            // Вычисляем угол для целевого сектора
+            // Нужно, чтобы центр сектора был под стрелкой
+            const targetAngle = targetIndex * sectorAngle + sectorAngle / 2;
+
+            // Поворот: чтобы targetAngle оказался в позиции pointerAngle
+            // currentRotation + targetAngle = pointerAngle + 2*PI*n
+            // currentRotation = pointerAngle - targetAngle + 2*PI*n
+            let newRotation = pointerAngle - targetAngle;
+
+            // Добавляем полные обороты
+            newRotation += extraSpins * 2 * Math.PI;
+
+            // Нормализуем, чтобы вращение было в плюс
+            while (newRotation < currentRotation) {
+                newRotation += 2 * Math.PI;
+            }
+
+            // Плавная анимация
+            const canvasEl = document.getElementById('wheelCanvas');
+            const startRotation = currentRotation;
+            const duration = 4000 + Math.random() * 1000;
+            const startTime = performance.now();
+
+            function animate(timestamp) {
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing для плавного замедления
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const current = startRotation + (newRotation - startRotation) * ease;
+
+                drawWheel(current);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentRotation = newRotation;
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+
+                    // Показываем результат
+                    showResult(targetIndex);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // ============================================================
+        // ПОКАЗ РЕЗУЛЬТАТА
+        // ============================================================
+
+        function showResult(sectorIndex) {
+            const sector = SECTORS[sectorIndex];
+            const ideas = IDEAS[sector.id] || [];
+            const idea = ideas[Math.floor(Math.random() * ideas.length)];
+
+            if (!idea) {
+                backToWheel();
+                return;
+            }
+
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('resultScreen').classList.add('active');
+
+            document.getElementById('resultIcon').textContent = sector.emoji;
+            document.getElementById('resultCategoryLabel').textContent = sector.emoji + ' ' + sector.label;
+            document.getElementById('resultCategory').textContent = sector.label.toUpperCase();
+            document.getElementById('resultTitle').textContent = idea.title;
+
+            document.getElementById('resultTags').innerHTML = `
+                <span class="tag">⏱️ ${idea.duration}</span>
+                <span class="tag">${idea.place}</span>
+            `;
+
+            document.getElementById('resultTip').innerHTML = '<strong>Что нужно:</strong> ' + idea.tip;
+        }
+
+        function backToWheel() {
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('resultScreen').classList.remove('active');
+        }
+
+        // ============================================================
+        // НАВИГАЦИЯ
+        // ============================================================
+
+        function navigate(page) {
+            const pages = {
+                'today': 'today.html',
+                'questions': 'questions.html',
+                'games': 'games.html',
+                'beyond': 'beyond.html',
+                'moments': 'moments.html',
+                'we': 'we.html',
+                'main': 'main.html'
+            };
+            if (pages[page]) {
+                window.location.href = pages[page];
+            }
+        }
+
+        // ============================================================
+        // АДАПТИВ
+        // ============================================================
+
+        function resizeCanvas() {
+            const container = document.querySelector('.wheel-container');
+            const size = Math.min(container.clientWidth, 280);
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+    </script>
+</body>
+</html>

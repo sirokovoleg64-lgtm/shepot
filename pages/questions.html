@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Вопросы</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center;
+            text-align: center; padding: 40px 18px 120px; z-index: 1;
+            width: 100%; min-height: 100vh; overflow-y: auto;
+        }
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 4px; flex-shrink: 0; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 16px; flex-shrink: 0; }
+
+        .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 310px; margin-bottom: 22px; }
+        .cat-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 18px; padding: 18px 12px; cursor: pointer; transition: all 0.3s;
+            display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative;
+        }
+        .cat-card:hover { border-color: rgba(201, 169, 110, 0.25); transform: translateY(-2px); }
+        .cat-card.completed { border-color: rgba(76, 175, 80, 0.3); }
+        .cat-icon { font-size: 26px; }
+        .cat-name { font-family: var(--font-heading); font-size: 13px; color: var(--text-primary); }
+        .cat-daily { font-size: 9px; color: var(--gold); }
+        .cat-status { 
+            font-size: 9px; color: var(--text-secondary); 
+            background: rgba(201, 169, 110, 0.1); padding: 3px 8px; border-radius: 10px; margin-top: 4px;
+        }
+        .cat-status.waiting { background: rgba(255, 152, 0, 0.15); color: #FF9800; }
+        .cat-status.ready { background: rgba(76, 175, 80, 0.15); color: #4CAF50; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.7} }
+        .cat-total { font-size: 9px; color: var(--text-secondary); opacity: 0.6; }
+        .cat-bar { width: 100%; height: 2px; border-radius: 1px; background: rgba(201, 169, 110, 0.1); overflow: hidden; margin-top: 4px; }
+        .cat-bar-fill { height: 100%; background: var(--gold); border-radius: 1px; transition: width 0.5s; }
+        .cat-streak { 
+            position: absolute; top: 6px; right: 6px; font-size: 8px; background: rgba(201, 169, 110, 0.15);
+            color: var(--gold); padding: 2px 6px; border-radius: 8px; display: none;
+        }
+        .cat-streak.show { display: block; }
+
+        .section-label { font-size: 9px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-secondary); margin-bottom: 8px; }
+        .dreams-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 18px; padding: 14px 16px; width: 100%; max-width: 310px; margin-bottom: 10px;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px;
+        }
+        .dreams-card:hover { border-color: rgba(201, 169, 110, 0.25); }
+        .dreams-icon { font-size: 22px; }
+        .dreams-info { text-align: left; flex: 1; }
+        .dreams-title { font-family: var(--font-heading); font-size: 13px; color: var(--text-primary); }
+        .dreams-sub { font-size: 10px; color: var(--text-secondary); }
+        .dreams-arrow { color: var(--gold); opacity: 0.5; }
+
+        .dreams-screen { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px 18px 100px; z-index: 1; width: 100%; min-height: 100%; }
+        .dreams-screen.active { display: flex; }
+
+        .dreams-description {
+            background: rgba(201, 169, 110, 0.06); border: 1px solid rgba(201, 169, 110, 0.12);
+            border-radius: 14px; padding: 14px 16px; width: 100%; max-width: 310px;
+            text-align: left; margin-bottom: 16px; font-size: 11px; color: var(--text-secondary); line-height: 1.6;
+        }
+        .dreams-description strong { color: var(--gold); }
+
+        .dreams-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 16px; }
+
+        .dream-item {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; text-align: left; transition: all 0.3s;
+        }
+        .dream-item.completed { border-color: rgba(76, 175, 80, 0.3); opacity: 0.7; }
+        .dream-checkbox {
+            width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(201, 169, 110, 0.3);
+            background: transparent; cursor: pointer; flex-shrink: 0; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; font-size: 14px; color: transparent;
+        }
+        .dream-checkbox:hover { border-color: var(--gold); }
+        .dream-checkbox.checked { background: #4CAF50; border-color: #4CAF50; color: white; }
+        .dream-text { flex: 1; font-size: 13px; color: var(--text-primary); }
+        .dream-item.completed .dream-text { text-decoration: line-through; opacity: 0.6; }
+        .dream-delete { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 16px; opacity: 0.4; padding: 4px; transition: all 0.3s; }
+        .dream-delete:hover { opacity: 1; color: var(--rose); }
+
+        .dream-input-row { display: flex; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 16px; }
+        .dream-input {
+            flex: 1; background: rgba(245, 240, 232, 0.05); border: 1px solid rgba(201, 169, 110, 0.15);
+            border-radius: 20px; padding: 8px 14px; color: var(--text-primary); font-size: 12px; outline: none; font-family: var(--font-body); transition: all 0.3s;
+        }
+        .dream-input:focus { border-color: var(--gold); }
+        .dream-add-btn {
+            padding: 8px 16px; border-radius: 20px; border: none; background: var(--gold); color: #0D1117;
+            font-size: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .dream-add-btn:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3); }
+        .dream-add-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .dreams-completed-message {
+            background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 16px; padding: 16px; width: 100%; max-width: 310px; text-align: center; margin-bottom: 16px;
+        }
+        .dreams-completed-icon { font-size: 40px; margin-bottom: 8px; }
+        .dreams-completed-title { font-family: var(--font-heading); font-size: 16px; color: #4CAF50; margin-bottom: 4px; }
+        .dreams-completed-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+        .quiz-screen { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px 18px 100px; z-index: 1; width: 100%; min-height: 100%; }
+        .quiz-screen.active { display: flex; }
+        .quiz-card { 
+            background: rgba(20, 16, 18, 0.6); backdrop-filter: blur(15px); 
+            border: 1px solid rgba(201, 169, 110, 0.15); border-radius: 20px; 
+            padding: 24px 20px; width: 100%; max-width: 310px; 
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); margin-bottom: 16px; 
+        }
+        .quiz-num { font-size: 10px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 12px; }
+        .quiz-text { font-family: var(--font-heading); font-size: 16px; color: var(--text-primary); line-height: 1.5; margin-bottom: 20px; }
+        .quiz-actions { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+        
+        .btn-answer { 
+            padding: 14px 24px; border-radius: 30px; 
+            border: 1px solid rgba(201, 169, 110, 0.3); 
+            background: rgba(201, 169, 110, 0.05); 
+            color: var(--text-primary); font-size: 14px; cursor: pointer; 
+            transition: all 0.3s; width: 100%; max-width: 250px; font-family: var(--font-heading);
+        }
+        .btn-answer:hover { border-color: var(--gold); background: rgba(201, 169, 110, 0.15); transform: scale(1.02); }
+        .btn-answer:active { transform: scale(0.98); }
+        .btn-answer.selected { background: var(--gold); color: #0D1117; border-color: var(--gold); font-weight: 600; }
+
+        .completion-message {
+            background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 16px; padding: 20px 16px; text-align: center; margin-top: 12px;
+        }
+        .completion-icon { font-size: 40px; margin-bottom: 12px; }
+        .completion-title { font-family: var(--font-heading); font-size: 18px; color: #4CAF50; margin-bottom: 8px; }
+        .completion-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 6px; }
+        .partner-status {
+            background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3);
+            border-radius: 12px; padding: 12px 14px; margin-top: 12px; font-size: 12px; color: #FF9800; line-height: 1.5;
+        }
+        .btn-view-result {
+            padding: 12px 24px; border-radius: 25px; border: 2px solid var(--gold); 
+            background: rgba(201, 169, 110, 0.1); color: var(--gold); font-size: 14px; cursor: pointer; 
+            transition: all 0.3s; font-family: var(--font-heading); margin-top: 16px;
+        }
+        .btn-view-result:hover { background: var(--gold); color: #0D1117; transform: scale(1.05); }
+
+        .result-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 100; align-items: center; justify-content: center; }
+        .result-overlay.show { display: flex; }
+        .result-box { background: rgba(20, 16, 18, 0.95); backdrop-filter: blur(20px); border: 1px solid var(--gold); border-radius: 24px; padding: 24px 18px; width: 90%; max-width: 320px; text-align: center; max-height: 80vh; overflow-y: auto; }
+        .result-title { font-family: var(--font-heading); font-size: 20px; color: var(--gold); margin-bottom: 16px; }
+        .result-section { margin-bottom: 14px; text-align: left; }
+        .result-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+        .result-section-title.match { color: #4CAF50; }
+        .result-section-title.conflict { color: var(--rose); }
+        .result-item { background: rgba(201, 169, 110, 0.05); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; font-size: 12px; color: var(--text-primary); line-height: 1.4; }
+        .result-item.match { border-left: 2px solid #4CAF50; }
+        .result-item.conflict { border-left: 2px solid var(--rose); }
+        .result-advice { background: rgba(201, 169, 110, 0.08); border: 1px solid rgba(201, 169, 110, 0.2); border-radius: 12px; padding: 12px 14px; margin-top: 12px; font-size: 11px; color: var(--text-secondary); line-height: 1.6; text-align: left; }
+        .result-advice strong { color: var(--gold); }
+        .btn-close-result { padding: 10px 28px; border-radius: 30px; border: none; background: var(--gold); color: #0D1117; font-size: 14px; cursor: pointer; font-weight: 600; margin-top: 16px; }
+
+        .quiz-progress { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+        .progress-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(201, 169, 110, 0.2); transition: all 0.3s;
+        }
+        .progress-dot.answered { background: var(--gold); }
+        .progress-dot.current { background: var(--gold); box-shadow: 0 0 8px var(--gold); transform: scale(1.3); }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="categoriesScreen">
+            <div class="page-title">Узнаем друг друга</div>
+            <div class="page-sub">Выберите категорию</div>
+
+            <div class="cat-grid">
+                <div class="cat-card" id="cardTenderness" onclick="openCategory('tenderness')">
+                    <div class="cat-streak" id="tendernessStreak">🔥7</div>
+                    <div class="cat-icon">🤍</div><div class="cat-name">Нежность</div>
+                    <div class="cat-daily" id="tendernessDaily">сегодня 0/3</div>
+                    <div class="cat-status" id="tendernessStatus" style="display:none;"></div>
+                    <div class="cat-total" id="tendernessTotal">всего 0/1095</div>
+                    <div class="cat-bar"><div class="cat-bar-fill" id="tendernessBar" style="width: 0%;"></div></div>
+                </div>
+                <div class="cat-card" id="cardFlirt" onclick="openCategory('flirt')">
+                    <div class="cat-streak" id="flirtStreak">🔥7</div>
+                    <div class="cat-icon">💋</div><div class="cat-name">Флирт</div>
+                    <div class="cat-daily" id="flirtDaily">сегодня 0/3</div>
+                    <div class="cat-status" id="flirtStatus" style="display:none;"></div>
+                    <div class="cat-total" id="flirtTotal">всего 0/1095</div>
+                    <div class="cat-bar"><div class="cat-bar-fill" id="flirtBar" style="width: 0%;"></div></div>
+                </div>
+                <div class="cat-card" id="cardRomance" onclick="openCategory('romance')">
+                    <div class="cat-streak" id="romanceStreak">🔥7</div>
+                    <div class="cat-icon">🌹</div><div class="cat-name">Романтика</div>
+                    <div class="cat-daily" id="romanceDaily">сегодня 0/3</div>
+                    <div class="cat-status" id="romanceStatus" style="display:none;"></div>
+                    <div class="cat-total" id="romanceTotal">всего 0/1095</div>
+                    <div class="cat-bar"><div class="cat-bar-fill" id="romanceBar" style="width: 0%;"></div></div>
+                </div>
+                <div class="cat-card" id="cardEveryday" onclick="openCategory('everyday')">
+                    <div class="cat-streak" id="everydayStreak">🔥7</div>
+                    <div class="cat-icon">🏡</div><div class="cat-name">Быт</div>
+                    <div class="cat-daily" id="everydayDaily">сегодня 0/3</div>
+                    <div class="cat-status" id="everydayStatus" style="display:none;"></div>
+                    <div class="cat-total" id="everydayTotal">всего 0/1095</div>
+                    <div class="cat-bar"><div class="cat-bar-fill" id="everydayBar" style="width: 0%;"></div></div>
+                </div>
+            </div>
+
+            <div class="section-label">Мечты</div>
+            <div class="dreams-card" onclick="openDreams('his')">
+                <div class="dreams-icon">💙</div><div class="dreams-info"><div class="dreams-title">Его мечты</div><div class="dreams-sub" id="hisDreamsCount">0 мечт</div></div><div class="dreams-arrow">→</div>
+            </div>
+            <div class="dreams-card" onclick="openDreams('hers')">
+                <div class="dreams-icon">💗</div><div class="dreams-info"><div class="dreams-title">Её мечты</div><div class="dreams-sub" id="herDreamsCount">0 мечт</div></div><div class="dreams-arrow">→</div>
+            </div>
+            <button class="btn-back" onclick="navigate('main')">← На главную</button>
+        </div>
+
+        <div class="dreams-screen" id="dreamsScreen">
+            <div class="page-title" id="dreamsTitle">Мечты</div>
+            <div class="page-sub" id="dreamsSub"></div>
+            <div class="dreams-description" id="dreamsDescription"></div>
+            <div class="dreams-list" id="dreamsList"></div>
+            <div id="dreamsCompletedMessage" style="display:none;" class="dreams-completed-message">
+                <div class="dreams-completed-icon">🎉</div><div class="dreams-completed-title">Все мечты выполнены!</div><div class="dreams-completed-text">Потрясающе! Добавьте новые.</div>
+            </div>
+            <div class="dream-input-row" id="dreamInputRow">
+                <input type="text" class="dream-input" id="dreamInput" placeholder="Опишите мечту..." maxlength="100" onkeydown="if(event.key==='Enter')addDream()">
+                <button class="dream-add-btn" id="dreamAddBtn" onclick="addDream()">+</button>
+            </div>
+            <button class="btn-back" onclick="closeDreams()">← Назад к категориям</button>
+        </div>
+
+        <div class="quiz-screen" id="quizScreen">
+            <div class="quiz-card" id="quizCard">
+                <div class="quiz-progress" id="quizProgress"></div>
+                <div class="quiz-num" id="quizNum"></div>
+                <div class="quiz-text" id="quizText"></div>
+                <div class="quiz-actions" id="quizActions"></div>
+                <div id="completionArea"></div>
+            </div>
+            <button class="btn-back" onclick="closeQuiz()">← Назад в категории</button>
+        </div>
+
+        <div class="result-overlay" id="resultOverlay">
+            <div class="result-box" id="resultBox"></div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab active" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        const myGender = localStorage.getItem('shepot_my_gender') || 'male';
+        let allQuestions = null;
+        let currentCategory = null;
+        let todayQuestions = {};
+        let myDailyAnswers = JSON.parse(localStorage.getItem('shepot_daily_me') || '{}');
+        let partnerDailyAnswers = JSON.parse(localStorage.getItem('shepot_daily_partner') || '{}');
+        let streakData = JSON.parse(localStorage.getItem('shepot_streaks') || '{}');
+        const today = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+        const MAX_DREAMS = 5;
+        let hisDreams = JSON.parse(localStorage.getItem('shepot_his_dreams') || '[]');
+        let herDreams = JSON.parse(localStorage.getItem('shepot_her_dreams') || '[]');
+        let currentDreamView = null;
+
+        const categoryAdvice = {
+            tenderness: { match: "Вы совпадаете в нежности!", conflict: "Договоритесь о «языке нежности»." },
+            flirt: { match: "Вы совпадаете во флирте!", conflict: "Обсудите, что для вас флирт." },
+            romance: { match: "Вы совпадаете в романтике!", conflict: "Составьте список «10 романтичных вещей»." },
+            everyday: { match: "Вы совпадаете в быту!", conflict: "Составьте «Бытовой договор»." }
+        };
+
+        localStorage.removeItem('shepot_new_matches');
+
+        function openDreams(who) {
+            currentDreamView = who;
+            document.getElementById('categoriesScreen').style.display = 'none';
+            document.getElementById('quizScreen').classList.remove('active');
+            document.getElementById('dreamsScreen').classList.add('active');
+            const name = who === 'his' ? 'Его' : 'Её';
+            const partnerName = who === 'his' ? 'партнёра' : 'партнёрши';
+            const isOwner = (who === 'his' && myGender === 'male') || (who === 'hers' && myGender === 'female');
+            document.getElementById('dreamsTitle').textContent = name + ' мечты';
+            document.getElementById('dreamsSub').textContent = 'Максимум ' + MAX_DREAMS + ' мечт';
+            document.getElementById('dreamsDescription').innerHTML = isOwner
+                ? `<strong>💭 Для чего этот раздел?</strong><br><br>Здесь собраны самые заветные желания вашего ${partnerName}.`
+                : `<strong>💭 Мечты ${partnerName}</strong><br><br>Отмечайте выполненные — и делайте ${partnerName} счастливее!`;
+            renderDreams(); updateDreamInputVisibility();
+        }
+
+        function closeDreams() { document.getElementById('dreamsScreen').classList.remove('active'); document.getElementById('categoriesScreen').style.display = 'flex'; updateDreamCounts(); currentDreamView = null; }
+
+        function renderDreams() {
+            const dreams = currentDreamView === 'his' ? hisDreams : herDreams;
+            const list = document.getElementById('dreamsList');
+            const completedMessage = document.getElementById('dreamsCompletedMessage');
+            const isOwner = (currentDreamView === 'his' && myGender === 'male') || (currentDreamView === 'hers' && myGender === 'female');
+            if (dreams.length === 0) { list.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:11px;padding:20px;">Пока нет добавленных мечт</div>'; completedMessage.style.display = 'none'; }
+            else { const allCompleted = dreams.every(d => d.completed); list.innerHTML = dreams.map((d, i) => `<div class="dream-item ${d.completed?'completed':''}"><div class="dream-checkbox ${d.completed?'checked':''}" onclick="toggleDream(${i})">${d.completed?'✓':''}</div><div class="dream-text">${escapeHtml(d.text)}</div>${isOwner?`<button class="dream-delete" onclick="deleteDream(${i})">×</button>`:''}</div>`).join(''); completedMessage.style.display = allCompleted?'block':'none'; }
+            updateDreamInputVisibility();
+        }
+
+        function updateDreamInputVisibility() {
+            const dreams = currentDreamView === 'his' ? hisDreams : herDreams;
+            const isOwner = (currentDreamView === 'his' && myGender === 'male') || (currentDreamView === 'hers' && myGender === 'female');
+            const inputRow = document.getElementById('dreamInputRow'), addBtn = document.getElementById('dreamAddBtn');
+            if (!isOwner) { inputRow.style.display = 'none'; return; }
+            const allCompleted = dreams.length > 0 && dreams.every(d => d.completed);
+            if (allCompleted) { inputRow.style.display = 'flex'; addBtn.disabled = false; document.getElementById('dreamInput').placeholder = 'Добавьте новые мечты...'; }
+            else if (dreams.length >= MAX_DREAMS) { inputRow.style.display = 'flex'; addBtn.disabled = true; document.getElementById('dreamInput').placeholder = 'Достигнут максимум ('+MAX_DREAMS+')'; }
+            else { inputRow.style.display = 'flex'; addBtn.disabled = false; document.getElementById('dreamInput').placeholder = 'Опишите мечту...'; }
+        }
+
+        function addDream() {
+            const isOwner = (currentDreamView === 'his' && myGender === 'male') || (currentDreamView === 'hers' && myGender === 'female');
+            if (!isOwner) return;
+            const input = document.getElementById('dreamInput'); const text = input.value.trim(); if (!text) return;
+            const dreams = currentDreamView === 'his' ? hisDreams : herDreams;
+            const allCompleted = dreams.length > 0 && dreams.every(d => d.completed);
+            if (allCompleted) { if (currentDreamView === 'his') hisDreams = []; else herDreams = []; }
+            const updatedDreams = currentDreamView === 'his' ? hisDreams : herDreams;
+            if (updatedDreams.length >= MAX_DREAMS && !allCompleted) { showToast('⚠️ Максимум ' + MAX_DREAMS + ' мечт'); return; }
+            updatedDreams.push({ text, completed: false });
+            if (currentDreamView === 'his') { hisDreams = updatedDreams; localStorage.setItem('shepot_his_dreams', JSON.stringify(hisDreams)); }
+            else { herDreams = updatedDreams; localStorage.setItem('shepot_her_dreams', JSON.stringify(herDreams)); }
+            input.value = ''; renderDreams(); showToast('✨ Мечта добавлена!');
+        }
+
+        function toggleDream(index) {
+            const dreams = currentDreamView === 'his' ? hisDreams : herDreams;
+            dreams[index].completed = !dreams[index].completed;
+            if (currentDreamView === 'his') { hisDreams = dreams; localStorage.setItem('shepot_his_dreams', JSON.stringify(hisDreams)); }
+            else { herDreams = dreams; localStorage.setItem('shepot_her_dreams', JSON.stringify(herDreams)); }
+            renderDreams(); if (dreams[index].completed) showToast('🎉 Мечта выполнена!');
+        }
+
+        function deleteDream(index) {
+            const isOwner = (currentDreamView === 'his' && myGender === 'male') || (currentDreamView === 'hers' && myGender === 'female');
+            if (!isOwner) return;
+            if (confirm('Удалить эту мечту?')) {
+                if (currentDreamView === 'his') { hisDreams.splice(index, 1); localStorage.setItem('shepot_his_dreams', JSON.stringify(hisDreams)); }
+                else { herDreams.splice(index, 1); localStorage.setItem('shepot_her_dreams', JSON.stringify(herDreams)); }
+                renderDreams();
+            }
+        }
+
+        function updateDreamCounts() {
+            const hisCount = hisDreams.length, herCount = herDreams.length;
+            document.getElementById('hisDreamsCount').textContent = hisCount + ' мечт' + (hisDreams.filter(d=>d.completed).length > 0 ? ' (' + hisDreams.filter(d=>d.completed).length + ' ✓)' : '');
+            document.getElementById('herDreamsCount').textContent = herCount + ' мечт' + (herDreams.filter(d=>d.completed).length > 0 ? ' (' + herDreams.filter(d=>d.completed).length + ' ✓)' : '');
+        }
+
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        function showToast(message) { const existing = document.querySelector('.toast'); if (existing) existing.remove(); const toast = document.createElement('div'); toast.className = 'toast'; toast.textContent = message; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+
+        function getDailyKey(cat) { return today + '_' + cat; }
+        function getTotalAnswered(cat, answers) { let count = 0; Object.keys(answers).forEach(key => { if (key.endsWith('_' + cat)) count += Object.keys(answers[key] || {}).length; }); return count; }
+
+        function updateStreak(cat) {
+            if (!streakData[cat]) streakData[cat] = { lastDate: null, count: 0 };
+            const s = streakData[cat]; if (s.lastDate === today) return;
+            if (s.lastDate === yesterday) s.count++; else s.count = 1;
+            s.lastDate = today; localStorage.setItem('shepot_streaks', JSON.stringify(streakData));
+        }
+
+        fetch('../data/questions.json').then(r => r.json()).then(d => { allQuestions = d.categories; updateAllProgress(); updateDreamCounts(); }).catch(() => { updateDreamCounts(); });
+
+        function updateAllProgress() {
+            if (!allQuestions) return;
+            ['tenderness','flirt','romance','everyday'].forEach(cat => {
+                const key = getDailyKey(cat);
+                const myAns = myDailyAnswers[key] || {}, pAns = partnerDailyAnswers[key] || {};
+                const myCount = Object.keys(myAns).length, pCount = Object.keys(pAns).length;
+                const totalMy = getTotalAnswered(cat, myDailyAnswers), totalP = getTotalAnswered(cat, partnerDailyAnswers);
+                const totalBoth = Math.min(totalMy, totalP);
+                document.getElementById(cat+'Daily').textContent = 'сегодня ' + Math.min(myCount, 3) + '/3';
+                document.getElementById(cat+'Total').textContent = 'всего ' + totalBoth + '/1095';
+                document.getElementById(cat+'Bar').style.width = (totalBoth/1095*100) + '%';
+                const statusEl = document.getElementById(cat+'Status');
+                const cardEl = document.getElementById('card'+cat.charAt(0).toUpperCase()+cat.slice(1));
+                if (myCount >= 3 && pCount >= 3) { statusEl.textContent = '✨ Результат готов!'; statusEl.className = 'cat-status ready'; statusEl.style.display = 'block'; cardEl.classList.add('completed'); }
+                else if (myCount >= 3 && pCount < 3) { statusEl.textContent = '⏳ Ждём партнёра'; statusEl.className = 'cat-status waiting'; statusEl.style.display = 'block'; }
+                else if (myCount < 3 && pCount >= 3) { statusEl.textContent = '💫 Партнёр ответил'; statusEl.className = 'cat-status waiting'; statusEl.style.display = 'block'; }
+                else { statusEl.style.display = 'none'; cardEl.classList.remove('completed'); }
+                const s = streakData[cat] || { count: 0 };
+                const streakEl = document.getElementById(cat+'Streak');
+                if (s.count >= 2) { streakEl.textContent = '🔥' + s.count; streakEl.classList.add('show'); } else streakEl.classList.remove('show');
+            });
+        }
+
+        function openCategory(cat) {
+            if (!allQuestions || !allQuestions[cat]) return;
+            currentCategory = cat; const key = getDailyKey(cat);
+            if (!todayQuestions[cat]) {
+                const all = allQuestions[cat];
+                const used = JSON.parse(localStorage.getItem('shepot_used_daily_'+cat) || '[]');
+                let available = all.map((_,i)=>i).filter(i => !used.includes(i));
+                if (available.length < 3) { localStorage.setItem('shepot_used_daily_'+cat, '[]'); available = all.map((_,i)=>i); }
+                const shuffled = [...available].sort(()=>Math.random()-0.5);
+                todayQuestions[cat] = shuffled.slice(0,3);
+                localStorage.setItem('shepot_used_daily_'+cat, JSON.stringify([...used, ...todayQuestions[cat]].slice(-300)));
+            }
+            document.getElementById('categoriesScreen').style.display = 'none';
+            document.getElementById('quizScreen').classList.add('active');
+            renderQuiz();
+        }
+
+        function closeQuiz() { document.getElementById('quizScreen').classList.remove('active'); document.getElementById('categoriesScreen').style.display = 'flex'; updateAllProgress(); currentCategory = null; }
+
+        function renderQuiz() {
+            if (!currentCategory) return;
+            const qs = todayQuestions[currentCategory];
+            const completionArea = document.getElementById('completionArea');
+            if (!qs || qs.length === 0) {
+                document.getElementById('quizProgress').innerHTML = '';
+                document.getElementById('quizNum').textContent = ''; document.getElementById('quizText').textContent = 'Нет вопросов';
+                document.getElementById('quizActions').innerHTML = '';
+                completionArea.innerHTML = '<div class="completion-message"><div class="completion-icon">📋</div><div class="completion-title">Нет доступных вопросов</div></div>';
+                return;
+            }
+            const key = getDailyKey(currentCategory);
+            const myAns = myDailyAnswers[key] || {};
+            const answeredCount = Object.keys(myAns).length;
+            const myCount = Object.keys(myDailyAnswers[key] || {}).length;
+            const pCount = Object.keys(partnerDailyAnswers[key] || {}).length;
+            const bothDone = myCount >= 3 && pCount >= 3;
+            updateProgressDots(Math.min(answeredCount, 3));
+            if (answeredCount >= 3) {
+                document.getElementById('quizNum').textContent = ''; document.getElementById('quizText').textContent = ''; document.getElementById('quizActions').innerHTML = '';
+                if (bothDone) { completionArea.innerHTML = '<div class="completion-message"><div class="completion-icon">✨</div><div class="completion-title">Вы оба ответили!</div><button class="btn-view-result" onclick="showResult()">💫 Смотреть результат</button></div>'; updateStreak(currentCategory); }
+                else { completionArea.innerHTML = '<div class="completion-message"><div class="completion-icon">✅</div><div class="completion-title">Вы ответили!</div><div class="partner-status">⏳ Ждём партнёра</div></div>'; }
+                return;
+            }
+            completionArea.innerHTML = '';
+            const qIndex = qs[answeredCount];
+            document.getElementById('quizNum').textContent = 'Вопрос ' + (answeredCount+1) + ' из 3';
+            document.getElementById('quizText').textContent = allQuestions[currentCategory][qIndex];
+            document.getElementById('quizActions').innerHTML = `<button class="btn-answer" onclick="answerQuiz(${qIndex},'yes',this)">Да</button><button class="btn-answer" onclick="answerQuiz(${qIndex},'neutral',this)">Нейтрально</button><button class="btn-answer" onclick="answerQuiz(${qIndex},'no',this)">Нет</button>`;
+        }
+
+        function updateProgressDots(answeredCount) {
+            let dotsHTML = '';
+            for (let i = 0; i < 3; i++) { let c = 'progress-dot'; if (i < answeredCount) c += ' answered'; if (i === answeredCount && answeredCount < 3) c += ' current'; dotsHTML += `<div class="${c}"></div>`; }
+            document.getElementById('quizProgress').innerHTML = dotsHTML;
+        }
+
+        function answerQuiz(qIndex, answer, btn) {
+            const key = getDailyKey(currentCategory);
+            if (!myDailyAnswers[key]) myDailyAnswers[key] = {};
+            if (myDailyAnswers[key][qIndex] !== undefined) return;
+            myDailyAnswers[key][qIndex] = answer; localStorage.setItem('shepot_daily_me', JSON.stringify(myDailyAnswers));
+            btn.classList.add('selected');
+            if (Object.keys(myDailyAnswers[key]||{}).length >= 3) localStorage.setItem('shepot_new_matches', '1');
+            if (Object.keys(myDailyAnswers[key]||{}).length >= 3 && Object.keys(partnerDailyAnswers[key]||{}).length >= 3) updateStreak(currentCategory);
+            setTimeout(() => renderQuiz(), 600);
+        }
+
+        function showResult() {
+            const key = getDailyKey(currentCategory);
+            const qs = todayQuestions[currentCategory];
+            const myAns = myDailyAnswers[key] || {}, pAns = partnerDailyAnswers[key] || {};
+            const map = { 'yes':'Да','no':'Нет','neutral':'Нейтрально' };
+            const advice = categoryAdvice[currentCategory] || categoryAdvice.tenderness;
+            let matches = [], conflicts = [];
+            qs.forEach(qIndex => { const m = myAns[qIndex], p = pAns[qIndex]; if (m === p) matches.push({ q: allQuestions[currentCategory][qIndex], a: map[m] }); else conflicts.push({ q: allQuestions[currentCategory][qIndex], my: map[m], partner: map[p] }); });
+            let html = '<div class="result-title">💫 Сравнение</div>';
+            if (matches.length > 0) { html += '<div class="result-section"><div class="result-section-title match">✅ Совпало ('+matches.length+'/3)</div>'; matches.forEach(m => html += '<div class="result-item match">'+m.q+'<br><span style="color:#4CAF50;">Оба: '+m.a+'</span></div>'); html += '</div>'; }
+            if (conflicts.length > 0) { html += '<div class="result-section"><div class="result-section-title conflict">💡 Разошлись ('+conflicts.length+'/3)</div>'; conflicts.forEach(c => html += '<div class="result-item conflict">'+c.q+'<br><span style="color:var(--rose);">Ты: '+c.my+'</span> · <span style="color:var(--gold);">Партнёр: '+c.partner+'</span></div>'); html += '</div>'; html += '<div class="result-advice">'+advice.conflict+'</div>'; }
+            if (conflicts.length === 0) html += '<div class="result-advice">🎉 '+advice.match+'</div>';
+            html += '<button class="btn-close-result" onclick="closeResult()">Понятно</button>';
+            document.getElementById('resultBox').innerHTML = html; document.getElementById('resultOverlay').classList.add('show');
+        }
+
+        function closeResult() { document.getElementById('resultOverlay').classList.remove('show'); updateAllProgress(); if (document.getElementById('quizScreen').classList.contains('active')) renderQuiz(); }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+
+        updateDreamCounts();
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — На раздевание</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px 18px 120px;
+            z-index: 1;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 4px; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 20px; }
+
+        .setup-screen { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 20px; }
+        .setup-label { font-size: 12px; color: var(--text-secondary); }
+
+        .clothes-selector { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+
+        .btn-adjust {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            background: rgba(20, 16, 18, 0.5); color: var(--text-primary);
+            font-size: 20px; cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-adjust:hover { border-color: var(--gold); background: rgba(201, 169, 110, 0.2); }
+
+        .setup-input {
+            width: 60px; padding: 8px; border-radius: 10px;
+            border: 1px solid rgba(201, 169, 110, 0.3);
+            background: rgba(20, 16, 18, 0.5); color: var(--text-primary);
+            text-align: center; font-size: 20px; font-family: var(--font-body); font-weight: 600;
+        }
+
+        .clothes-preview { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; max-width: 200px; }
+        .clothes-preview .cloth-dot { width: 10px; height: 10px; border-radius: 2px; background: var(--gold); }
+
+        .setup-buttons { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 8px; }
+
+        .btn-start {
+            padding: 12px 32px; border-radius: 30px; border: none;
+            background: var(--gold); color: #0D1117; font-size: 14px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s; width: 200px;
+        }
+        .btn-start:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3); }
+
+        .players-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; }
+
+        .player-card {
+            text-align: center; background: rgba(20, 16, 18, 0.5);
+            border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 16px;
+            padding: 16px 14px; min-width: 100px; transition: all 0.3s; position: relative;
+        }
+        .player-card.active { border-color: var(--gold); box-shadow: 0 0 20px rgba(201, 169, 110, 0.3); transform: scale(1.05); }
+        .player-card.loser { border-color: var(--rose); box-shadow: 0 0 20px rgba(212, 165, 165, 0.3); animation: shake 0.5s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .player-avatar { font-size: 40px; margin-bottom: 8px; }
+        .player-name { font-size: 12px; color: var(--text-primary); margin-bottom: 6px; font-family: var(--font-heading); }
+        .player-clothes { display: flex; justify-content: center; gap: 3px; flex-wrap: wrap; }
+
+        .cloth-dot {
+            width: 10px; height: 10px; border-radius: 2px; background: var(--gold);
+            transition: all 0.3s; box-shadow: 0 0 5px rgba(201, 169, 110, 0.3);
+        }
+        .cloth-dot.lost { background: rgba(201, 169, 110, 0.1); box-shadow: none; }
+        .cloth-dot.losing { animation: fadeOut 0.5s forwards; }
+
+        @keyframes fadeOut { to { opacity: 0; transform: scale(0); } }
+
+        .player-clothes-count { font-size: 9px; color: var(--text-secondary); margin-top: 4px; }
+        .vs-text { font-family: var(--font-heading); font-size: 16px; color: var(--text-secondary); }
+
+        .question-card {
+            background: rgba(20, 16, 18, 0.6); backdrop-filter: blur(15px);
+            border: 1px solid rgba(201, 169, 110, 0.2); border-radius: 20px;
+            padding: 24px 20px; width: 100%; max-width: 300px;
+            margin-bottom: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); display: none;
+        }
+        .question-card.show { display: block; animation: slideUp 0.3s ease-out; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-type { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); margin-bottom: 8px; }
+        .question-text { font-family: var(--font-heading); font-size: 16px; color: var(--text-primary); line-height: 1.5; margin-bottom: 16px; }
+
+        .question-options { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+
+        .btn-option {
+            padding: 10px 16px; border-radius: 12px;
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            background: rgba(20, 16, 18, 0.4); color: var(--text-primary);
+            font-size: 13px; cursor: pointer; transition: all 0.3s; text-align: left;
+        }
+        .btn-option:hover { border-color: var(--gold); background: rgba(201, 169, 110, 0.1); transform: translateX(5px); }
+        .btn-option.correct { border-color: #4CAF50; background: rgba(76, 175, 80, 0.15); color: #4CAF50; font-weight: 600; }
+        .btn-option.wrong { border-color: var(--rose); background: rgba(212, 165, 165, 0.1); color: var(--rose); }
+        .btn-option:disabled { pointer-events: none; opacity: 0.8; }
+
+        .answer-buttons { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
+
+        .btn-correct {
+            padding: 10px 20px; border-radius: 30px; border: none;
+            background: #4CAF50; color: white; font-size: 13px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .btn-correct:hover { background: #45a049; transform: scale(1.05); }
+
+        .btn-wrong {
+            padding: 10px 20px; border-radius: 30px; border: none;
+            background: var(--rose); color: #0D1117; font-size: 13px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .btn-wrong:hover { opacity: 0.9; transform: scale(1.05); }
+
+        .btn-next {
+            padding: 10px 24px; border-radius: 30px; border: none;
+            background: var(--gold); color: #0D1117; font-size: 13px;
+            cursor: pointer; font-weight: 600; display: none; margin: 0 auto; transition: all 0.3s;
+        }
+        .btn-next:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3); }
+        .btn-next.show { display: block; animation: pulse 0.5s ease-out; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); }
+        }
+
+        .game-menu { display: flex; justify-content: center; margin-top: 12px; }
+
+        .btn-quit {
+            padding: 8px 16px; border-radius: 20px;
+            border: 1px solid rgba(212, 165, 165, 0.3);
+            background: transparent; color: var(--text-secondary);
+            font-size: 11px; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-quit:hover { border-color: var(--rose); color: var(--rose); }
+
+        .end-screen { display: none; flex-direction: column; align-items: center; gap: 16px; }
+        .end-screen.show { display: flex; animation: fadeIn 0.5s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .end-emoji { font-size: 60px; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)} }
+
+        .end-title { font-family: var(--font-heading); font-size: 24px; color: var(--gold); }
+        .end-winner { font-size: 16px; color: var(--text-primary); line-height: 1.5; }
+
+        .end-buttons { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+
+        .btn-restart {
+            padding: 14px 36px; border-radius: 50px; border: none;
+            background: var(--gold); color: #0D1117; font-size: 16px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s; width: 200px;
+        }
+        .btn-restart:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3); }
+
+        .turn-indicator {
+            background: rgba(201, 169, 110, 0.1); border-radius: 15px;
+            padding: 8px 16px; margin-bottom: 16px; font-size: 12px; color: var(--gold); display: none;
+        }
+        .turn-indicator.show { display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="gameScreen">
+            <div class="page-title">На раздевание 🔥</div>
+            <div class="page-sub" id="turnLabel">Настройте игру</div>
+
+            <div class="turn-indicator" id="turnIndicator"></div>
+
+            <div class="setup-screen" id="setupScreen">
+                <div class="setup-label">Сколько предметов одежды на каждом?</div>
+                <div class="clothes-selector">
+                    <button class="btn-adjust" onclick="adjustClothes(-1)">−</button>
+                    <input type="number" class="setup-input" id="clothesInput" value="6" min="2" max="20" readonly>
+                    <button class="btn-adjust" onclick="adjustClothes(1)">+</button>
+                </div>
+                <div class="clothes-preview" id="clothesPreview"></div>
+                <div class="setup-buttons">
+                    <button class="btn-start" onclick="startGame()">🎮 Начать игру</button>
+                    <button class="btn-back" onclick="navigate('beyond')">← В За гранью</button>
+                </div>
+            </div>
+
+            <div class="players-row" id="playersRow" style="display:none;">
+                <div class="player-card active" id="player1Card">
+                    <div class="player-avatar">👤</div>
+                    <div class="player-name" id="player1Name">Я</div>
+                    <div class="player-clothes" id="player1Clothes"></div>
+                    <div class="player-clothes-count" id="player1Count"></div>
+                </div>
+                <div class="vs-text">VS</div>
+                <div class="player-card" id="player2Card">
+                    <div class="player-avatar">👤</div>
+                    <div class="player-name" id="player2Name">Партнёр</div>
+                    <div class="player-clothes" id="player2Clothes"></div>
+                    <div class="player-clothes-count" id="player2Count"></div>
+                </div>
+            </div>
+
+            <div class="question-card" id="questionCard">
+                <div class="question-type" id="questionType"></div>
+                <div class="question-text" id="questionText"></div>
+                <div class="question-options" id="questionOptions"></div>
+                <div class="answer-buttons" id="answerButtons" style="display:none;">
+                    <button class="btn-correct" onclick="handleAnswer(true)">✓ Верно</button>
+                    <button class="btn-wrong" onclick="handleAnswer(false)">✗ Неверно</button>
+                </div>
+                <button class="btn-next" id="btnNext" onclick="nextQuestion()">Далее →</button>
+            </div>
+
+            <div class="game-menu" id="gameMenu" style="display:none;">
+                <button class="btn-quit" onclick="quitGame()">🚪 Закончить игру</button>
+            </div>
+
+            <div class="end-screen" id="endScreen">
+                <div class="end-emoji">🔥</div>
+                <div class="end-title">Игра окончена!</div>
+                <div class="end-winner" id="endWinner"></div>
+                <div class="end-buttons">
+                    <button class="btn-restart" onclick="restartGame()">🔄 Играть заново</button>
+                    <button class="btn-back" onclick="navigate('beyond')">← Назад в игры</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab active" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        const myName = localStorage.getItem('shepot_my_name') || 'Я';
+        const partnerName = localStorage.getItem('shepot_partner_name') || 'Партнёр';
+        const playerNames = [myName, partnerName];
+
+        const turnLabel = document.getElementById('turnLabel');
+        const setupScreen = document.getElementById('setupScreen');
+        const playersRow = document.getElementById('playersRow');
+        const player1Name = document.getElementById('player1Name');
+        const player2Name = document.getElementById('player2Name');
+        const player1Card = document.getElementById('player1Card');
+        const player2Card = document.getElementById('player2Card');
+        const player1Clothes = document.getElementById('player1Clothes');
+        const player2Clothes = document.getElementById('player2Clothes');
+        const player1Count = document.getElementById('player1Count');
+        const player2Count = document.getElementById('player2Count');
+        const questionCard = document.getElementById('questionCard');
+        const questionType = document.getElementById('questionType');
+        const questionText = document.getElementById('questionText');
+        const questionOptions = document.getElementById('questionOptions');
+        const answerButtons = document.getElementById('answerButtons');
+        const btnNext = document.getElementById('btnNext');
+        const gameMenu = document.getElementById('gameMenu');
+        const endScreen = document.getElementById('endScreen');
+        const endWinner = document.getElementById('endWinner');
+        const clothesPreview = document.getElementById('clothesPreview');
+        const clothesInput = document.getElementById('clothesInput');
+
+        let stripData = null;
+        let currentPlayer = 1;
+        let initialClothes = 6;
+        let clothes = [6, 6];
+        let currentQuestion = null;
+        let usedAboutPartner = [];
+        let usedGeneral = [];
+        let questionAnswered = false;
+
+        player1Name.textContent = playerNames[0];
+        player2Name.textContent = playerNames[1];
+        updateClothesPreview();
+
+        function adjustClothes(delta) {
+            let value = parseInt(clothesInput.value) + delta;
+            if (value < 2) value = 2;
+            if (value > 20) value = 20;
+            clothesInput.value = value;
+            updateClothesPreview();
+        }
+
+        function updateClothesPreview() {
+            const count = parseInt(clothesInput.value);
+            let html = '';
+            for (let i = 0; i < count; i++) html += '<div class="cloth-dot"></div>';
+            clothesPreview.innerHTML = html;
+        }
+
+        fetch('../data/strip.json')
+            .then(res => res.json())
+            .then(data => { stripData = data.strip; })
+            .catch(err => {
+                stripData = [
+                    "Какой мой любимый цвет? | Синий | Красный | Зеленый",
+                    "Что я люблю есть на завтрак? | Яичницу | Кашу | Бутерброды",
+                    "Любимый фильм?", "Любимая музыка?", "О чем я мечтаю?", "Что меня раздражает?",
+                ];
+            });
+
+        function startGame() {
+            initialClothes = parseInt(clothesInput.value) || 6;
+            clothes = [initialClothes, initialClothes];
+            currentPlayer = 1;
+            usedAboutPartner = []; usedGeneral = []; questionAnswered = false;
+            setupScreen.style.display = 'none';
+            playersRow.style.display = 'flex';
+            questionCard.classList.add('show');
+            gameMenu.style.display = 'flex';
+            updateTurnDisplay();
+            renderClothes();
+            loadQuestion();
+        }
+
+        function updateTurnDisplay() {
+            const name = playerNames[currentPlayer - 1];
+            turnLabel.textContent = 'Ход: ' + name;
+            player1Card.classList.toggle('active', currentPlayer === 1);
+            player2Card.classList.toggle('active', currentPlayer === 2);
+            player1Card.classList.remove('loser');
+            player2Card.classList.remove('loser');
+        }
+
+        function renderClothes() {
+            [player1Clothes, player2Clothes].forEach((el, i) => {
+                let html = '';
+                for (let j = 0; j < initialClothes; j++) {
+                    html += '<div class="cloth-dot' + (j >= clothes[i] ? ' lost' : '') + '"></div>';
+                }
+                el.innerHTML = html;
+            });
+            player1Count.textContent = '👕 ' + clothes[0] + ' / ' + initialClothes;
+            player2Count.textContent = '👕 ' + clothes[1] + ' / ' + initialClothes;
+        }
+
+        function loadQuestion() {
+            if (!stripData || stripData.length === 0) { questionText.textContent = 'Вопросы загружаются...'; return; }
+            if (clothes[0] <= 0) { endGame(2); return; }
+            if (clothes[1] <= 0) { endGame(1); return; }
+
+            questionAnswered = false;
+            btnNext.classList.remove('show');
+            answerButtons.style.display = 'none';
+            questionOptions.innerHTML = '';
+            questionType.style.color = 'var(--gold)';
+
+            const useAboutPartner = Math.random() < 0.5;
+            
+            if (useAboutPartner) {
+                let available = stripData.filter((q, i) => !q.includes(' | ') && !usedAboutPartner.includes(i));
+                if (available.length === 0) { usedAboutPartner = []; available = stripData.filter(q => !q.includes(' | ')); }
+                if (available.length === 0) available = stripData;
+                const q = available[Math.floor(Math.random() * available.length)];
+                usedAboutPartner.push(stripData.indexOf(q));
+                currentQuestion = { text: q.includes(' | ') ? q.split(' | ')[0] : q, type: 'about' };
+                questionText.textContent = currentQuestion.text;
+                questionType.textContent = '💭 Вопрос о партнёре';
+                questionOptions.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:10px;">Ответьте устно, затем оцените ответ</div>';
+                answerButtons.style.display = 'flex';
+            } else {
+                let available = stripData.filter((q, i) => q.includes(' | ') && !usedGeneral.includes(i));
+                if (available.length === 0) { usedGeneral = []; available = stripData.filter(q => q.includes(' | ')); }
+                if (available.length === 0) {
+                    currentQuestion = { text: "Что вы знаете о партнёре?", type: 'about' };
+                    questionText.textContent = currentQuestion.text;
+                    questionType.textContent = '💭 Вопрос о партнёре';
+                    questionOptions.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:10px;">Ответьте устно</div>';
+                    answerButtons.style.display = 'flex';
+                    return;
+                }
+                const q = available[Math.floor(Math.random() * available.length)];
+                usedGeneral.push(stripData.indexOf(q));
+                const parts = q.split(' | ');
+                currentQuestion = { text: parts[0], type: 'general', correctAnswer: parts[1], options: parts.slice(1) };
+                questionText.textContent = parts[0];
+                questionType.textContent = '🎯 Выберите правильный ответ';
+                const options = [...parts.slice(1)];
+                for (let i = options.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [options[i], options[j]] = [options[j], options[i]]; }
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-option'; btn.textContent = opt;
+                    btn.onclick = function() {
+                        if (questionAnswered) return;
+                        questionAnswered = true;
+                        const isCorrect = (opt === parts[1]);
+                        document.querySelectorAll('.btn-option').forEach(b => { b.disabled = true; if (b.textContent === parts[1]) b.classList.add('correct'); if (b === btn && !isCorrect) b.classList.add('wrong'); });
+                        processAnswer(isCorrect);
+                    };
+                    questionOptions.appendChild(btn);
+                });
+                answerButtons.style.display = 'none';
+            }
+        }
+
+        function handleAnswer(correct) { if (questionAnswered) return; questionAnswered = true; answerButtons.style.display = 'none'; processAnswer(correct); }
+
+        function processAnswer(isCorrect) {
+            let loser;
+            if (isCorrect) { loser = currentPlayer === 1 ? 2 : 1; questionType.textContent = '✅ Верно! ' + playerNames[loser - 1] + ' снимает вещь'; questionType.style.color = '#4CAF50'; }
+            else { loser = currentPlayer; questionType.textContent = '❌ Неверно! ' + playerNames[currentPlayer - 1] + ' снимает вещь'; questionType.style.color = 'var(--rose)'; }
+            const loserCard = loser === 1 ? player1Card : player2Card;
+            loserCard.classList.add('loser'); setTimeout(() => loserCard.classList.remove('loser'), 500);
+            clothes[loser - 1]--;
+            setTimeout(() => { renderClothes(); btnNext.classList.add('show'); }, 300);
+            if (clothes[loser - 1] <= 0) setTimeout(() => endGame(loser === 1 ? 2 : 1), 1500);
+        }
+
+        function nextQuestion() {
+            if (clothes[0] <= 0) { endGame(2); return; }
+            if (clothes[1] <= 0) { endGame(1); return; }
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTurnDisplay();
+            questionCard.classList.remove('show');
+            setTimeout(() => { questionCard.classList.add('show'); loadQuestion(); }, 200);
+        }
+
+        function quitGame() { if (confirm('Закончить игру? Прогресс не сохранится.')) navigate('beyond'); }
+
+        function endGame(winner) {
+            questionCard.classList.remove('show'); playersRow.style.display = 'none'; gameMenu.style.display = 'none';
+            endScreen.classList.add('show');
+            const loser = winner === 1 ? 2 : 1;
+            endWinner.innerHTML = `${playerNames[loser - 1]} проиграл(а) и остался(ась) без одежды! 😳<br><span style="color:var(--gold);font-size:14px;">Победитель: ${playerNames[winner - 1]} 🏆</span>`;
+            turnLabel.textContent = 'Игра окончена';
+        }
+
+        function restartGame() {
+            endScreen.classList.remove('show'); setupScreen.style.display = 'flex';
+            playersRow.style.display = 'none'; questionCard.classList.remove('show');
+            gameMenu.style.display = 'none';
+            turnLabel.textContent = 'Настройте игру';
+            clothesInput.value = initialClothes;
+            updateClothesPreview();
+        }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

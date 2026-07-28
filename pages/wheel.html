@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Колесо фортуны</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        * { box-sizing: border-box; }
+
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            text-align: center; padding: 40px 18px 100px; z-index: 1; width: 100%; min-height: 100vh; overflow-y: auto;
+        }
+
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 2px; padding-top: 30px; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 14px; }
+
+        .game-description {
+            width: 100%; max-width: 310px; background: rgba(201, 169, 110, 0.06);
+            border: 1px solid rgba(201, 169, 110, 0.12); border-radius: 14px;
+            padding: 14px 16px; margin-bottom: 16px; text-align: left;
+        }
+        .game-description p { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+        .game-description strong { color: var(--gold); }
+
+        .wheel-container {
+            position: relative; width: 280px; height: 280px; margin: 10px auto 20px;
+        }
+
+        .wheel-canvas {
+            width: 100%; height: 100%; border-radius: 50%;
+            box-shadow: 0 0 40px rgba(201, 169, 110, 0.3), inset 0 0 40px rgba(201, 169, 110, 0.1);
+        }
+
+        .wheel-center {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 50px; height: 50px; border-radius: 50%; background: var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 0 20px rgba(201, 169, 110, 0.5);
+            z-index: 2; pointer-events: none; border: 3px solid #0D1117;
+        }
+
+        .wheel-pointer {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 15px solid transparent; border-right: 15px solid transparent;
+            border-top: 30px solid var(--gold); z-index: 3;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        }
+
+        .btn-spin {
+            padding: 14px 40px; border-radius: 30px; border: none;
+            background: linear-gradient(135deg, var(--gold), #D4B87A);
+            color: #0D1117; font-size: 18px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; font-family: var(--font-body); margin-top: 4px;
+        }
+        .btn-spin:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 4px 30px rgba(201, 169, 110, 0.5); }
+        .btn-spin:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .result-screen { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .result-screen.active { display: flex; }
+
+        .result-card {
+            background: rgba(20, 16, 18, 0.6); backdrop-filter: blur(15px);
+            border: 1px solid rgba(201, 169, 110, 0.15); border-radius: 20px;
+            padding: 24px 20px; width: 100%; max-width: 310px; margin-bottom: 14px; text-align: left;
+        }
+        .result-icon { font-size: 48px; text-align: center; margin-bottom: 6px; }
+        .result-category { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); margin-bottom: 4px; text-align: center; }
+        .result-title { font-family: var(--font-heading); font-size: 18px; color: var(--text-primary); margin-bottom: 10px; text-align: center; line-height: 1.3; }
+        .result-tip { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-top: 4px; border-top: 1px solid rgba(201, 169, 110, 0.08); padding-top: 12px; }
+        .result-tip strong { color: var(--gold); }
+        .result-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 8px; }
+        .result-tags .tag { background: rgba(201, 169, 110, 0.08); padding: 4px 12px; border-radius: 12px; font-size: 11px; color: var(--text-secondary); }
+
+        .result-actions { display: flex; gap: 10px; width: 100%; max-width: 310px; flex-wrap: wrap; justify-content: center; }
+        .result-actions .btn-action {
+            padding: 12px 24px; border-radius: 30px; border: none;
+            background: var(--gold); color: #0D1117; font-size: 13px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+            font-family: var(--font-body); text-align: center; min-width: 120px;
+        }
+        .result-actions .btn-action:hover { box-shadow: 0 4px 20px rgba(201, 169, 110, 0.4); transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 6%; left: 12%;"></div>
+            <div class="sparkle" style="top: 18%; right: 18%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 22%; left: 22%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 14%; right: 16%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 38%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 34%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainScreen">
+            <div id="mainContent">
+                <div class="page-title">🎡 Колесо фортуны</div>
+                <div class="page-sub">Крути и узнавай, что делать</div>
+
+                <div class="game-description">
+                    <p><strong>Не знаешь, чем заняться сегодня?</strong><br>Крути колесо! Оно выберет за тебя: кино, игры, готовку, домашние дела, отдых или музыку.<br><br><strong>Нажми «Крутить!» и пусть судьба решает 🎡</strong></p>
+                </div>
+
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <canvas id="wheelCanvas" class="wheel-canvas" width="400" height="400"></canvas>
+                    <div class="wheel-center">🎡</div>
+                </div>
+
+                <button class="btn-spin" id="spinBtn" onclick="spinWheel()">🎲 Крутить!</button>
+
+                <button class="btn-back" onclick="navigate('games')">← Назад к играм</button>
+            </div>
+
+            <div class="result-screen" id="resultScreen">
+                <div class="page-title">🎡 Колесо фортуны</div>
+                <div class="page-sub" id="resultCategoryLabel">Категория</div>
+
+                <div class="result-card">
+                    <div class="result-icon" id="resultIcon">🎬</div>
+                    <div class="result-category" id="resultCategory">КИНО</div>
+                    <div class="result-title" id="resultTitle">Название идеи</div>
+                    <div class="result-tags" id="resultTags"><span class="tag">⏱️ 2-3 часа</span><span class="tag">🏠 Домашнее</span></div>
+                    <div class="result-tip" id="resultTip"><strong>Что нужно:</strong> Описание</div>
+                </div>
+
+                <div class="result-actions">
+                    <button class="btn-action" onclick="backToWheel()">📂 К колесу</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab active" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        const SECTORS = [
+            { id: 'cinema', label: 'Кино', emoji: '🎬', color: '#6BBF8E' },
+            { id: 'games', label: 'Игры', emoji: '🎮', color: '#6BA3C9' },
+            { id: 'cook', label: 'Готовить', emoji: '🍳', color: '#FFA726' },
+            { id: 'chores', label: 'Домашние дела', emoji: '🧹', color: '#E57373' },
+            { id: 'rest', label: 'Отдых', emoji: '🛋️', color: '#B39DDB' },
+            { id: 'music', label: 'Музыка', emoji: '🎵', color: '#FFD54F' }
+        ];
+
+        const IDEAS = {
+            cinema: [
+                { title: 'Посмотрите фильм, который вы оба не видели', duration: '2-3 часа', place: 'Домашнее', tip: 'Выберите фильм наугад. Сделайте попкорн.' },
+                { title: 'Устройте киномарафон из 3 фильмов', duration: '4-6 часов', place: 'Домашнее', tip: 'Выберите тематику: комедии, ужасы, фантастика.' },
+                { title: 'Пересмотрите ваш любимый фильм с комментариями', duration: '2-3 часа', place: 'Домашнее', tip: 'Останавливайте и обсуждайте каждый момент.' },
+                { title: 'Устройте киновечер с попкорном и газировкой', duration: '2-3 часа', place: 'Домашнее', tip: 'Настоящий кинотеатр дома!' },
+                { title: 'Смотрите фильм и делайте паузу для обсуждения', duration: '3-4 часа', place: 'Домашнее', tip: 'Останавливайтесь на каждом повороте сюжета.' },
+                { title: 'Устройте вечер короткометражных фильмов', duration: '2 часа', place: 'Домашнее', tip: 'Смотрите и обсуждайте каждую.' },
+                { title: 'Посмотрите фильм о путешествиях', duration: '2-3 часа', place: 'Домашнее', tip: 'Вдохновитесь на совместное путешествие.' }
+            ],
+            games: [
+                { title: 'Сыграйте в настольную игру до победителя', duration: '2-4 часа', place: 'Домашнее', tip: 'Победитель получает приз.' },
+                { title: 'Устройте турнир по видеоигре', duration: '2-3 часа', place: 'Домашнее', tip: 'Победитель выбирает следующий ужин.' },
+                { title: 'Поиграйте в игры на телефоне вдвоём', duration: '1-2 часа', place: 'Домашнее', tip: 'Найдите игры для двоих.' },
+                { title: 'Сделайте квест по дому с подсказками', duration: '2-3 часа', place: 'Домашнее', tip: 'Спрячьте записки. В конце — сюрприз.' },
+                { title: 'Сыграйте в «Правда или действие»', duration: '1-2 часа', place: 'Домашнее', tip: 'Честные вопросы и интересные задания.' },
+                { title: 'Соберите пазл на 1000 деталей', duration: '3-5 часов', place: 'Домашнее', tip: 'Уютный вечер за пазлом.' },
+                { title: 'Сыграйте в «Монополию»', duration: '3-5 часов', place: 'Домашнее', tip: 'Вечер большой игры.' }
+            ],
+            cook: [
+                { title: 'Приготовьте новое блюдо по рецепту из интернета', duration: '2-3 часа', place: 'Кухня', tip: 'Готовьте вместе.' },
+                { title: 'Устройте кулинарный баттл', duration: '2-3 часа', place: 'Кухня', tip: 'Кто приготовит вкуснее?' },
+                { title: 'Приготовьте завтрак в постель вместе', duration: '1-2 часа', place: 'Домашнее', tip: 'Подайте завтрак в постель.' },
+                { title: 'Испеките пиццу с необычными начинками', duration: '2-3 часа', place: 'Кухня', tip: 'Придумайте свои начинки.' },
+                { title: 'Приготовьте блюдо из другой страны', duration: '2-3 часа', place: 'Кухня', tip: 'Выберите страну и её национальное блюдо.' },
+                { title: 'Сделайте домашние пельмени или вареники', duration: '3-4 часа', place: 'Кухня', tip: 'Налепите вместе.' },
+                { title: 'Испеките печенье и украсьте его', duration: '2-3 часа', place: 'Кухня', tip: 'Выпечка и творчество.' }
+            ],
+            chores: [
+                { title: 'Разберите шкаф и выбросьте ненужные вещи', duration: '2-3 часа', place: 'Домашнее', tip: 'Освободите место для нового.' },
+                { title: 'Сделайте генеральную уборку в комнате', duration: '2 часа', place: 'Домашнее', tip: 'Вымойте полы, протрите пыль.' },
+                { title: 'Переберите книги и разложите по жанрам', duration: '1-2 часа', place: 'Домашнее', tip: 'Книги в порядок.' },
+                { title: 'Разберите ящики кухни — выбросьте просроченное', duration: '1-2 часа', place: 'Кухня', tip: 'Кухня в порядке.' },
+                { title: 'Постирайте и разберите постельное бельё', duration: '1-2 часа', place: 'Домашнее', tip: 'Свежее бельё — свежий сон.' },
+                { title: 'Помойте окна или зеркала', duration: '1 час', place: 'Домашнее', tip: 'Смотрите на мир чище.' },
+                { title: 'Разберите вещи по сезонам', duration: '2-3 часа', place: 'Домашнее', tip: 'Освободите шкаф.' }
+            ],
+            rest: [
+                { title: 'Просто лежите в обнимку и молчите 15 минут', duration: '15 мин', place: 'Домашнее', tip: 'Обнимайтесь в тишине.' },
+                { title: 'Сделайте друг другу массаж без разговоров', duration: '30 мин', place: 'Домашнее', tip: 'Массаж в тишине.' },
+                { title: 'Устройте вечер с ванной и свечами', duration: '1-2 часа', place: 'Домашнее', tip: 'Наполните ванну, зажгите свечи.' },
+                { title: 'Слушайте звуки природы и расслабляйтесь', duration: '30 мин', place: 'Домашнее', tip: 'Медитация под звуки природы.' },
+                { title: 'Сделайте дыхательную гимнастику вместе', duration: '15 мин', place: 'Домашнее', tip: 'Дышите в одном ритме.' },
+                { title: 'Устройте «день без телефонов» хотя бы на час', duration: '1 час', place: 'Домашнее', tip: 'Просто будьте вместе.' },
+                { title: 'Сделайте медитацию для двоих', duration: '20 мин', place: 'Домашнее', tip: 'Закройте глаза и дышите.' }
+            ],
+            music: [
+                { title: 'Включите плейлист из песен вашей молодости', duration: '2 часа', place: 'Домашнее', tip: 'Ностальгия и воспоминания.' },
+                { title: 'Спойте караоке — кто лучше', duration: '1-2 часа', place: 'Домашнее', tip: 'Соревнуйтесь в вокале.' },
+                { title: 'Устройте дискотеку на кухне', duration: '1-2 часа', place: 'Домашнее', tip: 'Танцуйте на кухне.' },
+                { title: 'Сделайте плейлист «Наши песни» и слушайте', duration: '2 часа', place: 'Домашнее', tip: 'Песни ваших отношений.' },
+                { title: 'Потанцуйте под медленную музыку', duration: '30 мин', place: 'Домашнее', tip: 'Романтический вечер.' },
+                { title: 'Включите неизвестную музыку и угадывайте жанры', duration: '1-2 часа', place: 'Домашнее', tip: 'Игра на угадывание.' },
+                { title: 'Сделайте кавер на любимую песню', duration: '2-3 часа', place: 'Домашнее', tip: 'Запишите свою версию.' }
+            ]
+        };
+
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = 200, centerY = 200, radius = 180;
+        let currentRotation = 0, isSpinning = false, animationId = null;
+
+        function drawWheel(rotation) {
+            const sectorAngle = (2 * Math.PI) / SECTORS.length;
+            ctx.clearRect(0, 0, 400, 400);
+            SECTORS.forEach((sector, index) => {
+                const startAngle = index * sectorAngle + rotation;
+                const endAngle = startAngle + sectorAngle;
+                ctx.beginPath(); ctx.moveTo(centerX, centerY); ctx.arc(centerX, centerY, radius, startAngle, endAngle); ctx.closePath();
+                ctx.fillStyle = sector.color; ctx.fill(); ctx.strokeStyle = '#0D1117'; ctx.lineWidth = 3; ctx.stroke();
+                const textAngle = startAngle + sectorAngle / 2;
+                const textRadius = radius * 0.65;
+                const x = centerX + Math.cos(textAngle) * textRadius;
+                const y = centerY + Math.sin(textAngle) * textRadius;
+                ctx.save(); ctx.translate(x, y); ctx.rotate(textAngle + Math.PI / 2);
+                ctx.font = 'bold 18px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#FFFFFF'; ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 8;
+                ctx.fillText(sector.emoji, 0, 0); ctx.restore();
+                const labelRadius = radius * 0.85;
+                const lx = centerX + Math.cos(textAngle) * labelRadius;
+                const ly = centerY + Math.sin(textAngle) * labelRadius;
+                ctx.save(); ctx.translate(lx, ly); ctx.rotate(textAngle + Math.PI / 2);
+                ctx.font = 'bold 12px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#FFFFFF'; ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 6;
+                ctx.fillText(sector.label, 0, 0); ctx.restore();
+            });
+            ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI); ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 4; ctx.stroke();
+        }
+
+        drawWheel(0);
+
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true; document.getElementById('spinBtn').disabled = true;
+            if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
+            currentRotation = 0;
+            const targetIndex = Math.floor(Math.random() * SECTORS.length);
+            const sectorAngle = (2 * Math.PI) / SECTORS.length;
+            const pointerAngle = -Math.PI / 2;
+            const targetAngle = targetIndex * sectorAngle + sectorAngle / 2;
+            const fullRotations = 10;
+            const newRotation = pointerAngle - targetAngle + fullRotations * 2 * Math.PI;
+            const startRotation = 0, duration = 5000, startTime = performance.now();
+
+            function animate(timestamp) {
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const ease = 1 - Math.pow(1 - progress, 4);
+                const current = startRotation + (newRotation - startRotation) * ease;
+                drawWheel(current);
+                if (progress < 1) { animationId = requestAnimationFrame(animate); }
+                else { currentRotation = newRotation; isSpinning = false; document.getElementById('spinBtn').disabled = false; animationId = null; showResult(targetIndex); }
+            }
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function showResult(sectorIndex) {
+            const sector = SECTORS[sectorIndex];
+            const ideas = IDEAS[sector.id] || [];
+            const idea = ideas[Math.floor(Math.random() * ideas.length)];
+            if (!idea) { backToWheel(); return; }
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('resultScreen').classList.add('active');
+            document.getElementById('resultIcon').textContent = sector.emoji;
+            document.getElementById('resultCategoryLabel').textContent = sector.emoji + ' ' + sector.label;
+            document.getElementById('resultCategory').textContent = sector.label.toUpperCase();
+            document.getElementById('resultTitle').textContent = idea.title;
+            document.getElementById('resultTags').innerHTML = `<span class="tag">⏱️ ${idea.duration}</span><span class="tag">${idea.place}</span>`;
+            document.getElementById('resultTip').innerHTML = '<strong>Что нужно:</strong> ' + idea.tip;
+        }
+
+        function backToWheel() {
+            currentRotation = 0; drawWheel(0);
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('resultScreen').classList.remove('active');
+        }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+
+        function resizeCanvas() {
+            const container = document.querySelector('.wheel-container');
+            const size = Math.min(container.clientWidth, 280);
+            canvas.style.width = size + 'px'; canvas.style.height = size + 'px';
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

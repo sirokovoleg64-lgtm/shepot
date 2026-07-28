@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Кубик</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px 18px 100px;
+            z-index: 1;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .page-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .cube-container {
+            width: 130px; height: 130px;
+            margin-bottom: 20px;
+            perspective: 600px;
+        }
+
+        .cube {
+            width: 100%; height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+
+        .cube.rolling {
+            animation: roll 1.2s ease-out;
+        }
+
+        @keyframes roll {
+            0% { transform: rotateX(0) rotateY(0) rotateZ(0); }
+            25% { transform: rotateX(180deg) rotateY(90deg) rotateZ(45deg); }
+            50% { transform: rotateX(360deg) rotateY(180deg) rotateZ(90deg); }
+            75% { transform: rotateX(540deg) rotateY(270deg) rotateZ(135deg); }
+            100% { transform: rotateX(720deg) rotateY(360deg) rotateZ(180deg); }
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 130px; height: 130px;
+            background: rgba(20, 16, 18, 0.9);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 42px;
+            box-shadow: 0 0 15px rgba(201, 169, 110, 0.2);
+        }
+
+        .cube-face.front  { transform: translateZ(65px); }
+        .cube-face.back   { transform: rotateY(180deg) translateZ(65px); }
+        .cube-face.right  { transform: rotateY(90deg) translateZ(65px); }
+        .cube-face.left   { transform: rotateY(-90deg) translateZ(65px); }
+        .cube-face.top    { transform: rotateX(90deg) translateZ(65px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(65px); }
+
+        .result-card {
+            background: rgba(20, 16, 18, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            border-radius: 20px;
+            padding: 20px 18px;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-name {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+
+        .result-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .btn-roll {
+            padding: 14px 40px;
+            border-radius: 50px;
+            border: none;
+            background: var(--gold);
+            color: #0D1117;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3);
+            margin-bottom: 16px;
+        }
+
+        .btn-roll:hover {
+            box-shadow: 0 6px 25px rgba(201, 169, 110, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-roll:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .settings-block {
+            width: 100%;
+            max-width: 300px;
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .settings-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(201, 169, 110, 0.08);
+        }
+
+        .toggle-label { font-size: 11px; color: var(--text-primary); }
+
+        .toggle-switch {
+            width: 36px; height: 20px;
+            background: rgba(201, 169, 110, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active { background: var(--gold); }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute; top: 2px; left: 2px;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after { left: 18px; }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen">
+            <div class="page-title">Кубик</div>
+            <div class="page-sub">бросьте кубик</div>
+
+            <div class="cube-container">
+                <div class="cube" id="cube">
+                    <div class="cube-face front">🎲</div>
+                    <div class="cube-face back">🎲</div>
+                    <div class="cube-face right">🎲</div>
+                    <div class="cube-face left">🎲</div>
+                    <div class="cube-face top">🎲</div>
+                    <div class="cube-face bottom">🎲</div>
+                </div>
+            </div>
+
+            <div class="result-card" id="resultCard">
+                <div class="result-name" id="resultName"></div>
+                <div class="result-desc" id="resultDesc"></div>
+            </div>
+
+            <button class="btn-roll" id="btnRoll" onclick="rollCube()">Бросить</button>
+
+            <div class="settings-block">
+                <div class="settings-title">Настройка граней</div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Классика</span>
+                    <div class="toggle-switch active" id="toggleClassic" onclick="toggleSetting('classic')"></div>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Нежность</span>
+                    <div class="toggle-switch active" id="toggleTender" onclick="toggleSetting('tender')"></div>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Эксперименты</span>
+                    <div class="toggle-switch active" id="toggleExperiments" onclick="toggleSetting('experiments')"></div>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label">Экстрим</span>
+                    <div class="toggle-switch" id="toggleExtreme" onclick="toggleSetting('extreme')"></div>
+                </div>
+            </div>
+
+            <button class="btn-back" onclick="window.location.href='beyond.html'">← В За гранью</button>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        let cubeData = null;
+        let activeSettings = { classic: true, tender: true, experiments: true, extreme: false };
+
+        fetch('../data/cube.json')
+            .then(res => res.json())
+            .then(data => { cubeData = data.cube; });
+
+        function toggleSetting(cat) {
+            activeSettings[cat] = !activeSettings[cat];
+            document.getElementById('toggle' + cat.charAt(0).toUpperCase() + cat.slice(1)).classList.toggle('active', activeSettings[cat]);
+        }
+
+        function rollCube() {
+            if (!cubeData) return;
+
+            let allFaces = [];
+            if (activeSettings.classic) allFaces = allFaces.concat(cubeData.classic);
+            if (activeSettings.tender) allFaces = allFaces.concat(cubeData.tender);
+            if (activeSettings.experiments) allFaces = allFaces.concat(cubeData.experiments);
+            if (activeSettings.extreme) allFaces = allFaces.concat(cubeData.extreme);
+
+            if (allFaces.length === 0) { alert('Включите хотя бы одну категорию!'); return; }
+
+            const cube = document.getElementById('cube');
+            const btn = document.getElementById('btnRoll');
+            const resultCard = document.getElementById('resultCard');
+            
+            btn.disabled = true;
+            resultCard.classList.remove('show');
+            cube.classList.add('rolling');
+            
+            setTimeout(() => {
+                cube.classList.remove('rolling');
+                const randomFace = allFaces[Math.floor(Math.random() * allFaces.length)];
+                document.getElementById('resultName').textContent = randomFace.name;
+                document.getElementById('resultDesc').textContent = randomFace.desc;
+                resultCard.classList.add('show');
+                btn.disabled = false;
+            }, 1200);
+        }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

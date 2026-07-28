@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Разговор</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        * { box-sizing: border-box; }
+
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            text-align: center; padding: 40px 18px 100px; z-index: 1; width: 100%; min-height: 100vh; overflow-y: auto;
+        }
+
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 2px; padding-top: 30px; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 14px; }
+
+        .game-description {
+            width: 100%; max-width: 310px; background: rgba(201, 169, 110, 0.06);
+            border: 1px solid rgba(201, 169, 110, 0.12); border-radius: 14px;
+            padding: 14px 16px; margin-bottom: 16px; text-align: left;
+        }
+        .game-description p { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+        .game-description strong { color: var(--gold); }
+
+        .category-grid { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 310px; margin-bottom: 14px; }
+
+        .category-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08); border-radius: 16px;
+            padding: 14px 16px; cursor: pointer; transition: all 0.3s;
+            display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 12px;
+        }
+        .category-card:hover { border-color: rgba(201, 169, 110, 0.3); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+        .category-card .left { display: flex; align-items: center; gap: 12px; }
+        .category-card .icon { font-size: 28px; }
+        .category-card .info .name { font-family: var(--font-heading); font-size: 14px; color: var(--text-primary); }
+        .category-card .info .desc { font-size: 11px; color: var(--text-secondary); }
+        .category-card .right { text-align: right; }
+        .category-card .count { font-size: 12px; color: var(--gold); font-weight: 600; }
+        .category-card .progress-mini { width: 60px; height: 4px; background: rgba(201, 169, 110, 0.15); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+        .category-card .progress-mini .fill { height: 100%; background: var(--gold); border-radius: 4px; transition: width 0.6s ease; }
+
+        .action-row { display: flex; gap: 10px; width: 100%; max-width: 310px; margin-bottom: 8px; }
+        .action-row .btn-action {
+            flex: 1; padding: 10px 12px; border-radius: 14px;
+            border: 1px solid rgba(201, 169, 110, 0.15); background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px); color: var(--text-primary); font-size: 12px;
+            cursor: pointer; transition: all 0.3s; font-family: var(--font-body); text-align: center;
+        }
+        .action-row .btn-action:hover { border-color: rgba(201, 169, 110, 0.4); background: rgba(201, 169, 110, 0.05); }
+
+        .topic-screen { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .topic-screen.active { display: flex; }
+
+        .topic-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 20px;
+            padding: 24px 20px; width: 100%; max-width: 310px; margin-bottom: 14px; text-align: left;
+        }
+        .topic-category-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); margin-bottom: 8px; }
+        .topic-number { font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; }
+        .topic-text { font-family: var(--font-heading); font-size: 18px; color: var(--text-primary); line-height: 1.5; margin-bottom: 14px; }
+        .topic-tip { background: rgba(201, 169, 110, 0.06); border-left: 2px solid var(--gold); padding: 10px 14px; border-radius: 8px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+        .topic-tip strong { color: var(--gold); }
+
+        .topic-progress { width: 100%; max-width: 310px; margin-bottom: 14px; }
+        .topic-progress .header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+        .topic-progress .bar { width: 100%; height: 6px; background: rgba(201, 169, 110, 0.15); border-radius: 10px; overflow: hidden; }
+        .topic-progress .bar .fill { height: 100%; background: linear-gradient(90deg, var(--gold), #D4B87A); border-radius: 10px; transition: width 0.6s ease; width: 0%; }
+
+        .topic-actions { display: flex; gap: 10px; width: 100%; max-width: 310px; flex-wrap: wrap; }
+        .topic-actions .btn-action {
+            flex: 1; padding: 12px 16px; border-radius: 30px; border: none;
+            background: var(--gold); color: #0D1117; font-size: 13px; cursor: pointer;
+            font-weight: 600; transition: all 0.3s; font-family: var(--font-body); text-align: center; min-width: 80px;
+        }
+        .topic-actions .btn-action:hover { box-shadow: 0 4px 20px rgba(201, 169, 110, 0.4); transform: translateY(-1px); }
+        .topic-actions .btn-action.secondary { background: transparent; border: 1px solid rgba(201, 169, 110, 0.2); color: var(--text-secondary); }
+        .topic-actions .btn-action.secondary:hover { border-color: var(--gold); color: var(--text-primary); box-shadow: none; transform: none; }
+        .topic-actions .btn-action.back-to-topics { flex: 0 0 100%; background: transparent; border: 1px solid rgba(201, 169, 110, 0.1); color: var(--text-secondary); font-weight: 400; font-size: 12px; padding: 8px 12px; }
+        .topic-actions .btn-action.back-to-topics:hover { border-color: var(--gold); color: var(--text-primary); box-shadow: none; transform: none; }
+
+        .completed-screen { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0; }
+        .completed-screen.active { display: flex; }
+        .completed-screen .icon { font-size: 48px; }
+        .completed-screen .title { font-family: var(--font-heading); font-size: 22px; color: var(--gold); }
+        .completed-screen .text { font-size: 14px; color: var(--text-secondary); max-width: 280px; line-height: 1.6; }
+        .completed-screen .btn-action { padding: 12px 32px; border-radius: 30px; border: none; background: var(--gold); color: #0D1117; font-size: 14px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-family: var(--font-body); }
+        .completed-screen .btn-action:hover { box-shadow: 0 4px 20px rgba(201, 169, 110, 0.4); }
+        .completed-screen .btn-action.secondary { background: transparent; border: 1px solid rgba(201, 169, 110, 0.2); color: var(--text-secondary); }
+        .completed-screen .btn-action.secondary:hover { border-color: var(--gold); color: var(--text-primary); box-shadow: none; }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 6%; left: 12%;"></div>
+            <div class="sparkle" style="top: 18%; right: 18%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 22%; left: 22%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 14%; right: 16%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 38%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 34%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainScreen">
+            <div id="mainContent">
+                <div class="page-title">💬 Разговор</div>
+                <div class="page-sub">Выбери категорию</div>
+
+                <div class="game-description">
+                    <p><strong>Вам не о чем поговорить?</strong><br>Сидите в тишине и не знаете, с чего начать? Эта игра — ваш спасательный круг!<br><br>Выберите категорию, и мы дадим вам <strong>интересный вопрос</strong> для обсуждения. Больше никакой неловкой тишины — только живые, глубокие и весёлые разговоры.<br><br><strong>Обсуждайте, узнавайте друг друга и просто наслаждайтесь общением ❤️</strong></p>
+                </div>
+
+                <div class="category-grid" id="categoryGrid"></div>
+
+                <div class="action-row">
+                    <button class="btn-action" onclick="randomTopic()">🎲 Случайная тема</button>
+                </div>
+
+                <button class="btn-back" onclick="navigate('games')">← Назад к играм</button>
+            </div>
+
+            <div class="topic-screen" id="topicScreen">
+                <div class="page-title">💬 Разговор</div>
+                <div class="page-sub" id="topicCategoryLabel">Категория</div>
+
+                <div class="topic-card">
+                    <div class="topic-number" id="topicNumber">Тема 1 из 50</div>
+                    <div class="topic-text" id="topicText">Текст темы</div>
+                    <div class="topic-tip" id="topicTip">💡 <strong>Совет:</strong> ...</div>
+                </div>
+
+                <div class="topic-progress">
+                    <div class="header"><span>Прогресс</span><span id="topicProgressText">0 из 50</span></div>
+                    <div class="bar"><div class="fill" id="topicProgressFill" style="width:0%;"></div></div>
+                </div>
+
+                <div class="topic-actions">
+                    <button class="btn-action secondary" onclick="previousTopic()">← Назад</button>
+                    <button class="btn-action" onclick="nextTopic()">Следующая →</button>
+                    <button class="btn-action back-to-topics" onclick="backToMain()">📂 Назад к темам</button>
+                </div>
+            </div>
+
+            <div class="completed-screen" id="completedScreen">
+                <div class="icon">🎉</div>
+                <div class="title">Все темы обсуждены!</div>
+                <div class="text" id="completedText">Вы прошли все 50 вопросов в этой категории.</div>
+                <button class="btn-action" onclick="resetCategory()">🔄 Начать заново</button>
+                <button class="btn-action secondary" onclick="backToMain()" style="margin-top:6px;">📂 Назад к темам</button>
+            </div>
+        </div>
+
+        <div class="modal" id="modal">
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle">Подтверждение</div>
+                <div class="modal-desc" id="modalDesc">Вы уверены?</div>
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button class="btn-save" id="modalConfirmBtn">Да</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab active" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        const TOPICS = {
+            about_us: { icon: '💕', name: 'О нас', desc: 'Вопросы про наши отношения', topics: [
+                { id: 1, text: 'Какое твоё самое тёплое воспоминание о нас?', tip: 'Вспомните детали, эмоции, звуки и запахи того момента' },
+                { id: 2, text: 'Что ты чувствуешь, когда мы ссоримся?', tip: 'Поделитесь честно, без обвинений' },
+                { id: 3, text: 'Как я могу сделать твой день лучше?', tip: 'Будьте конкретны. Что реально работает?' },
+                { id: 4, text: 'Что ты ценишь в наших отношениях больше всего?', tip: 'Назовите 3 вещи' },
+                { id: 5, text: 'Каким ты видишь наше будущее через 5 лет?', tip: 'Представьте идеальную картину' },
+                { id: 6, text: 'Что мы делаем лучше других пар?', tip: 'Найдите свою уникальную силу' },
+                { id: 7, text: 'Как ты понимаешь, что я люблю тебя?', tip: 'Какие мои действия говорят тебе об этом?' },
+                { id: 8, text: 'Чего тебе не хватает в наших отношениях?', tip: 'Говорите о потребностях, а не о недостатках' },
+                { id: 9, text: 'Что тебя больше всего радует в наших отношениях?', tip: 'Вспомните конкретный момент' },
+                { id: 10, text: 'Какое событие нас сблизило больше всего?', tip: 'Расскажите эту историю' },
+                { id: 11, text: 'Что бы ты хотел(а) изменить в наших отношениях?', tip: 'Предложите идеи' },
+                { id: 12, text: 'Как я могу поддержать тебя в трудный момент?', tip: 'Что работает лично для вас?' },
+                { id: 13, text: 'Что для тебя значит «любовь»?', tip: 'Определите это словами' },
+                { id: 14, text: 'Какой момент был самым сложным?', tip: 'Что помогло пережить?' },
+                { id: 15, text: 'Что ты любишь во мне больше всего?', tip: 'Назовите 3 качества' },
+                { id: 16, text: 'Какой комплимент тебе запомнился?', tip: 'Почему именно он?' },
+                { id: 17, text: 'Что тебя раздражает в наших отношениях?', tip: 'Говорите мягко' },
+                { id: 18, text: 'Что мы могли бы делать чаще?', tip: 'Составьте список идей' },
+                { id: 19, text: 'Что для тебя самое важное в партнёре?', tip: 'Есть ли это у нас?' },
+                { id: 20, text: 'Как ты понял(а), что я — твой человек?', tip: 'Расскажите эту историю' },
+                { id: 21, text: 'Что тебя вдохновляет в наших отношениях?', tip: 'Что даёт силы?' },
+                { id: 22, text: 'Что мы могли бы улучшить в общении?', tip: 'Как лучше слышать друг друга?' },
+                { id: 23, text: 'Что ты чувствуешь, когда мы вместе?', tip: 'Опишите это чувство' },
+                { id: 24, text: 'Какой момент ты хотел(а) бы пережить заново?', tip: 'Почему он важен?' },
+                { id: 25, text: 'Что для тебя идеальные отношения?', tip: 'Что из этого есть у нас?' },
+                { id: 26, text: 'Что ты хотел(а) бы сказать мне, но боишься?', tip: 'Безопасное пространство' },
+                { id: 27, text: 'Как я могу быть лучше для тебя?', tip: 'Честно, без страха' },
+                { id: 28, text: 'Что тебя удивляет во мне до сих пор?', tip: 'Что открываешь нового?' },
+                { id: 29, text: 'Что нас делает «мы»?', tip: 'Что объединяет?' },
+                { id: 30, text: 'Какой общий опыт нас изменил?', tip: 'Как вы выросли?' },
+                { id: 31, text: 'Что ты хочешь, чтобы я знал(а) о тебе?', tip: 'Что я могу не знать?' },
+                { id: 32, text: 'Что бы ты делал(а) в другой жизни?', tip: 'Поиграйте в эту игру' },
+                { id: 33, text: 'Что для тебя дом?', tip: 'Место или чувство?' },
+                { id: 34, text: 'Что ты хочешь запомнить о нас?', tip: 'Что важно сохранить?' },
+                { id: 35, text: 'Что мы упускаем в повседневности?', tip: 'Что перестали замечать?' },
+                { id: 36, text: 'Что тебя успокаивает в наших отношениях?', tip: 'Что даёт безопасность?' },
+                { id: 37, text: 'Что ты хотел(а) бы передать детям?', tip: 'Какие ценности?' },
+                { id: 38, text: 'Что мы никогда не должны забывать?', tip: 'Что самое важное?' },
+                { id: 39, text: 'Что для тебя значит «быть вместе»?', tip: 'Действие или состояние?' },
+                { id: 40, text: 'Что ты хочешь, чтобы я делал(а) чаще?', tip: 'Маленькие жесты' },
+                { id: 41, text: 'Что ты чувствуешь, когда мы молчим?', tip: 'Комфорт или напряжение?' },
+                { id: 42, text: 'Какая наша общая мечта?', tip: 'Есть ли она?' },
+                { id: 43, text: 'Что делает нас уникальными?', tip: 'Что отличает от других?' },
+                { id: 44, text: 'Что ты хочешь, чтобы я понял(а)?', tip: 'Что я могу не замечать?' },
+                { id: 45, text: 'Что мы создали вместе?', tip: 'Что построили?' },
+                { id: 46, text: 'Что для тебя идеальное время вместе?', tip: 'Как любите проводить?' },
+                { id: 47, text: 'Что ты ценишь в моей поддержке?', tip: 'Что я делаю правильно?' },
+                { id: 48, text: 'Что бы ты хотел(а) изменить в рутине?', tip: 'Новые привычки' },
+                { id: 49, text: 'Что для тебя значит «прощать»?', tip: 'Как справляетесь с обидами?' },
+                { id: 50, text: 'Каким ты хочешь запомнить наши отношения?', tip: 'Какое наследие оставить?' }
+            ]},
+            deep: { icon: '🧠', name: 'Глубокое', desc: 'Философские вопросы', topics: [
+                { id: 1, text: 'Что для тебя счастье?', tip: 'Конкретно. Что это для вас?' },
+                { id: 2, text: 'В чём смысл жизни для тебя?', tip: 'Что придаёт значение?' },
+                { id: 3, text: 'Что бы ты делал(а) без страха ошибки?', tip: 'Что останавливает?' },
+                { id: 4, text: 'Каким ты хочешь запомниться?', tip: 'Какое наследие?' },
+                { id: 5, text: 'Что важнее — деньги или время?', tip: 'Что выбираете?' },
+                { id: 6, text: 'Что ты хотел(а) бы изменить в мире?', tip: 'Что можете сделать?' },
+                { id: 7, text: 'Кто твой кумир и почему?', tip: 'Что цените?' },
+                { id: 8, text: 'Что ты понял(а) о жизни за год?', tip: 'Какой урок?' },
+                { id: 9, text: 'Как страх управляет решениями?', tip: 'Что без страха?' },
+                { id: 10, text: 'Что для тебя успех?', tip: 'Как измеряете?' },
+                { id: 11, text: 'Что самое важное в жизни?', tip: 'Приоритеты' },
+                { id: 12, text: 'Как справляешься с неудачами?', tip: 'Что помогает вставать?' },
+                { id: 13, text: 'Что хочешь изменить в себе?', tip: 'Какие шаги?' },
+                { id: 14, text: 'Что для тебя свобода?', tip: 'Что ограничивает?' },
+                { id: 15, text: 'Что сделал(а) сегодня для мечты?', tip: 'Маленькие шаги' },
+                { id: 16, text: 'Что хочешь чтобы люди знали?', tip: 'Что важно?' },
+                { id: 17, text: 'Что для тебя богатство?', tip: 'Деньги, здоровье, отношения?' },
+                { id: 18, text: 'Как принимаешь важные решения?', tip: 'Что главное?' },
+                { id: 19, text: 'Что хочешь оставить после себя?', tip: 'Наследие' },
+                { id: 20, text: 'Что значит жить полной жизнью?', tip: 'Что входит?' },
+                { id: 21, text: 'Что тебя больше всего пугает?', tip: 'И что делать?' },
+                { id: 22, text: 'Что важное в человеке?', tip: 'Какие качества ищете?' },
+                { id: 23, text: 'Что хотел(а) бы изменить в жизни?', tip: 'Что мешает?' },
+                { id: 24, text: 'Что значит быть счастливым?', tip: 'Что делает?' },
+                { id: 25, text: 'Каким видишь мир через 50 лет?', tip: 'Что можете сделать?' },
+                { id: 26, text: 'Что сделал(а) сегодня чтобы стать лучше?', tip: 'Развитие' },
+                { id: 27, text: 'Что главное в жизни?', tip: 'Приоритет' },
+                { id: 28, text: 'Что хотел(а) бы сделать но боишься?', tip: 'Что держит?' },
+                { id: 29, text: 'Что для тебя дом?', tip: 'Место, люди, чувство?' },
+                { id: 30, text: 'Что передать будущим поколениям?', tip: 'Мудрость' },
+                { id: 31, text: 'Быть правым или счастливым?', tip: 'Что чаще выбираете?' },
+                { id: 32, text: 'Что с миллиардом долларов?', tip: 'Что изменили бы?' },
+                { id: 33, text: 'Что для тебя дружба?', tip: 'Что цените?' },
+                { id: 34, text: 'Что хочешь чтобы помнили?', tip: 'Впечатление' },
+                { id: 35, text: 'Что для тебя любовь?', tip: 'Определение' },
+                { id: 36, text: 'Что изменил(а) бы в мире?', tip: 'Одно изменение' },
+                { id: 37, text: 'Что значит прощать?', tip: 'Как прощаете?' },
+                { id: 38, text: 'Что изменится в тебе через 5 лет?', tip: 'Образ будущего' },
+                { id: 39, text: 'Что ценное в людях?', tip: 'Качество' },
+                { id: 40, text: 'Что сказал(а) бы себе 10-летнему?', tip: 'Совет' },
+                { id: 41, text: 'Что значит быть свободным?', tip: 'Что ограничивает?' },
+                { id: 42, text: 'Что изменил(а) бы в прошлом?', tip: 'Что можете сейчас?' },
+                { id: 43, text: 'Что важное в отношениях?', tip: 'Что цените?' },
+                { id: 44, text: 'Что сказал(а) бы на прощание миру?', tip: 'Что хотите сказать?' },
+                { id: 45, text: 'Что значит жить с честью?', tip: 'Принципы' },
+                { id: 46, text: 'Что хочешь чтобы поняли о тебе?', tip: 'Что не понимают?' },
+                { id: 47, text: 'Какой самый большой страх?', tip: 'Что без него?' },
+                { id: 48, text: 'Что хочешь сделать до конца жизни?', tip: 'Список' },
+                { id: 49, text: 'Что значит быть человеком?', tip: 'Что делает нас людьми?' },
+                { id: 50, text: 'Что сказал(а) бы Богу/Вселенной?', tip: 'Что хотите сказать?' }
+            ]},
+            light: { icon: '😂', name: 'Лёгкое', desc: 'Смешные и забавные вопросы', topics: [
+                { id: 1, text: 'Каким животным был(а) бы в прошлой жизни?', tip: 'Почему оно?' },
+                { id: 2, text: 'Что бы ел(а) неограниченно?', tip: 'Идеальный обед' },
+                { id: 3, text: 'Какой самый странный талант?', tip: 'Покажите' },
+                { id: 4, text: 'Кого из знаменитостей встретить?', tip: 'Что спросили бы?' },
+                { id: 5, text: 'Что делаешь когда никто не видит?', tip: 'Тайные привычки' },
+                { id: 6, text: 'Какая песня ассоциируется со мной?', tip: 'Включите' },
+                { id: 7, text: 'Суперсила или суперум?', tip: 'Какую?' },
+                { id: 8, text: 'Какую книгу перечитывал(а)?', tip: 'Что в ней?' },
+                { id: 9, text: 'Что смешного случилось на неделе?', tip: 'Рассмешите' },
+                { id: 10, text: 'Нелепый страх в детстве?', tip: 'Как победили?' },
+                { id: 11, text: 'Что с выигрышем в лотерею?', tip: 'Первые 3 вещи' },
+                { id: 12, text: 'Любимый мем?', tip: 'Покажите' },
+                { id: 13, text: 'Что любишь есть но стесняешься?', tip: 'Guilty pleasure' },
+                { id: 14, text: 'Самый нелепый наряд?', tip: 'Было?' },
+                { id: 15, text: 'Что с остановкой времени?', tip: 'На что потратите?' },
+                { id: 16, text: 'Фильм за который стыдно?', tip: 'Почему нравится?' },
+                { id: 17, text: 'Когда смеялся(ась) до слёз?', tip: 'Расскажите' },
+                { id: 18, text: 'Самый нелепый сон?', tip: 'Что было?' },
+                { id: 19, text: 'Без интернета или без телефона?', tip: 'Что важнее?' },
+                { id: 20, text: 'Что делаешь когда никто не видит?', tip: 'Тайное удовольствие' },
+                { id: 21, text: 'Смешное прозвище?', tip: 'Кто дал?' },
+                { id: 22, text: 'Что делал(а) в школе?', tip: 'Школьные годы' },
+                { id: 23, text: 'Любимое блюдо которое не умеешь?', tip: 'Научитесь вместе?' },
+                { id: 24, text: 'Когда краснел(а) последний раз?', tip: 'Смешная ситуация' },
+                { id: 25, text: 'Любимая игра детства?', tip: 'Вспомните' },
+                { id: 26, text: 'Как развлекался(ась) без интернета?', tip: 'Было время?' },
+                { id: 27, text: 'Самый странный вопрос?', tip: 'Что ответили?' },
+                { id: 28, text: 'Летать или быть невидимым?', tip: 'Почему?' },
+                { id: 29, text: 'На день другим человеком?', tip: 'Кем?' },
+                { id: 30, text: 'Самый смешной случай?', tip: 'Расскажите' },
+                { id: 31, text: 'Что коллекционируешь?', tip: 'Коллекция' },
+                { id: 32, text: 'Как казаться старше?', tip: 'В детстве' },
+                { id: 33, text: 'Любимый сериал для пересмотра?', tip: 'Что в нём?' },
+                { id: 34, text: 'Пляж или горы?', tip: 'Идеальный дом' },
+                { id: 35, text: 'Нелепая покупка?', tip: 'Зачем?' },
+                { id: 36, text: 'Что в плохую погоду?', tip: 'План на дождливый день' },
+                { id: 37, text: 'Смешной танец?', tip: 'Покажите' },
+                { id: 38, text: 'Как развеселить друга?', tip: 'Лучший способ' },
+                { id: 39, text: 'Любимый звук?', tip: 'Что радует' },
+                { id: 40, text: 'Что в одиночестве?', tip: 'Личное время' },
+                { id: 41, text: 'Странный сон?', tip: 'Расскажите' },
+                { id: 42, text: 'Язык животных или все языки?', tip: 'Почему?' },
+                { id: 43, text: 'Когда был(а) счастлив(а)?', tip: 'Что сделало?' },
+                { id: 44, text: 'Любимый способ расслабиться?', tip: 'Ритуал' },
+                { id: 45, text: 'На день знаменитостью?', tip: 'День славы' },
+                { id: 46, text: 'Любимая игра с друзьями?', tip: 'Вспомните' },
+                { id: 47, text: 'Как развлекался(ась) на скучной работе?', tip: 'Секрет' },
+                { id: 48, text: 'Странный подарок?', tip: 'Кому нужен?' },
+                { id: 49, text: 'Последнее спонтанное?', tip: 'Было весело?' },
+                { id: 50, text: 'Бессмысленная активность?', tip: 'Что делаете просто так?' }
+            ]},
+            spark: { icon: '🔥', name: 'Искра', desc: 'Страсть и романтика', topics: [
+                { id: 1, text: 'Что делает меня привлекательным?', tip: 'Что цепляет?' },
+                { id: 2, text: 'Что хочешь попробовать в постели?', tip: 'Безопасное пространство' },
+                { id: 3, text: 'Эротическое воспоминание со мной?', tip: 'Вспомните детали' },
+                { id: 4, text: 'Что заводит больше всего?', tip: 'Что работает?' },
+                { id: 5, text: 'Какой комплимент запомнился?', tip: 'Почему он?' },
+                { id: 6, text: 'Что делает меня уникальным?', tip: 'Что видите?' },
+                { id: 7, text: 'Идеальный романтический вечер?', tip: 'В деталях' },
+                { id: 8, text: 'Как тебя удивить?', tip: 'Что работает?' },
+                { id: 9, text: 'Что чувствуешь при прикосновении?', tip: 'Опишите' },
+                { id: 10, text: 'Самая смелая фантазия?', tip: 'Без осуждения' },
+                { id: 11, text: 'Нежность или страсть?', tip: 'Что важнее?' },
+                { id: 12, text: 'Любимое место для поцелуя?', tip: 'Что заводит?' },
+                { id: 13, text: 'Что отталкивает в постели?', tip: 'Что избегать?' },
+                { id: 14, text: 'Что хочешь чтобы делал(а) чаще?', tip: 'Что приносит удовольствие?' },
+                { id: 15, text: 'Как выражаешь любовь физически?', tip: 'Что естественно?' },
+                { id: 16, text: 'Идеальная прелюдия?', tip: 'Как любите начинать?' },
+                { id: 17, text: 'Что чувствуешь когда танцуем?', tip: 'Какая музыка?' },
+                { id: 18, text: 'Как хочешь чтобы соблазнял(а)?', tip: 'Какой подход?' },
+                { id: 19, text: 'Что значит страсть в отношениях?', tip: 'Как поддерживаете?' },
+                { id: 20, text: 'Романтическое воспоминание?', tip: 'Расскажите' },
+                { id: 21, text: 'Что чувствуешь когда смотрю?', tip: 'Ваш взгляд' },
+                { id: 22, text: 'Идеальный поцелуй?', tip: 'Детали' },
+                { id: 23, text: 'Как инициировать секс?', tip: 'Что работает?' },
+                { id: 24, text: 'Что самое чувственное?', tip: 'Что возбуждает?' },
+                { id: 25, text: 'Что хочешь попробовать но стесняешься?', tip: 'Без страха' },
+                { id: 26, text: 'Качество или количество?', tip: 'В интимной жизни' },
+                { id: 27, text: 'Что заводит в голосе?', tip: 'Что слышите?' },
+                { id: 28, text: 'Идеальное утро после?', tip: 'Какой он?' },
+                { id: 29, text: 'Что хочешь чтобы знал(а) о желаниях?', tip: 'Что важно?' },
+                { id: 30, text: 'Что делает отношения страстными?', tip: 'Что сохраняет огонь?' },
+                { id: 31, text: 'Какой комплимент заводит?', tip: 'Слова' },
+                { id: 32, text: 'Как меня соблазняешь?', tip: 'Техника' },
+                { id: 33, text: 'Идеальная интимная атмосфера?', tip: 'Свечи, музыка?' },
+                { id: 34, text: 'Что удивляет в моей страсти?', tip: 'Что открываете?' },
+                { id: 35, text: 'Что самое интимное?', tip: 'Что делает уязвимыми?' },
+                { id: 36, text: 'Как говорить о желаниях?', tip: 'Какой тон?' },
+                { id: 37, text: 'Самый сильный оргазм?', tip: 'Что вызывает?' },
+                { id: 38, text: 'Как разжигаешь страсть?', tip: 'Секреты' },
+                { id: 39, text: 'Что значит быть желанным?', tip: 'Что чувствуете?' },
+                { id: 40, text: 'Что хочешь без слов?', tip: 'Язык тела' },
+                { id: 41, text: 'Самая эрогенная зона?', tip: 'Где трогать?' },
+                { id: 42, text: 'Что чувствуешь когда шепчу?', tip: 'Шёпот' },
+                { id: 43, text: 'Заниматься любовью — это?', tip: 'Больше чем секс?' },
+                { id: 44, text: 'Что изменить в интимной жизни?', tip: 'Что улучшить?' },
+                { id: 45, text: 'Самый романтичный жест?', tip: 'Что трогает?' },
+                { id: 46, text: 'Что чувствуешь когда раздеваю?', tip: 'Эмоции' },
+                { id: 47, text: 'Новизна или предсказуемость?', tip: 'Что предпочитаете?' },
+                { id: 48, text: 'Что хочешь чтобы знал(а) о теле?', tip: 'Что важно?' },
+                { id: 49, text: 'Идеальный секс?', tip: 'Опишите' },
+                { id: 50, text: 'Что хочешь чтобы запомнил(а)?', tip: 'Самое важное' }
+            ]},
+            other: { icon: '🌍', name: 'Разное', desc: 'Путешествия, хобби, мечты', topics: [
+                { id: 1, text: 'Куда мечтаешь поехать?', tip: 'Что там увидеть?' },
+                { id: 2, text: 'Любимое время года?', tip: 'Что нравится?' },
+                { id: 3, text: 'Какой навык хочешь освоить?', tip: 'Что останавливает?' },
+                { id: 4, text: 'Что вдохновляет?', tip: 'Что поднимает настроение?' },
+                { id: 5, text: 'Лучший подарок в жизни?', tip: 'Что особенного?' },
+                { id: 6, text: 'Что делаешь чтобы чувствовать жизнь?', tip: 'Источник энергии' },
+                { id: 7, text: 'Любимая традиция?', tip: 'Что любите делать?' },
+                { id: 8, text: 'Что успокаивает в стрессе?', tip: 'Способ' },
+                { id: 9, text: 'Лучший отпуск?', tip: 'Что сделало его лучшим?' },
+                { id: 10, text: 'Что любишь читать?', tip: 'Книги, блоги?' },
+                { id: 11, text: 'Любимое блюдо?', tip: 'Откуда оно?' },
+                { id: 12, text: 'Что для здоровья?', tip: 'Привычки' },
+                { id: 13, text: 'Близкий друг?', tip: 'Что цените?' },
+                { id: 14, text: 'Что в свободное время?', tip: 'Хобби' },
+                { id: 15, text: 'Какое место увидеть?', tip: 'Почему?' },
+                { id: 16, text: 'Что смотришь по ТВ?', tip: 'Каналы' },
+                { id: 17, text: 'Любимый праздник?', tip: 'Что любите?' },
+                { id: 18, text: 'Что для семьи?', tip: 'Планы' },
+                { id: 19, text: 'Что на природе?', tip: 'Занятие' },
+                { id: 20, text: 'Что слушаешь?', tip: 'Музыка, подкасты?' },
+                { id: 21, text: 'Любимый напиток?', tip: 'Что пьёте?' },
+                { id: 22, text: 'Что по утрам?', tip: 'Ритуал' },
+                { id: 23, text: 'Что в плохую погоду?', tip: 'Что спасает?' },
+                { id: 24, text: 'Что рисуешь/создаёшь?', tip: 'Творчество' },
+                { id: 25, text: 'Любимый аромат?', tip: 'Что нюхать?' },
+                { id: 26, text: 'Что для саморазвития?', tip: 'Как растёте?' },
+                { id: 27, text: 'Любимое место в городе?', tip: 'Что особенного?' },
+                { id: 28, text: 'Что с друзьями?', tip: 'Занятия' },
+                { id: 29, text: 'Необычный опыт?', tip: 'Что случилось?' },
+                { id: 30, text: 'Что изменить в жизни?', tip: 'Цель' },
+                { id: 31, text: 'Любимое растение?', tip: 'Почему?' },
+                { id: 32, text: 'Что перед сном?', tip: 'Ритуал' },
+                { id: 33, text: 'Любимый фильм?', tip: 'Что особенного?' },
+                { id: 34, text: 'Что в выходные?', tip: 'Идеальный выходной' },
+                { id: 35, text: 'Любимое животное?', tip: 'Почему?' },
+                { id: 36, text: 'Что изучаешь?', tip: 'Интересы' },
+                { id: 37, text: 'Любимый сезон?', tip: 'Что особенного?' },
+                { id: 38, text: 'Что для других?', tip: 'Что приносит радость?' },
+                { id: 39, text: 'Любимая игра?', tip: 'Настольная, компьютерная?' },
+                { id: 40, text: 'Что в одиночестве?', tip: 'Ваше время' },
+                { id: 41, text: 'Любимый город?', tip: 'Что любите?' },
+                { id: 42, text: 'Что готовишь?', tip: 'Коронное блюдо' },
+                { id: 43, text: 'Что с детьми?', tip: 'Если есть' },
+                { id: 44, text: 'Что для здоровья?', tip: 'Привычки' },
+                { id: 45, text: 'Время для путешествий?', tip: 'Почему?' },
+                { id: 46, text: 'Что коллекционируешь?', tip: 'Коллекция' },
+                { id: 47, text: 'Способ общения?', tip: 'Лично, телефон, сообщения?' },
+                { id: 48, text: 'Что для себя?', tip: 'Ваше время' },
+                { id: 49, text: 'Любимая еда?', tip: 'Что не пропустить?' },
+                { id: 50, text: 'Что когда счастлив(а)?', tip: 'Реакция на счастье' }
+            ]}
+        };
+
+        const CATEGORY_KEYS = ['about_us', 'deep', 'light', 'spark', 'other'];
+        let data = JSON.parse(localStorage.getItem('shepot_conversation_data')) || null;
+
+        function getDefaultData() { const p = {}; CATEGORY_KEYS.forEach(k => p[k] = []); return { progress: p }; }
+        function saveData() { localStorage.setItem('shepot_conversation_data', JSON.stringify(data)); }
+        function getCategoryCount(key) { return TOPICS[key].topics.length; }
+        function getViewedCount(key) { return (data && data.progress && data.progress[key]) ? data.progress[key].length : 0; }
+        function getProgressPercent(key) { const t = getCategoryCount(key), v = getViewedCount(key); return t > 0 ? Math.round((v / t) * 100) : 0; }
+
+        function getNextTopic(key) {
+            const topics = TOPICS[key].topics;
+            const viewed = data.progress[key] || [];
+            const available = topics.filter(t => !viewed.includes(t.id));
+            if (available.length === 0) return null;
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
+        let topicHistory = [];
+        let currentCategory = null;
+        let currentTopic = null;
+
+        function renderCategories() {
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = CATEGORY_KEYS.map(key => {
+                const cat = TOPICS[key];
+                const total = getCategoryCount(key), viewed = getViewedCount(key), percent = getProgressPercent(key);
+                return `<div class="category-card" onclick="selectCategory('${key}')"><div class="left"><div class="icon">${cat.icon}</div><div class="info"><div class="name">${cat.name}</div><div class="desc">${cat.desc}</div></div></div><div class="right"><div class="count">${viewed}/${total}</div><div class="progress-mini"><div class="fill" style="width:${percent}%;"></div></div></div></div>`;
+            }).join('');
+        }
+
+        function selectCategory(key) {
+            currentCategory = key;
+            const cat = TOPICS[key];
+            const total = getCategoryCount(key), viewed = getViewedCount(key);
+            if (viewed === total && total > 0) { document.getElementById('completedText').textContent = 'Вы прошли все ' + total + ' вопросов в категории «' + cat.name + '».'; document.getElementById('mainContent').style.display = 'none'; document.getElementById('topicScreen').classList.remove('active'); document.getElementById('completedScreen').classList.add('active'); topicHistory = []; return; }
+            const next = getNextTopic(key);
+            if (!next) { document.getElementById('completedText').textContent = 'Вы прошли все ' + total + ' вопросов в категории «' + cat.name + '».'; document.getElementById('mainContent').style.display = 'none'; document.getElementById('topicScreen').classList.remove('active'); document.getElementById('completedScreen').classList.add('active'); topicHistory = []; return; }
+            currentTopic = next; topicHistory.push({ category: key, topic: next }); showTopic(key, next);
+        }
+
+        function showTopic(key, topic) {
+            const cat = TOPICS[key];
+            const total = getCategoryCount(key), viewed = getViewedCount(key);
+            document.getElementById('mainContent').style.display = 'none'; document.getElementById('topicScreen').classList.add('active'); document.getElementById('completedScreen').classList.remove('active');
+            document.getElementById('topicCategoryLabel').textContent = cat.icon + ' ' + cat.name;
+            document.getElementById('topicNumber').textContent = 'Тема ' + (viewed + 1) + ' из ' + total;
+            document.getElementById('topicText').textContent = topic.text;
+            document.getElementById('topicTip').innerHTML = '💡 <strong>Совет:</strong> ' + topic.tip;
+            document.getElementById('topicProgressText').textContent = viewed + ' из ' + total;
+            document.getElementById('topicProgressFill').style.width = getProgressPercent(key) + '%';
+        }
+
+        function nextTopic() {
+            if (!currentCategory || !currentTopic) return;
+            if (!data.progress[currentCategory]) data.progress[currentCategory] = [];
+            if (!data.progress[currentCategory].includes(currentTopic.id)) { data.progress[currentCategory].push(currentTopic.id); saveData(); }
+            selectCategory(currentCategory);
+        }
+
+        function previousTopic() {
+            if (topicHistory.length <= 1) { showModal('Назад нельзя', 'Это первая тема. Возвращаться некуда.'); return; }
+            topicHistory.pop();
+            const prev = topicHistory[topicHistory.length - 1];
+            currentCategory = prev.category; currentTopic = prev.topic;
+            showTopic(prev.category, prev.topic);
+        }
+
+        function randomTopic() {
+            const available = CATEGORY_KEYS.filter(k => getViewedCount(k) < getCategoryCount(k));
+            if (available.length === 0) { showModal('Все темы пройдены', 'Вы обсудили все темы! 🎉'); return; }
+            topicHistory = []; selectCategory(available[Math.floor(Math.random() * available.length)]);
+        }
+
+        function backToMain() { document.getElementById('mainContent').style.display = 'block'; document.getElementById('topicScreen').classList.remove('active'); document.getElementById('completedScreen').classList.remove('active'); topicHistory = []; renderCategories(); }
+
+        function resetCategory() {
+            if (!currentCategory) return;
+            showModal('Сбросить прогресс?', 'Все темы в категории «' + TOPICS[currentCategory].name + '» будут сброшены.', function() { data.progress[currentCategory] = []; saveData(); topicHistory = []; backToMain(); });
+        }
+
+        let modalCallback = null;
+        function showModal(title, desc, callback) {
+            document.getElementById('modalTitle').textContent = title; document.getElementById('modalDesc').textContent = desc; document.getElementById('modal').classList.add('show');
+            if (callback) { modalCallback = callback; document.getElementById('modalConfirmBtn').style.display = 'block'; document.getElementById('modalConfirmBtn').onclick = function() { closeModal(); if (modalCallback) { modalCallback(); modalCallback = null; } }; }
+            else { document.getElementById('modalConfirmBtn').style.display = 'none'; }
+        }
+        function closeModal() { document.getElementById('modal').classList.remove('show'); modalCallback = null; }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+
+        if (!data) { data = getDefaultData(); saveData(); }
+        renderCategories();
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

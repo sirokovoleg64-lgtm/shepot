@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Камасутра</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px 18px 120px;
+            z-index: 1;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 4px; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 16px; }
+
+        .intro-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 18px;
+            padding: 20px 18px; width: 100%; max-width: 300px;
+            margin-bottom: 16px; text-align: left; line-height: 1.6; transition: all 0.4s;
+        }
+        .intro-card.hidden { display: none; }
+        .intro-card p { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+        .intro-card p:last-child { margin-bottom: 0; }
+        .intro-highlight { color: var(--gold); }
+
+        .progress-bar-wrap {
+            width: 100%; max-width: 300px; height: 3px;
+            background: rgba(201, 169, 110, 0.15); border-radius: 2px;
+            margin-bottom: 8px; overflow: hidden;
+        }
+        .progress-bar-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.5s; }
+        .progress-text { font-size: 10px; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: 16px; }
+
+        .suggestion-cards { display: none; flex-direction: column; gap: 10px; width: 100%; max-width: 300px; margin-bottom: 16px; }
+        .suggestion-cards.show { display: flex; }
+
+        .suggestion-card {
+            background: rgba(20, 16, 18, 0.6); backdrop-filter: blur(15px);
+            border: 1px solid rgba(201, 169, 110, 0.15); border-radius: 16px;
+            padding: 16px 18px; display: flex; align-items: center; gap: 14px;
+            text-align: left; transition: all 0.3s;
+        }
+        .suggestion-card.done { border-color: rgba(76, 175, 80, 0.5); background: rgba(76, 175, 80, 0.08); }
+        .suggestion-card.failed { border-color: rgba(212, 165, 165, 0.5); background: rgba(212, 165, 165, 0.08); }
+
+        .suggestion-num { font-size: 24px; flex-shrink: 0; width: 30px; text-align: center; }
+        .suggestion-info { flex: 1; }
+        .suggestion-name { font-family: var(--font-heading); font-size: 14px; color: var(--text-primary); margin-bottom: 3px; }
+        .suggestion-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+
+        .suggestion-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+
+        .btn-mini-yes {
+            width: 32px; height: 32px; border-radius: 50%; border: none;
+            background: rgba(76, 175, 80, 0.3); color: rgba(255, 255, 255, 0.6);
+            font-size: 14px; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-mini-yes.active { background: #4CAF50; color: white; }
+
+        .btn-mini-no {
+            width: 32px; height: 32px; border-radius: 50%;
+            border: 1px solid rgba(212, 165, 165, 0.4); background: transparent;
+            color: rgba(212, 165, 165, 0.6); font-size: 14px; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-mini-no.active { background: var(--rose); color: #0D1117; border-color: var(--rose); }
+
+        .btn-suggest {
+            padding: 16px 40px; border-radius: 50px; border: none;
+            background: var(--gold); color: #0D1117; font-size: 16px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s;
+            letter-spacing: 1px; box-shadow: 0 4px 20px rgba(201, 169, 110, 0.3); margin-bottom: 12px;
+        }
+        .btn-suggest:hover { box-shadow: 0 6px 30px rgba(201, 169, 110, 0.5); transform: translateY(-2px); }
+
+        .btn-reset {
+            padding: 8px 20px; border-radius: 20px;
+            border: 1px solid rgba(201, 169, 110, 0.2); background: transparent;
+            color: var(--text-secondary); font-size: 11px; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-reset:hover { border-color: var(--rose); color: var(--rose); }
+
+        .firework-overlay {
+            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 10; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.7);
+        }
+        .firework-overlay.show { display: flex; }
+
+        @keyframes fireworkParticle {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+        }
+
+        .firework-particle {
+            position: absolute; top: 50%; left: 50%; width: 8px; height: 8px;
+            border-radius: 50%; animation: fireworkParticle 1.2s ease-out forwards;
+        }
+
+        .firework-text { position: relative; z-index: 2; text-align: center; animation: fadeInUp 0.8s ease; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .firework-title { font-family: var(--font-heading); font-size: 26px; color: var(--gold); margin-bottom: 8px; }
+        .firework-sub { font-size: 14px; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="firework-overlay" id="fireworkOverlay">
+            <div class="firework-text">
+                <div class="firework-title">🎉 Не останавливайтесь!</div>
+                <div class="firework-sub">Вы на верном пути</div>
+            </div>
+        </div>
+
+        <div class="page-screen">
+            <div class="page-title">Камасутра</div>
+            <div class="page-sub">исследуйте друг друга</div>
+
+            <div class="intro-card" id="introCard">
+                <p>В этой игре <span class="intro-highlight">64 позы</span> — от нежной классики до горячей акробатики.</p>
+                <p>Нажимайте <span class="intro-highlight">«Предложить»</span> перед близостью — выпадет <span class="intro-highlight">3 случайные позы</span>.</p>
+                <p>Запомните их, проведите время вместе, а после секса отметьте, какие получились.</p>
+                <p>Если поза не получилась — она предложится снова, когда пройдёте остальные.</p>
+                <p><span class="intro-highlight">Наслаждайтесь</span> и возвращайтесь снова.</p>
+            </div>
+
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="progressBar" style="width: 0%;"></div>
+            </div>
+            <div class="progress-text" id="progressText">Освоено: 0 из 64</div>
+
+            <div class="suggestion-cards" id="suggestionCards"></div>
+
+            <button class="btn-suggest" id="btnSuggest" onclick="suggestPoses()">Предложить 3 позы</button>
+            <button class="btn-reset" onclick="resetProgress()">Сбросить прогресс</button>
+
+            <button class="btn-back" onclick="window.location.href='beyond.html'">← В За гранью</button>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        let allPoses = [];
+        let completedPoses = JSON.parse(localStorage.getItem('shepot_kamasutra_done') || '[]');
+        let failedPoses = JSON.parse(localStorage.getItem('shepot_kamasutra_failed') || '[]');
+        let currentSuggestions = [];
+        let suggestionStatus = {};
+
+        fetch('../data/kamasutra.json')
+            .then(res => res.json())
+            .then(data => { allPoses = data.kamasutra; updateProgress(); });
+
+        function updateProgress() {
+            const total = allPoses.length;
+            const done = completedPoses.length;
+            const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('progressText').textContent = 'Освоено: ' + done + ' из ' + total;
+        }
+
+        function suggestPoses() {
+            let available = [], failed = [];
+            allPoses.forEach((pose, i) => {
+                if (completedPoses.includes(i)) return;
+                if (failedPoses.includes(i)) failed.push(i);
+                else available.push(i);
+            });
+            if (available.length === 0 && failed.length === 0) { alert('Все позы освоены! 🎉'); return; }
+            const pool = available.length > 0 ? available : failed;
+            const shuffled = [...pool].sort(() => Math.random() - 0.5);
+            currentSuggestions = shuffled.slice(0, Math.min(3, shuffled.length));
+            suggestionStatus = {};
+            currentSuggestions.forEach(i => { suggestionStatus[i] = null; });
+            document.getElementById('introCard').classList.add('hidden');
+            renderSuggestions();
+        }
+
+        function renderSuggestions() {
+            const container = document.getElementById('suggestionCards');
+            container.classList.add('show');
+            container.innerHTML = currentSuggestions.map(index => {
+                const pose = allPoses[index];
+                const status = suggestionStatus[index];
+                let cardClass = '';
+                if (status === 'done') cardClass = 'done';
+                if (status === 'failed') cardClass = 'failed';
+                return `<div class="suggestion-card ${cardClass}" id="card${index}"><div class="suggestion-num">💫</div><div class="suggestion-info"><div class="suggestion-name">${pose.name}</div><div class="suggestion-desc">${pose.desc}</div></div><div class="suggestion-actions"><button class="btn-mini-yes ${status === 'done' ? 'active' : ''}" onclick="toggleStatus(${index}, 'done')">✓</button><button class="btn-mini-no ${status === 'failed' ? 'active' : ''}" onclick="toggleStatus(${index}, 'failed')">✗</button></div></div>`;
+            }).join('');
+        }
+
+        function toggleStatus(index, newStatus) {
+            if (suggestionStatus[index] === newStatus) suggestionStatus[index] = null;
+            else suggestionStatus[index] = newStatus;
+            if (suggestionStatus[index] === 'done') { if (!completedPoses.includes(index)) completedPoses.push(index); failedPoses = failedPoses.filter(i => i !== index); }
+            else if (suggestionStatus[index] === 'failed') { if (!failedPoses.includes(index) && !completedPoses.includes(index)) failedPoses.push(index); completedPoses = completedPoses.filter(i => i !== index); }
+            else { completedPoses = completedPoses.filter(i => i !== index); failedPoses = failedPoses.filter(i => i !== index); }
+            localStorage.setItem('shepot_kamasutra_done', JSON.stringify(completedPoses));
+            localStorage.setItem('shepot_kamasutra_failed', JSON.stringify(failedPoses));
+            updateProgress(); renderSuggestions();
+            checkAllRated();
+        }
+
+        function checkAllRated() {
+            const allRated = currentSuggestions.every(i => suggestionStatus[i] !== null);
+            if (allRated && currentSuggestions.length > 0) {
+                document.getElementById('suggestionCards').classList.remove('show');
+                launchFireworks();
+                currentSuggestions = []; suggestionStatus = {};
+            }
+        }
+
+        function launchFireworks() {
+            const overlay = document.getElementById('fireworkOverlay');
+            const oldParticles = overlay.querySelectorAll('.firework-particle');
+            oldParticles.forEach(p => p.remove());
+            overlay.classList.add('show');
+            const colors = ['#C9A96E', '#D4A5A5', '#4CAF50', '#E8C97A', '#FFF5D1', '#FF6B6B'];
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'firework-particle';
+                particle.style.setProperty('--dx', (Math.random() - 0.5) * 300 + 'px');
+                particle.style.setProperty('--dy', (Math.random() - 0.5) * 300 + 'px');
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.animationDelay = Math.random() * 0.5 + 's';
+                overlay.appendChild(particle);
+            }
+            setTimeout(() => overlay.classList.remove('show'), 2500);
+        }
+
+        function resetProgress() {
+            if (confirm('Сбросить весь прогресс? Все позы станут неосвоенными.')) {
+                completedPoses = []; failedPoses = []; currentSuggestions = []; suggestionStatus = {};
+                localStorage.setItem('shepot_kamasutra_done', JSON.stringify(completedPoses));
+                localStorage.setItem('shepot_kamasutra_failed', JSON.stringify(failedPoses));
+                document.getElementById('suggestionCards').classList.remove('show');
+                document.getElementById('suggestionCards').innerHTML = '';
+                document.getElementById('introCard').classList.remove('hidden');
+                updateProgress();
+            }
+        }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

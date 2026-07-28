@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Вопросы</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            padding: 24px 18px 100px;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .page-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+        }
+
+        /* Сетка категорий */
+        .cat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: 310px;
+            margin-bottom: 24px;
+        }
+
+        .cat-card {
+            background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 18px;
+            padding: 20px 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cat-card:hover {
+            border-color: rgba(201, 169, 110, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .cat-icon {
+            font-size: 28px;
+        }
+
+        .cat-name {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .cat-progress {
+            font-size: 10px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        .cat-bar {
+            width: 100%;
+            height: 2px;
+            border-radius: 1px;
+            background: rgba(201, 169, 110, 0.1);
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .cat-bar-fill {
+            height: 100%;
+            background: var(--gold);
+            border-radius: 1px;
+        }
+
+        /* Мечты */
+        .dreams-card {
+            background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 18px;
+            padding: 16px 18px;
+            width: 100%;
+            max-width: 310px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dreams-card:hover {
+            border-color: rgba(201, 169, 110, 0.25);
+        }
+
+        .dreams-icon {
+            font-size: 24px;
+        }
+
+        .dreams-info {
+            text-align: left;
+            flex: 1;
+        }
+
+        .dreams-title {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .dreams-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .dreams-arrow {
+            color: var(--gold);
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen">
+            <div class="page-title">Узнаем друг друга</div>
+            <div class="page-sub">Выберите категорию</div>
+
+            <!-- Категории вопросов -->
+            <div class="cat-grid">
+                <div class="cat-card" onclick="openCategory('tenderness')">
+                    <div class="cat-icon">🤍</div>
+                    <div class="cat-name">Нежность</div>
+                    <div class="cat-progress">12/20</div>
+                    <div class="cat-bar"><div class="cat-bar-fill" style="width: 60%;"></div></div>
+                </div>
+
+                <div class="cat-card" onclick="openCategory('flirt')">
+                    <div class="cat-icon">💋</div>
+                    <div class="cat-name">Флирт</div>
+                    <div class="cat-progress">5/20</div>
+                    <div class="cat-bar"><div class="cat-bar-fill" style="width: 25%;"></div></div>
+                </div>
+
+                <div class="cat-card" onclick="openCategory('romance')">
+                    <div class="cat-icon">🌹</div>
+                    <div class="cat-name">Романтика</div>
+                    <div class="cat-progress">0/20</div>
+                    <div class="cat-bar"><div class="cat-bar-fill" style="width: 0%;"></div></div>
+                </div>
+
+                <div class="cat-card" onclick="openCategory('everyday')">
+                    <div class="cat-icon">🏡</div>
+                    <div class="cat-name">Быт</div>
+                    <div class="cat-progress">8/20</div>
+                    <div class="cat-bar"><div class="cat-bar-fill" style="width: 40%;"></div></div>
+                </div>
+            </div>
+
+            <!-- Мечты -->
+            <div class="section-label" style="margin-bottom: 8px;">Мечты</div>
+
+            <div class="dreams-card" onclick="openDreams('his')">
+                <div class="dreams-icon">💙</div>
+                <div class="dreams-info">
+                    <div class="dreams-title">Его мечты</div>
+                    <div class="dreams-sub">5 записей</div>
+                </div>
+                <div class="dreams-arrow">→</div>
+            </div>
+
+            <div class="dreams-card" onclick="openDreams('hers')">
+                <div class="dreams-icon">💗</div>
+                <div class="dreams-info">
+                    <div class="dreams-title">Её мечты</div>
+                    <div class="dreams-sub">3 записи</div>
+                </div>
+                <div class="dreams-arrow">→</div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')">
+                <span class="tab-icon">🏠</span> Сегодня
+            </div>
+            <div class="tab active" onclick="navigate('questions')">
+                <span class="tab-icon">💬</span> Вопросы
+            </div>
+            <div class="tab" onclick="navigate('games')">
+                <span class="tab-icon">🎲</span> Игры
+            </div>
+            <div class="tab" onclick="navigate('beyond')">
+                <span class="tab-icon">🔥</span> За гранью
+            </div>
+            <div class="tab" onclick="navigate('moments')">
+                <span class="tab-icon">📸</span> Моменты
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openCategory(cat) {
+            alert('Категория: ' + cat + '\n\nЗдесь будут вопросы. Партнёр отвечает независимо. Совпадения — видно обоим. Несовпадения — получаете Памятку.');
+        }
+
+        function openDreams(who) {
+            alert('Мечты: ' + who + '\n\nЗдесь партнёр видит мечты друг друга. Можно добавлять, редактировать, вдохновляться.');
+        }
+
+        function navigate(page) {
+            const pages = {
+                'today': 'today.html',
+                'questions': 'questions.html',
+                'games': 'games.html',
+                'beyond': 'beyond.html',
+                'moments': 'moments.html'
+            };
+            if (pages[page]) {
+                window.location.href = pages[page];
+            }
+        }
+    </script>
+
+</body>
+</html>

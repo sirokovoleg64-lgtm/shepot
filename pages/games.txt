@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Игры</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px 18px 100px;
+            z-index: 1;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .page-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 22px;
+        }
+
+        .games-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 310px;
+        }
+
+        .game-card {
+            background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 18px;
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+        }
+
+        .game-card:hover {
+            border-color: rgba(201, 169, 110, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-icon {
+            font-size: 30px;
+            flex-shrink: 0;
+            width: 42px;
+            text-align: center;
+        }
+
+        .game-info {
+            flex: 1;
+        }
+
+        .game-name {
+            font-family: var(--font-heading);
+            font-size: 15px;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .game-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .game-arrow {
+            color: var(--gold);
+            opacity: 0.4;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .game-badge {
+            font-size: 9px;
+            background: rgba(201, 169, 110, 0.1);
+            color: var(--gold);
+            padding: 3px 10px;
+            border-radius: 10px;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen">
+            <div class="page-title">Игры</div>
+            <div class="page-sub">выбирайте под настроение</div>
+
+            <div class="games-list">
+                <!-- Твоя миссия -->
+                <div class="game-card" onclick="openGame('mission')">
+                    <div class="game-icon">🎯</div>
+                    <div class="game-info">
+                        <div class="game-name">Твоя миссия</div>
+                        <div class="game-desc">7 желаний для партнёра. Выполняет — видите прогресс.</div>
+                    </div>
+                    <div class="game-badge">3/7</div>
+                    <div class="game-arrow">→</div>
+                </div>
+
+                <!-- Больше чем слова -->
+                <div class="game-card" onclick="openGame('morethanwords')">
+                    <div class="game-icon">🏆</div>
+                    <div class="game-info">
+                        <div class="game-name">Больше чем слова</div>
+                        <div class="game-desc">30 заданий для неё, 30 для него, 20 общих. Кто быстрее — выиграл.</div>
+                    </div>
+                    <div class="game-badge">12/30</div>
+                    <div class="game-arrow">→</div>
+                </div>
+
+                <!-- Разговор -->
+                <div class="game-card" onclick="openGame('talk')">
+                    <div class="game-icon">💭</div>
+                    <div class="game-info">
+                        <div class="game-name">Разговор</div>
+                        <div class="game-desc">20 вопросов про отношения. Рассуждайте, высказывайте точку зрения.</div>
+                    </div>
+                    <div class="game-arrow">→</div>
+                </div>
+
+                <!-- Свидание вслепую -->
+                <div class="game-card" onclick="openGame('blinddate')">
+                    <div class="game-icon">🎭</div>
+                    <div class="game-info">
+                        <div class="game-name">Свидание вслепую</div>
+                        <div class="game-desc">Приложение ведёт вас по шагам. Детали — сюрприз до начала.</div>
+                    </div>
+                    <div class="game-arrow">→</div>
+                </div>
+
+                <!-- Колесо фортуны -->
+                <div class="game-card" onclick="openGame('wheel')">
+                    <div class="game-icon">🎡</div>
+                    <div class="game-info">
+                        <div class="game-name">Колесо фортуны</div>
+                        <div class="game-desc">Крутите — выпадает действие на сегодня.</div>
+                    </div>
+                    <div class="game-arrow">→</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')">
+                <span class="tab-icon">🏠</span> Сегодня
+            </div>
+            <div class="tab" onclick="navigate('questions')">
+                <span class="tab-icon">💬</span> Вопросы
+            </div>
+            <div class="tab active" onclick="navigate('games')">
+                <span class="tab-icon">🎲</span> Игры
+            </div>
+            <div class="tab" onclick="navigate('beyond')">
+                <span class="tab-icon">🔥</span> За гранью
+            </div>
+            <div class="tab" onclick="navigate('moments')">
+                <span class="tab-icon">📸</span> Моменты
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openGame(game) {
+            const titles = {
+                'mission': 'Твоя миссия',
+                'morethanwords': 'Больше чем слова',
+                'talk': 'Разговор',
+                'blinddate': 'Свидание вслепую',
+                'wheel': 'Колесо фортуны'
+            };
+            alert(titles[game] + '\n\nИгра будет здесь. Пока заглушка — позже подключим механику.');
+        }
+
+        function navigate(page) {
+            const pages = {
+                'today': 'today.html',
+                'questions': 'questions.html',
+                'games': 'games.html',
+                'beyond': 'beyond.html',
+                'moments': 'moments.html'
+            };
+            if (pages[page]) {
+                window.location.href = pages[page];
+            }
+        }
+    </script>
+
+</body>
+</html>

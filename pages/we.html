@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Мы</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px 18px 120px;
+            z-index: 1;
+            width: 100%;
+            min-height: 100%;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .page-sub {
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 22px;
+        }
+
+        .we-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: 310px;
+            margin-bottom: 20px;
+        }
+
+        .we-card {
+            background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 18px;
+            padding: 20px 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .we-card:hover {
+            border-color: rgba(201, 169, 110, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .we-icon { font-size: 30px; }
+        .we-name { font-family: var(--font-heading); font-size: 14px; color: var(--text-primary); }
+        .we-desc { font-size: 10px; color: var(--text-secondary); line-height: 1.3; }
+        .we-badge { font-size: 9px; background: rgba(201, 169, 110, 0.1); color: var(--gold); padding: 2px 8px; border-radius: 8px; letter-spacing: 1px; }
+
+        .love-animation {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none; z-index: 100; display: none;
+        }
+        .love-animation.show { display: block; animation: loveFade 3s forwards; }
+
+        @keyframes loveFade {
+            0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; }
+        }
+
+        .floating-heart {
+            position: absolute; font-size: 30px;
+            animation: floatUp 3s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 1; }
+            50% { transform: translateY(50vh) scale(1.5); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
+        }
+
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            width: 100%; max-width: 310px; margin-bottom: 12px;
+        }
+        .section-title { font-family: var(--font-heading); font-size: 20px; color: var(--text-primary); }
+        .section-action {
+            padding: 6px 14px; border-radius: 15px;
+            border: 1px solid rgba(201, 169, 110, 0.2); background: transparent;
+            color: var(--text-secondary); font-size: 11px; cursor: pointer; transition: all 0.3s;
+        }
+        .section-action:hover { border-color: var(--rose); color: var(--rose); }
+
+        .chat-container {
+            display: flex; flex-direction: column;
+            width: 100%; max-width: 310px; height: 380px;
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 18px;
+            overflow: hidden; margin-bottom: 12px;
+        }
+
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 14px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: rgba(201, 169, 110, 0.2); border-radius: 2px; }
+
+        .chat-date-separator {
+            text-align: center; font-size: 9px; color: var(--text-secondary);
+            opacity: 0.5; padding: 8px 0; letter-spacing: 1px;
+        }
+
+        .chat-msg {
+            display: flex; gap: 8px; max-width: 80%;
+            animation: messageIn 0.3s ease-out; position: relative;
+        }
+
+        @keyframes messageIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-msg.mine { align-self: flex-end; flex-direction: row-reverse; }
+        .chat-msg-wrapper { display: flex; flex-direction: column; gap: 2px; position: relative; }
+        .chat-sender { font-size: 9px; color: var(--gold); opacity: 0.7; padding: 0 4px; }
+        .chat-msg.mine .chat-sender { text-align: right; }
+
+        .chat-bubble {
+            background: rgba(201, 169, 110, 0.08); border-radius: 12px;
+            padding: 8px 12px; font-size: 12px; color: var(--text-primary);
+            line-height: 1.4; word-break: break-word; position: relative; transition: all 0.3s;
+        }
+        .chat-msg.mine .chat-bubble { background: rgba(201, 169, 110, 0.15); }
+        .chat-msg.mine .chat-bubble:hover .msg-delete { opacity: 1; }
+
+        .chat-bubble img { max-width: 180px; border-radius: 8px; display: block; margin-bottom: 4px; cursor: pointer; transition: transform 0.3s; }
+        .chat-bubble img:hover { transform: scale(1.05); }
+        .chat-bubble video { max-width: 180px; border-radius: 8px; display: block; margin-bottom: 4px; }
+        .chat-time { font-size: 8px; color: var(--text-secondary); opacity: 0.4; margin-top: 3px; text-align: right; }
+
+        .msg-delete {
+            position: absolute; top: -6px; right: -6px;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: rgba(212, 165, 165, 0.9); border: none; color: white;
+            font-size: 10px; cursor: pointer; opacity: 0; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; z-index: 5;
+        }
+        .msg-delete:hover { background: var(--rose); transform: scale(1.2); }
+
+        .chat-input-row {
+            display: flex; gap: 4px; padding: 8px 8px;
+            border-top: 1px solid rgba(201, 169, 110, 0.1);
+            align-items: center; background: rgba(20, 16, 18, 0.3);
+        }
+
+        .chat-input {
+            flex: 1; background: rgba(245, 240, 232, 0.05);
+            border: 1px solid rgba(201, 169, 110, 0.15); border-radius: 20px;
+            padding: 8px 12px; color: var(--text-primary); font-size: 12px;
+            outline: none; font-family: var(--font-body); transition: all 0.3s;
+        }
+        .chat-input:focus { border-color: var(--gold); }
+
+        .chat-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: rgba(201, 169, 110, 0.08);
+            border: 1px solid rgba(201, 169, 110, 0.12);
+            color: var(--text-primary); font-size: 13px; cursor: pointer;
+            flex-shrink: 0; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .chat-btn:hover { background: rgba(201, 169, 110, 0.18); }
+
+        .chat-send {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: var(--gold); border: none; color: #0D1117;
+            font-size: 13px; cursor: pointer; flex-shrink: 0; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .chat-send:hover { box-shadow: 0 0 12px rgba(201, 169, 110, 0.4); transform: scale(1.1); }
+        .chat-send:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .emoji-panel {
+            display: none; flex-wrap: wrap; gap: 4px;
+            padding: 6px 8px; border-top: 1px solid rgba(201, 169, 110, 0.1);
+            max-height: 120px; overflow-y: auto; justify-content: center;
+            background: rgba(20, 16, 18, 0.3);
+        }
+        .emoji-panel.show { display: flex; }
+
+        .emoji-item {
+            font-size: 20px; cursor: pointer; transition: transform 0.2s;
+            padding: 2px; user-select: none;
+        }
+        .emoji-item:hover { transform: scale(1.3); }
+
+        .notes-container {
+            display: flex; flex-direction: column;
+            width: 100%; max-width: 310px; gap: 10px;
+            margin-bottom: 12px; max-height: 400px; overflow-y: auto;
+        }
+
+        .note-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 14px;
+            padding: 14px 16px; text-align: left;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 10px; transition: all 0.3s;
+        }
+        .note-card:hover { border-color: rgba(201, 169, 110, 0.2); }
+        .note-text { font-size: 13px; color: var(--text-primary); flex: 1; word-break: break-word; }
+        .note-delete { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 16px; opacity: 0.5; transition: all 0.3s; padding: 4px; }
+        .note-delete:hover { opacity: 1; color: var(--rose); }
+
+        .note-input-row { display: flex; gap: 8px; width: 100%; max-width: 310px; }
+        .note-input {
+            flex: 1; background: rgba(245, 240, 232, 0.05);
+            border: 1px solid rgba(201, 169, 110, 0.15); border-radius: 20px;
+            padding: 8px 14px; color: var(--text-primary); font-size: 12px;
+            outline: none; font-family: var(--font-body); transition: all 0.3s;
+        }
+        .note-input:focus { border-color: var(--gold); }
+        .note-add {
+            padding: 8px 16px; border-radius: 20px; border: none;
+            background: var(--gold); color: #0D1117; font-size: 12px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .note-add:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3); }
+
+        .achievements-container {
+            display: flex; flex-direction: column;
+            width: 100%; max-width: 310px; gap: 8px;
+            margin-bottom: 12px; max-height: 450px; overflow-y: auto;
+        }
+
+        .ach-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 14px;
+            padding: 12px 14px; display: flex; align-items: center;
+            gap: 10px; text-align: left; transition: all 0.3s;
+        }
+        .ach-card.locked { opacity: 0.4; filter: grayscale(0.5); }
+        .ach-card.unlocked { border-color: rgba(76, 175, 80, 0.3); }
+        .ach-icon { font-size: 24px; flex-shrink: 0; }
+        .ach-info { flex: 1; }
+        .ach-name { font-family: var(--font-heading); font-size: 13px; color: var(--text-primary); margin-bottom: 2px; }
+        .ach-desc { font-size: 10px; color: var(--text-secondary); }
+        .ach-progress { margin-top: 4px; height: 3px; background: rgba(201, 169, 110, 0.1); border-radius: 2px; overflow: hidden; }
+        .ach-progress-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.5s; }
+        .ach-badge { font-size: 9px; background: rgba(76, 175, 80, 0.15); color: #4CAF50; padding: 2px 8px; border-radius: 8px; font-weight: 600; }
+        .ach-badge.locked-badge { background: rgba(201, 169, 110, 0.1); color: var(--text-secondary); }
+
+        .hidden-screen { display: none; }
+
+        .context-menu {
+            position: fixed; background: rgba(20, 16, 18, 0.95);
+            border: 1px solid var(--gold); border-radius: 12px;
+            padding: 8px 0; z-index: 250; min-width: 120px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            animation: menuIn 0.2s ease-out;
+        }
+
+        @keyframes menuIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .context-menu-item {
+            padding: 10px 16px; font-size: 12px; color: var(--text-primary);
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .context-menu-item:hover { background: rgba(201, 169, 110, 0.1); }
+        .context-menu-item.danger { color: var(--rose); }
+        .context-menu-item.danger:hover { background: rgba(212, 165, 165, 0.1); }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="love-animation" id="loveAnimation"></div>
+
+        <div class="page-screen">
+            <div id="weMain">
+                <div class="page-title">Мы</div>
+                <div class="page-sub">чат, записки, достижения</div>
+                <div class="we-grid">
+                    <div class="we-card" onclick="openChat()">
+                        <div class="we-icon">💬</div><div class="we-name">Чат</div>
+                        <div class="we-desc">Только для вас</div><div class="we-badge" id="chatBadge">0</div>
+                    </div>
+                    <div class="we-card" onclick="openNotes()">
+                        <div class="we-icon">📌</div><div class="we-name">Записки</div>
+                        <div class="we-desc">Письмо на экран</div><div class="we-badge" id="notesBadge">0</div>
+                    </div>
+                    <div class="we-card" onclick="openAchievements()">
+                        <div class="we-icon">🏆</div><div class="we-name">Достижения</div>
+                        <div class="we-desc">Прогресс пары</div><div class="we-badge" id="achBadge">0</div>
+                    </div>
+                    <div class="we-card" onclick="sendLove()">
+                        <div class="we-icon">❤️</div><div class="we-name">Я тебя люблю</div>
+                        <div class="we-desc">Признание</div><div class="we-badge" id="loveCount">0</div>
+                    </div>
+                </div>
+                <button class="btn-back" onclick="navigate('main')">← На главную</button>
+            </div>
+
+            <div id="chatScreen" class="hidden-screen" style="flex-direction:column;align-items:center;">
+                <div class="section-header">
+                    <div class="section-title">💬 Чат</div>
+                    <button class="section-action" onclick="clearChat()">Очистить</button>
+                </div>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div style="text-align:center;color:var(--text-secondary);font-size:11px;padding:20px;">Напишите что-нибудь...</div>
+                    </div>
+                    <div class="emoji-panel" id="emojiPanel"></div>
+                    <div class="chat-input-row">
+                        <button class="chat-btn" onclick="toggleEmoji()" title="Эмодзи">😊</button>
+                        <button class="chat-btn" onclick="document.getElementById('fileInput').click()" title="Прикрепить">📎</button>
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Сообщение..." onkeydown="if(event.key==='Enter')sendMessage()" maxlength="500">
+                        <button class="chat-send" id="sendBtn" onclick="sendMessage()" disabled>→</button>
+                    </div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*,video/*" style="display:none;" onchange="handleFile(event)">
+                <button class="btn-back" onclick="backToWe()">← Назад в Мы</button>
+            </div>
+
+            <div id="notesScreen" class="hidden-screen" style="flex-direction:column;align-items:center;">
+                <div class="section-header">
+                    <div class="section-title">📌 Записки</div>
+                    <button class="section-action" onclick="clearNotes()">Очистить</button>
+                </div>
+                <div class="notes-container" id="notesContainer"></div>
+                <div class="note-input-row">
+                    <input type="text" class="note-input" id="noteInput" placeholder="Новая записка..." onkeydown="if(event.key==='Enter')addNote()" maxlength="200">
+                    <button class="note-add" onclick="addNote()">+</button>
+                </div>
+                <button class="btn-back" onclick="backToWe()">← Назад в Мы</button>
+            </div>
+
+            <div id="achievementsScreen" class="hidden-screen" style="flex-direction:column;align-items:center;">
+                <div class="section-header"><div class="section-title">🏆 Достижения</div></div>
+                <div class="achievements-container" id="achievementsContainer"></div>
+                <button class="btn-back" onclick="backToWe()">← Назад в Мы</button>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab active" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        localStorage.removeItem('shepot_new_messages');
+
+        const myName = localStorage.getItem('shepot_my_name') || 'Я';
+        const partnerName = localStorage.getItem('shepot_partner_name') || 'Партнёр';
+
+        let chatMessages = JSON.parse(localStorage.getItem('shepot_chat') || '[]');
+        let notes = JSON.parse(localStorage.getItem('shepot_notes') || '[]');
+        let contextMenu = null;
+        
+        const emojis = ['😊','😂','❤️','🔥','😍','🥰','😘','😜','🤗','🙈','💋','🌹','✨','💫','🎉','💕','😏','🤤','😈','💦','🍑','🍆','👅','🫦','💗','💖','💘','💝','💞','💟','🫶','😚','😋','🤩','😎','🥳','🫂','💑','👩‍❤️‍👨','💍','🎵','🌟','💯','🙏','🤝'];
+
+        function initEmojiPanel() {
+            const panel = document.getElementById('emojiPanel');
+            panel.innerHTML = emojis.map(e => `<span class="emoji-item" onclick="insertEmoji('${e}')" title="${e}">${e}</span>`).join('');
+        }
+        initEmojiPanel();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('input', () => {
+                    document.getElementById('sendBtn').disabled = !chatInput.value.trim();
+                });
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (contextMenu && !contextMenu.contains(e.target)) closeContextMenu();
+        });
+
+        function toggleEmoji() { document.getElementById('emojiPanel').classList.toggle('show'); }
+
+        function insertEmoji(emoji) {
+            const input = document.getElementById('chatInput');
+            input.value += emoji; input.focus();
+            document.getElementById('sendBtn').disabled = false;
+        }
+
+        function openChat() { showScreen('chatScreen'); renderChat(); updateBadges(); }
+
+        function renderChat() {
+            const container = document.getElementById('chatMessages');
+            if (chatMessages.length === 0) {
+                container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:11px;padding:20px;">💬 Напишите что-нибудь...</div>';
+                return;
+            }
+            
+            let html = ''; let lastDate = '';
+            
+            chatMessages.forEach((msg, index) => {
+                if (msg.deleted) return;
+                const msgDate = new Date(msg.time).toLocaleDateString('ru-RU');
+                if (msgDate !== lastDate) { lastDate = msgDate; html += `<div class="chat-date-separator">${msgDate}</div>`; }
+                
+                const isMine = msg.from === 'me';
+                const name = isMine ? myName : partnerName;
+                const time = new Date(msg.time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                let content = '';
+                if (msg.type === 'image') content = `<img src="${msg.text}" alt="Фото" onclick="viewImage(this.src)">`;
+                else if (msg.type === 'video') content = `<video src="${msg.text}" controls preload="metadata"></video>`;
+                else content = escapeHtml(msg.text);
+                
+                html += `<div class="chat-msg ${isMine ? 'mine' : ''}" data-index="${index}"><div class="chat-msg-wrapper"><div class="chat-sender">${name}</div><div class="chat-bubble" oncontextmenu="showContextMenu(event, ${index})" onclick="handleBubbleClick(event, ${index})">${content}<div class="chat-time">${time}</div>${isMine ? '<button class="msg-delete" onclick="deleteMessage(' + index + ', event)">×</button>' : ''}</div></div></div>`;
+            });
+            
+            container.innerHTML = html;
+            setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
+        }
+
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        function viewImage(src) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:300;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+            overlay.innerHTML = `<img src="${src}" style="max-width:90%;max-height:90%;border-radius:12px;">`;
+            overlay.onclick = () => overlay.remove();
+            document.body.appendChild(overlay);
+        }
+
+        function handleBubbleClick(event, index) { if (event.target.classList.contains('msg-delete')) event.stopPropagation(); }
+
+        function showContextMenu(event, index) {
+            event.preventDefault(); closeContextMenu();
+            const msg = chatMessages[index];
+            if (!msg || msg.from !== 'me' || msg.deleted) return;
+            contextMenu = document.createElement('div');
+            contextMenu.className = 'context-menu';
+            contextMenu.innerHTML = `<div class="context-menu-item danger" onclick="deleteMessage(${index}, event)">🗑️ Удалить сообщение</div>`;
+            const x = event.clientX, y = event.clientY;
+            contextMenu.style.left = Math.min(x, window.innerWidth - 150) + 'px';
+            contextMenu.style.top = Math.min(y, window.innerHeight - 100) + 'px';
+            document.body.appendChild(contextMenu);
+        }
+
+        function closeContextMenu() { if (contextMenu) { contextMenu.remove(); contextMenu = null; } }
+
+        function deleteMessage(index, event) {
+            if (event) event.stopPropagation();
+            closeContextMenu();
+            if (confirm('Удалить это сообщение?')) {
+                chatMessages[index].deleted = true;
+                localStorage.setItem('shepot_chat', JSON.stringify(chatMessages));
+                renderChat(); showToast('🗑️ Сообщение удалено');
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            chatMessages.push({ from: 'me', type: 'text', text, time: Date.now(), deleted: false });
+            localStorage.setItem('shepot_chat', JSON.stringify(chatMessages));
+            localStorage.setItem('shepot_new_messages', '1');
+            input.value = ''; document.getElementById('sendBtn').disabled = true;
+            document.getElementById('emojiPanel').classList.remove('show');
+            renderChat();
+        }
+
+        function handleFile(event) {
+            const file = event.target.files[0]; if (!file) return;
+            if (file.size > 20 * 1024 * 1024) { showToast('⚠️ Файл слишком большой (макс. 20MB)'); event.target.value = ''; return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const type = file.type.startsWith('video') ? 'video' : 'image';
+                chatMessages.push({ from: 'me', type, text: e.target.result, time: Date.now(), deleted: false });
+                localStorage.setItem('shepot_chat', JSON.stringify(chatMessages));
+                localStorage.setItem('shepot_new_messages', '1');
+                renderChat();
+            };
+            reader.readAsDataURL(file); event.target.value = '';
+        }
+
+        function clearChat() {
+            if (confirm('Очистить историю чата?')) { chatMessages = []; localStorage.setItem('shepot_chat', JSON.stringify(chatMessages)); renderChat(); showToast('🗑️ Чат очищен'); }
+        }
+
+        function openNotes() { showScreen('notesScreen'); renderNotes(); }
+
+        function renderNotes() {
+            const container = document.getElementById('notesContainer');
+            if (notes.length === 0) container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:11px;padding:20px;">📌 Пока нет записок<br><small>Добавьте первую записку</small></div>';
+            else container.innerHTML = notes.map((n, i) => `<div class="note-card"><div class="note-text">${escapeHtml(n)}</div><button class="note-delete" onclick="deleteNote(${i})">×</button></div>`).join('');
+            updateBadges();
+        }
+
+        function addNote() {
+            const input = document.getElementById('noteInput'); const text = input.value.trim();
+            if (!text) return;
+            notes.push(text); localStorage.setItem('shepot_notes', JSON.stringify(notes));
+            input.value = ''; renderNotes();
+        }
+
+        function deleteNote(index) { notes.splice(index, 1); localStorage.setItem('shepot_notes', JSON.stringify(notes)); renderNotes(); }
+        function clearNotes() { if (confirm('Удалить все записки?')) { notes = []; localStorage.setItem('shepot_notes', JSON.stringify(notes)); renderNotes(); showToast('🗑️ Записки очищены'); } }
+
+        function openAchievements() { showScreen('achievementsScreen'); renderAchievements(); }
+
+        function renderAchievements() {
+            const container = document.getElementById('achievementsContainer');
+            const answers = JSON.parse(localStorage.getItem('shepot_daily_me') || '{}');
+            const donePoses = JSON.parse(localStorage.getItem('shepot_kamasutra_done') || '[]');
+            let totalAnswered = 0;
+            Object.values(answers).forEach(cat => { if (typeof cat === 'object') totalAnswered += Object.keys(cat).length; });
+
+            const achievements = [
+                { icon: '💬', name: 'Первое знакомство', desc: 'Ответьте на 10 вопросов', current: totalAnswered, target: 10, unlocked: totalAnswered >= 10 },
+                { icon: '🔥', name: 'Входим во вкус', desc: 'Ответьте на 50 вопросов', current: totalAnswered, target: 50, unlocked: totalAnswered >= 50 },
+                { icon: '💯', name: 'Без остановки', desc: 'Ответьте на 100 вопросов', current: totalAnswered, target: 100, unlocked: totalAnswered >= 100 },
+                { icon: '📝', name: 'Первая записка', desc: 'Напишите первую записку', current: notes.length, target: 1, unlocked: notes.length >= 1 },
+                { icon: '💫', name: 'Начинающие', desc: 'Освойте 5 поз', current: donePoses.length, target: 5, unlocked: donePoses.length >= 5 },
+                { icon: '🎉', name: 'Мастера', desc: 'Освойте 20 поз', current: donePoses.length, target: 20, unlocked: donePoses.length >= 20 },
+                { icon: '💌', name: 'Первое сообщение', desc: 'Отправьте сообщение в чате', current: chatMessages.filter(m => !m.deleted).length, target: 1, unlocked: chatMessages.filter(m => !m.deleted).length >= 1 },
+                { icon: '🏆', name: 'Гуру отношений', desc: 'Освойте все 64 позы', current: donePoses.length, target: 64, unlocked: donePoses.length >= 64 }
+            ];
+
+            const unlockedCount = achievements.filter(a => a.unlocked).length;
+            document.getElementById('achBadge').textContent = unlockedCount + '/' + achievements.length;
+
+            container.innerHTML = achievements.map(a => {
+                const progress = Math.min(100, Math.round((a.current / a.target) * 100));
+                return `<div class="ach-card ${a.unlocked ? 'unlocked' : 'locked'}"><div class="ach-icon">${a.unlocked ? a.icon : '🔒'}</div><div class="ach-info"><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div><div class="ach-progress"><div class="ach-progress-fill" style="width:${progress}%"></div></div><div style="font-size:9px;color:var(--text-secondary);margin-top:2px;">${a.current}/${a.target}</div></div><div class="ach-badge ${a.unlocked ? '' : 'locked-badge'}">${a.unlocked ? '✓' : a.current + '/' + a.target}</div></div>`;
+            }).join('');
+        }
+
+        function sendLove() {
+            const loveCount = parseInt(localStorage.getItem('shepot_love_count') || '0') + 1;
+            localStorage.setItem('shepot_love_count', loveCount);
+            document.getElementById('loveCount').textContent = loveCount;
+            const animContainer = document.getElementById('loveAnimation');
+            let heartsHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const left = Math.random() * 100, delay = Math.random() * 1, size = 20 + Math.random() * 40;
+                heartsHTML += `<span class="floating-heart" style="left:${left}%;font-size:${size}px;animation-delay:${delay}s;">❤️</span>`;
+            }
+            animContainer.innerHTML = heartsHTML; animContainer.classList.add('show');
+            setTimeout(() => animContainer.classList.remove('show'), 3000);
+            showToast(`❤️ Признание #${loveCount} отправлено!`);
+        }
+
+        function showToast(message) {
+            const existing = document.querySelector('.toast'); if (existing) existing.remove();
+            const toast = document.createElement('div'); toast.className = 'toast'; toast.textContent = message;
+            document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+        }
+
+        function updateBadges() {
+            document.getElementById('notesBadge').textContent = notes.length;
+            document.getElementById('chatBadge').textContent = chatMessages.filter(m => !m.deleted).length;
+            document.getElementById('loveCount').textContent = localStorage.getItem('shepot_love_count') || '0';
+            const answers = JSON.parse(localStorage.getItem('shepot_daily_me') || '{}');
+            const donePoses = JSON.parse(localStorage.getItem('shepot_kamasutra_done') || '[]');
+            let totalAnswered = 0;
+            Object.values(answers).forEach(cat => { if (typeof cat === 'object') totalAnswered += Object.keys(cat).length; });
+            const activeMessages = chatMessages.filter(m => !m.deleted).length;
+            const unlocked = [totalAnswered >= 10, totalAnswered >= 50, totalAnswered >= 100, notes.length >= 1, donePoses.length >= 5, donePoses.length >= 20, activeMessages >= 1, donePoses.length >= 64].filter(Boolean).length;
+            document.getElementById('achBadge').textContent = unlocked + '/8';
+        }
+
+        function showScreen(id) {
+            document.getElementById('weMain').style.display = 'none';
+            document.getElementById('chatScreen').style.display = 'none';
+            document.getElementById('notesScreen').style.display = 'none';
+            document.getElementById('achievementsScreen').style.display = 'none';
+            const screen = document.getElementById(id); if (screen) screen.style.display = 'flex';
+        }
+
+        function backToWe() {
+            document.getElementById('weMain').style.display = 'block';
+            document.getElementById('chatScreen').style.display = 'none';
+            document.getElementById('notesScreen').style.display = 'none';
+            document.getElementById('achievementsScreen').style.display = 'none';
+            updateBadges();
+        }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+
+        updateBadges();
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

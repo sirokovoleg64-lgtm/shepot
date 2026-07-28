@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Твоя миссия</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        * { box-sizing: border-box; }
+
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            text-align: center; padding: 20px 18px 120px; z-index: 1; width: 100%; min-height: 100vh; overflow-y: auto;
+        }
+
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 4px; padding-top: 10px; flex-shrink: 0; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 12px; flex-shrink: 0; }
+
+        .game-description {
+            width: 100%; max-width: 310px; background: rgba(201, 169, 110, 0.06);
+            border: 1px solid rgba(201, 169, 110, 0.12); border-radius: 12px;
+            padding: 10px 14px; margin-bottom: 12px; text-align: left; flex-shrink: 0;
+        }
+        .game-description p { font-size: 10px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+        .game-description .highlight { color: var(--gold); }
+
+        .progress-section {
+            width: 100%; max-width: 310px; background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; flex-shrink: 0;
+        }
+        .progress-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-primary); margin-bottom: 4px; }
+        .progress-bar { width: 100%; height: 5px; background: rgba(201, 169, 110, 0.15); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #D4B87A); border-radius: 10px; transition: width 0.6s ease; width: 0%; }
+
+        .mission-cards { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 12px; }
+
+        .mission-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08); border-radius: 14px;
+            padding: 12px 14px; cursor: pointer; transition: all 0.3s;
+            display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 10px;
+        }
+        .mission-card:hover { border-color: rgba(201, 169, 110, 0.3); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+        .mission-card .card-left { display: flex; align-items: center; gap: 10px; }
+        .mission-card .card-icon { font-size: 24px; }
+        .mission-card .card-info .card-name { font-family: var(--font-heading); font-size: 13px; color: var(--text-primary); }
+        .mission-card .card-info .card-desc { font-size: 10px; color: var(--text-secondary); }
+        .mission-card .card-right { text-align: right; }
+        .mission-card .card-count { font-size: 11px; color: var(--gold); font-weight: 600; }
+        .mission-card .card-arrow { color: var(--gold); opacity: 0.4; font-size: 13px; }
+
+        .wishes-screen { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .wishes-screen.active { display: flex; }
+
+        .section-block {
+            width: 100%; max-width: 310px; background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 14px; margin-bottom: 10px; overflow: hidden;
+        }
+
+        .wish-list-wrapper { overflow-y: auto; padding: 0 14px 4px 14px; max-height: 280px; }
+        .wish-list { display: flex; flex-direction: column; gap: 5px; padding: 8px 0 4px; }
+
+        .wish-item {
+            display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+            background: rgba(20, 16, 18, 0.3); border-radius: 10px;
+            border: 1px solid rgba(201, 169, 110, 0.06); transition: all 0.3s;
+        }
+        .wish-item.done { opacity: 0.5; border-color: rgba(76, 175, 80, 0.2); }
+        .wish-item.done .wish-text { text-decoration: line-through; }
+
+        .wish-check {
+            width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(201, 169, 110, 0.3);
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: transparent; cursor: pointer; transition: all 0.3s;
+        }
+        .wish-item.done .wish-check { background: var(--gold); border-color: var(--gold); color: #0D1117; }
+        .wish-check:hover { border-color: var(--gold); }
+
+        .wish-text { flex: 1; font-size: 12px; color: var(--text-primary); text-align: left; word-break: break-word; }
+        .wish-delete { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 14px; opacity: 0.3; transition: all 0.3s; padding: 2px 4px; }
+        .wish-delete:hover { opacity: 1; color: var(--rose); }
+
+        .empty-text { font-size: 11px; color: var(--text-secondary); padding: 16px; text-align: center; }
+
+        .add-wish-section { border-top: 1px solid rgba(201, 169, 110, 0.06); padding: 8px 14px 14px 14px; background: rgba(20, 16, 18, 0.3); }
+        .add-wish-row { display: flex; gap: 6px; }
+        .add-wish-input {
+            flex: 1; background: rgba(245, 240, 232, 0.05); border: 1px solid rgba(201, 169, 110, 0.15);
+            border-radius: 18px; padding: 7px 12px; color: var(--text-primary); font-size: 11px;
+            outline: none; font-family: var(--font-body); transition: all 0.3s;
+        }
+        .add-wish-input:focus { border-color: var(--gold); }
+        .add-wish-btn {
+            padding: 7px 14px; border-radius: 18px; border: none; background: var(--gold);
+            color: #0D1117; font-size: 11px; cursor: pointer; font-weight: 600; transition: all 0.3s; white-space: nowrap;
+        }
+        .add-wish-btn:hover { box-shadow: 0 4px 15px rgba(201, 169, 110, 0.4); }
+        .add-wish-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .remaining-hint { font-size: 9px; color: var(--text-secondary); margin-top: 3px; text-align: left; }
+
+        .celebration { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0; }
+        .celebration.show { display: flex; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        .celebration-icon { font-size: 48px; }
+        .celebration-title { font-family: var(--font-heading); font-size: 22px; color: var(--gold); }
+        .celebration-text { font-size: 14px; color: var(--text-secondary); max-width: 280px; line-height: 1.6; }
+
+        .btn-action {
+            padding: 10px 24px; border-radius: 20px; border: 1px solid rgba(201, 169, 110, 0.2);
+            background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-action:hover { border-color: var(--gold); color: var(--text-primary); }
+        .btn-action.primary { background: var(--gold); border-color: var(--gold); color: #0D1117; font-weight: 600; }
+        .btn-action.primary:hover { box-shadow: 0 4px 20px rgba(201, 169, 110, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 6%; left: 12%;"></div>
+            <div class="sparkle" style="top: 18%; right: 18%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 22%; left: 22%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 14%; right: 16%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 38%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 34%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainScreen">
+            <div id="mainContent">
+                <div class="page-title">🎯 Твоя миссия</div>
+                <div class="page-sub">7 желаний для партнёра</div>
+
+                <div class="game-description">
+                    <p>
+                        <span class="highlight">Это не мечты</span> — это то, что важно прямо сейчас.<br>
+                        <span class="highlight">Помой посуду • Сделай чай • Погуляй со мной • Скажи, что любишь</span><br>
+                        Простые, бытовые, важные — до 7 желаний, которые партнёр может выполнить для тебя.
+                    </p>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header"><span>Прогресс выполнения</span><span id="progressText">0 из 7</span></div>
+                    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%;"></div></div>
+                </div>
+
+                <div class="mission-cards">
+                    <div class="mission-card" onclick="openWishes('my')">
+                        <div class="card-left"><div class="card-icon">📝</div><div class="card-info"><div class="card-name">Мои желания</div><div class="card-desc">Что я хочу от партнёра</div></div></div>
+                        <div class="card-right"><div class="card-count" id="myBadge">0/7</div><div class="card-arrow">→</div></div>
+                    </div>
+                    <div class="mission-card" onclick="openWishes('partner')">
+                        <div class="card-left"><div class="card-icon">💝</div><div class="card-info"><div class="card-name" id="partnerCardName">Желания партнёра</div><div class="card-desc">Что партнёр хочет от меня</div></div></div>
+                        <div class="card-right"><div class="card-count" id="partnerBadge">0/7</div><div class="card-arrow">→</div></div>
+                    </div>
+                </div>
+
+                <button class="btn-back" onclick="navigate('games')">← Назад к играм</button>
+            </div>
+
+            <div class="wishes-screen" id="wishesScreen">
+                <div class="page-title" id="wishesTitle">Мои желания</div>
+                <div class="page-sub" id="wishesSub">0 из 7 выполнено</div>
+
+                <div class="section-block">
+                    <div class="wish-list-wrapper">
+                        <div class="wish-list" id="wishesList"><div class="empty-text">Пока нет желаний</div></div>
+                    </div>
+                    <div class="add-wish-section" id="addWishSection">
+                        <div class="add-wish-row">
+                            <input type="text" class="add-wish-input" id="wishInput" placeholder="Напиши желание..." maxlength="200" onkeydown="if(event.key==='Enter')addWish()">
+                            <button class="add-wish-btn" id="addWishBtn" onclick="addWish()">+</button>
+                        </div>
+                        <div class="remaining-hint">Осталось: <span id="wishesRemaining">7</span></div>
+                    </div>
+                </div>
+
+                <button class="btn-back" onclick="closeWishes()">← Назад</button>
+            </div>
+
+            <div class="celebration" id="celebration">
+                <div class="celebration-icon">🎉</div>
+                <div class="celebration-title">ВСЕ ЖЕЛАНИЯ ВЫПОЛНЕНЫ!</div>
+                <div class="celebration-text">Партнёр выполнил все 7 желаний!<br>Пора написать новые!</div>
+                <button class="btn-action primary" onclick="resetWishes()">✨ Написать новые желания</button>
+                <button class="btn-action" onclick="closeCelebration()">📂 К списку</button>
+            </div>
+        </div>
+
+        <div class="modal" id="modal">
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle">Подтверждение</div>
+                <div class="modal-desc" id="modalDesc">Вы уверены?</div>
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+                    <button class="btn-save" id="modalConfirmBtn">Да</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab active" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        localStorage.removeItem('shepot_new_wishes');
+        const myGender = localStorage.getItem('shepot_my_gender') || 'male';
+        let data = JSON.parse(localStorage.getItem('shepot_mission_data')) || { myWishes: [], partnerWishes: [] };
+        let currentView = null;
+
+        function getPartnerLabel() { if (myGender === 'female') return 'Его желания'; if (myGender === 'male') return 'Её желания'; return 'Желания партнёра'; }
+        function getPartnerPronoun() { if (myGender === 'female') return 'он'; if (myGender === 'male') return 'она'; return 'партнёр'; }
+        function getPartnerWrote() { if (myGender === 'female') return 'написал'; if (myGender === 'male') return 'написала'; return 'написал(а)'; }
+        function saveData() { localStorage.setItem('shepot_mission_data', JSON.stringify(data)); }
+
+        function render() {
+            const myTotal = data.myWishes.length, myDone = data.myWishes.filter(w => w.done).length;
+            const pTotal = data.partnerWishes.length, pDone = data.partnerWishes.filter(w => w.done).length;
+            document.getElementById('myBadge').textContent = myTotal + '/7';
+            document.getElementById('partnerBadge').textContent = pTotal + '/7';
+            document.getElementById('partnerCardName').textContent = getPartnerLabel();
+            document.getElementById('progressText').textContent = pDone + ' из ' + (pTotal || 7);
+            document.getElementById('progressFill').style.width = ((pTotal > 0 ? pDone / pTotal : 0) * 100) + '%';
+            if (pTotal >= 7 && pDone >= 7 && pTotal > 0) { document.getElementById('mainContent').style.display = 'none'; document.getElementById('celebration').classList.add('show'); }
+        }
+
+        function openWishes(type) {
+            currentView = type; const isMy = type === 'my';
+            document.getElementById('wishesTitle').textContent = isMy ? '📝 Мои желания' : '💝 ' + getPartnerLabel();
+            document.getElementById('addWishSection').style.display = isMy ? 'block' : 'none';
+            document.getElementById('mainContent').style.display = 'none'; document.getElementById('wishesScreen').classList.add('active');
+            renderWishesList();
+        }
+
+        function closeWishes() { document.getElementById('wishesScreen').classList.remove('active'); document.getElementById('mainContent').style.display = 'block'; currentView = null; render(); }
+
+        function renderWishesList() {
+            const isMy = currentView === 'my';
+            const wishes = isMy ? data.myWishes : data.partnerWishes;
+            const container = document.getElementById('wishesList');
+            const total = wishes.length, done = wishes.filter(w => w.done).length;
+            document.getElementById('wishesSub').textContent = done + ' из ' + total + ' выполнено';
+            document.getElementById('wishesRemaining').textContent = Math.max(0, 7 - total);
+            document.getElementById('addWishBtn').disabled = total >= 7;
+            if (wishes.length === 0) container.innerHTML = '<div class="empty-text">' + (isMy ? 'Пока нет желаний' : getPartnerPronoun() + ' ещё не ' + getPartnerWrote() + ' желания') + '</div>';
+            else container.innerHTML = wishes.map((wish, index) => `<div class="wish-item ${wish.done ? 'done' : ''}"><div class="wish-check" onclick="toggleWish(${index})">${wish.done ? '✓' : ''}</div><div class="wish-text">${escapeHtml(wish.text)}</div>${isMy ? `<button class="wish-delete" onclick="deleteWish(${index})">×</button>` : ''}</div>`).join('');
+        }
+
+        function addWish() {
+            if (currentView !== 'my') return;
+            const input = document.getElementById('wishInput'); const text = input.value.trim();
+            if (!text) { showToast('⚠️ Напишите желание'); return; }
+            if (data.myWishes.length >= 7) { showToast('⚠️ Максимум 7 желаний'); return; }
+            data.myWishes.push({ id: Date.now(), text, done: false }); saveData(); input.value = ''; renderWishesList(); showToast('✨ Добавлено!');
+        }
+
+        function deleteWish(index) { if (currentView !== 'my') return; data.myWishes.splice(index, 1); saveData(); renderWishesList(); showToast('🗑️ Удалено'); }
+
+        function toggleWish(index) {
+            const isMy = currentView === 'my';
+            const wish = isMy ? data.myWishes[index] : data.partnerWishes[index];
+            if (!wish) return;
+            if (isMy) { showModal(getPartnerLabel(), 'Отметить может только ' + getPartnerPronoun() + '.'); return; }
+            if (!wish.done) { wish.done = true; saveData(); localStorage.setItem('shepot_new_wishes', '1'); renderWishesList(); showToast('✅ Выполнено!'); if (data.partnerWishes.filter(w => w.done).length >= 7 && data.partnerWishes.length >= 7) setTimeout(() => { closeWishes(); render(); }, 500); }
+        }
+
+        function closeCelebration() { document.getElementById('celebration').classList.remove('show'); document.getElementById('mainContent').style.display = 'block'; render(); }
+        function resetWishes() { showModal('Новый круг', 'Все желания будут удалены.', () => { data.myWishes = []; data.partnerWishes = []; saveData(); document.getElementById('celebration').classList.remove('show'); document.getElementById('mainContent').style.display = 'block'; render(); showToast('🔄 Можно писать новые!'); }); }
+
+        let modalCallback = null;
+        function showModal(t, d, c) { document.getElementById('modalTitle').textContent = t; document.getElementById('modalDesc').textContent = d; document.getElementById('modal').classList.add('show'); if (c) { modalCallback = c; document.getElementById('modalConfirmBtn').style.display = 'inline-block'; document.getElementById('modalConfirmBtn').onclick = () => { closeModal(); modalCallback?.(); modalCallback = null; }; } else document.getElementById('modalConfirmBtn').style.display = 'none'; }
+        function closeModal() { document.getElementById('modal').classList.remove('show'); modalCallback = null; }
+        function showToast(m) { const e = document.querySelector('.toast'); if (e) e.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
+        function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+        function navigate(p) { const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'}; if (pages[p]) window.location.href = pages[p]; }
+
+        render();
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

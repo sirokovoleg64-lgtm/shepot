@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Моменты</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px 18px 120px; z-index: 1; width: 100%; min-height: 100%;
+        }
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 4px; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 22px; }
+
+        .moments-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 310px; margin-bottom: 24px; }
+        .moment-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 18px; padding: 20px 14px; cursor: pointer; transition: all 0.3s;
+            display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative;
+        }
+        .moment-card:hover { border-color: rgba(201, 169, 110, 0.25); transform: translateY(-2px); }
+        .moment-icon { font-size: 30px; }
+        .moment-name { font-family: var(--font-heading); font-size: 14px; color: var(--text-primary); }
+        .moment-desc { font-size: 10px; color: var(--text-secondary); line-height: 1.3; }
+        .moment-count { 
+            font-size: 11px; color: var(--gold); background: rgba(201, 169, 110, 0.1); 
+            padding: 2px 10px; border-radius: 10px; font-weight: 600;
+        }
+
+        .section-screen { display: none; flex-direction: column; align-items: center; width: 100%; padding: 20px 18px 120px; }
+        .section-screen.active { display: flex; }
+
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            width: 100%; max-width: 310px; margin-bottom: 16px;
+        }
+        .section-title { font-family: var(--font-heading); font-size: 20px; color: var(--text-primary); }
+        .btn-add {
+            padding: 8px 16px; border-radius: 20px; border: 1px solid var(--gold);
+            background: rgba(201, 169, 110, 0.1); color: var(--gold); font-size: 12px;
+            cursor: pointer; transition: all 0.3s; font-weight: 600;
+        }
+        .btn-add:hover { background: var(--gold); color: #0D1117; }
+
+        .event-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 16px; }
+        .event-item {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; text-align: left;
+            transition: all 0.3s;
+        }
+        .event-item:hover { border-color: rgba(201, 169, 110, 0.2); }
+        .event-info { flex: 1; }
+        .event-name { font-size: 13px; color: var(--text-primary); margin-bottom: 2px; }
+        .event-date { font-size: 10px; color: var(--text-secondary); }
+        .event-countdown { 
+            font-size: 9px; color: var(--gold); background: rgba(201, 169, 110, 0.1); 
+            padding: 2px 8px; border-radius: 8px; display: inline-block; margin-top: 4px;
+        }
+        .event-delete { 
+            background: transparent; border: none; color: var(--text-secondary); 
+            cursor: pointer; font-size: 18px; opacity: 0.4; padding: 4px 8px; transition: all 0.3s;
+        }
+        .event-delete:hover { opacity: 1; color: var(--rose); }
+
+        .capsule-intro, .playlist-intro {
+            background: rgba(20, 16, 18, 0.4); border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 14px; padding: 14px 16px; width: 100%; max-width: 310px;
+            font-size: 11px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; text-align: left;
+        }
+        .capsule-intro strong, .playlist-intro strong { color: var(--gold); }
+        
+        .capsule-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 16px; }
+        .capsule-item {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 14px; padding: 14px 16px; text-align: left; transition: all 0.3s; position: relative;
+        }
+        .capsule-item:hover { border-color: rgba(201, 169, 110, 0.2); }
+        .capsule-item.opened { border-color: rgba(76, 175, 80, 0.3); }
+        .capsule-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        .capsule-name { font-size: 14px; color: var(--text-primary); font-family: var(--font-heading); }
+        .capsule-date { font-size: 10px; color: var(--text-secondary); }
+        .capsule-status { font-size: 10px; padding: 2px 8px; border-radius: 8px; display: inline-block; margin-top: 6px; }
+        .capsule-status.sealed { background: rgba(255, 152, 0, 0.15); color: #FF9800; }
+        .capsule-status.opened { background: rgba(76, 175, 80, 0.15); color: #4CAF50; }
+        .capsule-text { 
+            font-size: 12px; color: var(--text-primary); margin-top: 10px; line-height: 1.5;
+            background: rgba(201, 169, 110, 0.05); padding: 10px; border-radius: 8px;
+        }
+        .capsule-delete {
+            position: absolute; top: 8px; right: 8px; background: transparent; 
+            border: none; color: var(--text-secondary); cursor: pointer; font-size: 16px; 
+            opacity: 0.4; transition: all 0.3s;
+        }
+        .capsule-delete:hover { opacity: 1; color: var(--rose); }
+
+        .album-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 16px; }
+        .album-photo { 
+            position: relative; border-radius: 12px; overflow: hidden;
+            aspect-ratio: 1; cursor: pointer; transition: all 0.3s;
+        }
+        .album-photo:hover { transform: scale(1.02); }
+        .album-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .album-photo-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 20px 6px 6px; opacity: 0; transition: all 0.3s;
+        }
+        .album-photo:hover .album-photo-overlay { opacity: 1; }
+        .album-photo-caption { font-size: 9px; color: white; text-align: center; }
+        .album-delete { 
+            position: absolute; top: 4px; right: 4px; 
+            background: rgba(0,0,0,0.6); border: none; color: white; 
+            border-radius: 50%; width: 24px; height: 24px; font-size: 14px; 
+            cursor: pointer; opacity: 0; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .album-photo:hover .album-delete { opacity: 1; }
+        .album-delete:hover { background: var(--rose); }
+        .album-empty { grid-column: 1 / -1; color: var(--text-secondary); font-size: 11px; padding: 30px; text-align: center; }
+
+        .playlist-list { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 16px; }
+        .playlist-item {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.1);
+            border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; text-align: left;
+            transition: all 0.3s;
+        }
+        .playlist-item:hover { border-color: rgba(201, 169, 110, 0.2); }
+        .playlist-item.playing { border-color: var(--gold); background: rgba(201, 169, 110, 0.1); }
+        .playlist-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: none; 
+            background: var(--gold); color: #0D1117;
+            font-size: 16px; cursor: pointer; flex-shrink: 0; transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .playlist-btn:hover { box-shadow: 0 0 15px rgba(201, 169, 110, 0.4); transform: scale(1.1); }
+        .playlist-btn.playing { background: var(--rose); color: white; }
+        .playlist-info { flex: 1; }
+        .playlist-memory { font-size: 13px; color: var(--text-primary); }
+        .playlist-delete { 
+            background: transparent; border: none; color: var(--text-secondary); 
+            cursor: pointer; font-size: 18px; opacity: 0.4; padding: 4px; transition: all 0.3s;
+        }
+        .playlist-delete:hover { opacity: 1; color: var(--rose); }
+
+        .no-data { color: var(--text-secondary); font-size: 11px; padding: 30px; text-align: center; width: 100%; max-width: 310px; }
+        .event-soon { border-color: rgba(255, 152, 0, 0.3); animation: glow 2s infinite; }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 152, 0, 0.1); }
+            50% { box-shadow: 0 0 15px rgba(255, 152, 0, 0.2); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainScreen">
+            <div class="page-title">Моменты</div>
+            <div class="page-sub">ваша история</div>
+            <div class="moments-grid">
+                <div class="moment-card" onclick="openSection('calendar')">
+                    <div class="moment-icon">📅</div><div class="moment-name">Календарь</div>
+                    <div class="moment-desc">Важные даты</div><div class="moment-count" id="calendarCount">0</div>
+                </div>
+                <div class="moment-card" onclick="openSection('capsule')">
+                    <div class="moment-icon">💌</div><div class="moment-name">Капсула</div>
+                    <div class="moment-desc">Письма в будущее</div><div class="moment-count" id="capsuleCount">0</div>
+                </div>
+                <div class="moment-card" onclick="openSection('album')">
+                    <div class="moment-icon">📸</div><div class="moment-name">Фотоальбом</div>
+                    <div class="moment-desc">Совместные фото</div><div class="moment-count" id="albumCount">0</div>
+                </div>
+                <div class="moment-card" onclick="openSection('playlist')">
+                    <div class="moment-icon">🎵</div><div class="moment-name">Плейлист</div>
+                    <div class="moment-desc">Музыка моментов</div><div class="moment-count" id="playlistCount">0</div>
+                </div>
+            </div>
+            <button class="btn-back" onclick="navigate('main')">← На главную</button>
+        </div>
+
+        <!-- Календарь -->
+        <div class="section-screen" id="sectionCalendar">
+            <div class="section-header"><div class="section-title">📅 Календарь</div><button class="btn-add" onclick="addEvent()">+ Добавить</button></div>
+            <div class="event-list" id="eventList"></div>
+            <button class="btn-back" onclick="closeSection()">← Назад в моменты</button>
+        </div>
+
+        <!-- Капсула -->
+        <div class="section-screen" id="sectionCapsule">
+            <div class="section-header"><div class="section-title">💌 Капсула времени</div><button class="btn-add" onclick="addCapsule()">+ Письмо</button></div>
+            <div class="capsule-intro"><strong>Письмо в будущее для любимого человека</strong><br><br>Напишите тёплые слова, признание или мечту. Письмо будет запечатано до указанной даты — и откроется у вас обоих одновременно.</div>
+            <div class="capsule-list" id="capsuleList"></div>
+            <button class="btn-back" onclick="closeSection()">← Назад в моменты</button>
+        </div>
+
+        <!-- Фотоальбом -->
+        <div class="section-screen" id="sectionAlbum">
+            <div class="section-header"><div class="section-title">📸 Фотоальбом</div><button class="btn-add" onclick="document.getElementById('albumInput').click()">+ Фото</button></div>
+            <div class="album-grid" id="albumGrid"></div>
+            <input type="file" id="albumInput" accept="image/*" style="display:none;" onchange="addPhoto(this)">
+            <button class="btn-back" onclick="closeSection()">← Назад в моменты</button>
+        </div>
+
+        <!-- Плейлист -->
+        <div class="section-screen" id="sectionPlaylist">
+            <div class="section-header"><div class="section-title">🎵 Плейлист</div><button class="btn-add" onclick="addTrack()">+ Трек</button></div>
+            <div class="playlist-intro"><strong>Музыка наших моментов</strong><br><br>Загружайте треки, которые связаны с важными моментами: первое свидание, свадьба, совместный отпуск. Ваш личный саундтрек любви.</div>
+            <div class="playlist-list" id="playlistList"></div>
+            <audio id="audioPlayer" style="display:none;"></audio>
+            <button class="btn-back" onclick="closeSection()">← Назад в моменты</button>
+        </div>
+
+        <!-- Модалка -->
+        <div class="modal" id="modal">
+            <div class="modal-content" id="modalContent"></div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab active" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        let events = JSON.parse(localStorage.getItem('shepot_events') || '[]');
+        let capsules = JSON.parse(localStorage.getItem('shepot_capsules') || '[]');
+        let tracks = JSON.parse(localStorage.getItem('shepot_tracks') || '[]');
+        let photos = [];
+        let currentAudio = null;
+        let currentTrackIndex = null;
+
+        const dbName = 'ShepotPhotos';
+        let db = null;
+        const request = indexedDB.open(dbName, 1);
+        request.onupgradeneeded = function(e) { const db = e.target.result; if (!db.objectStoreNames.contains('photos')) db.createObjectStore('photos', { keyPath: 'id', autoIncrement: true }); };
+        request.onsuccess = function(e) { db = e.target.result; updateCounts(); };
+        request.onerror = function() { console.error('IndexedDB error'); };
+
+        function getPhotos(callback) { if (!db) { setTimeout(() => getPhotos(callback), 200); return; } const tx = db.transaction('photos', 'readonly'); const store = tx.objectStore('photos'); const req = store.getAll(); req.onsuccess = function() { photos = req.result || []; if (callback) callback(); }; }
+        function savePhoto(dataUrl, caption, callback) { if (!db) { setTimeout(() => savePhoto(dataUrl, caption, callback), 200); return; } const tx = db.transaction('photos', 'readwrite'); const store = tx.objectStore('photos'); store.add({ data: dataUrl, caption: caption, date: new Date().toISOString() }); tx.oncomplete = function() { getPhotos(callback); }; }
+        function deletePhotoDB(id, callback) { if (!db) return; const tx = db.transaction('photos', 'readwrite'); const store = tx.objectStore('photos'); store.delete(id); tx.oncomplete = function() { getPhotos(callback); }; }
+
+        function openSection(name) {
+            document.getElementById('mainScreen').style.display = 'none';
+            document.querySelectorAll('.section-screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+            const sec = document.getElementById('section' + name.charAt(0).toUpperCase() + name.slice(1));
+            sec.classList.add('active'); sec.style.display = 'flex';
+            if (name === 'calendar') renderCalendar();
+            if (name === 'capsule') renderCapsules();
+            if (name === 'album') getPhotos(renderAlbum);
+            if (name === 'playlist') renderPlaylist();
+        }
+
+        function closeSection() {
+            if (currentAudio) { currentAudio.pause(); currentAudio = null; currentTrackIndex = null; }
+            document.querySelectorAll('.section-screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+            document.getElementById('mainScreen').style.display = 'flex';
+            updateCounts();
+        }
+
+        function updateCounts() {
+            document.getElementById('calendarCount').textContent = events.length;
+            document.getElementById('capsuleCount').textContent = capsules.length;
+            document.getElementById('playlistCount').textContent = tracks.length;
+            if (db) getPhotos(() => { document.getElementById('albumCount').textContent = photos.length; });
+        }
+
+        function getDaysUntil(dateStr) { const now = new Date(); const target = new Date(dateStr); return Math.ceil((target - now) / 86400000); }
+
+        // ====== КАЛЕНДАРЬ ======
+        function renderCalendar() {
+            const list = document.getElementById('eventList');
+            if (events.length === 0) { list.innerHTML = '<div class="no-data">📅 Пока нет важных дат<br><small>Добавьте первую памятную дату</small></div>'; return; }
+            events.sort((a, b) => new Date(a.date) - new Date(b.date));
+            localStorage.setItem('shepot_events', JSON.stringify(events));
+            list.innerHTML = events.map((e, i) => {
+                const daysUntil = getDaysUntil(e.date);
+                let countdownHTML = '', soonClass = '';
+                if (daysUntil > 0 && daysUntil <= 7) { countdownHTML = `<div class="event-countdown">Через ${daysUntil} дн.</div>`; soonClass = ' event-soon'; }
+                else if (daysUntil === 0) { countdownHTML = '<div class="event-countdown">🎉 Сегодня!</div>'; soonClass = ' event-soon'; }
+                else if (daysUntil < 0) { countdownHTML = `<div class="event-countdown">${Math.abs(daysUntil)} дн. назад</div>`; }
+                else { countdownHTML = `<div class="event-countdown">${daysUntil} дн.</div>`; }
+                return `<div class="event-item${soonClass}"><div class="event-info"><div class="event-name">${e.name}</div><div class="event-date">📅 ${e.date}</div>${countdownHTML}</div><button class="event-delete" onclick="deleteEvent(${i})">×</button></div>`;
+            }).join('');
+        }
+
+        function addEvent() {
+            document.getElementById('modalContent').innerHTML = `
+                <div class="modal-title">✨ Новая дата</div>
+                <div class="modal-label">Название события</div>
+                <input class="modal-input" id="evName" placeholder="Например: Годовщина свадьбы">
+                <div class="modal-label">Дата</div>
+                <input type="date" class="modal-date" id="evDate">
+                <div class="modal-buttons"><button class="btn-cancel" onclick="closeModal()">Отмена</button><button class="btn-save" onclick="saveEvent()">Сохранить</button></div>
+            `;
+            document.getElementById('modal').classList.add('show');
+        }
+
+        function saveEvent() { 
+            const n = document.getElementById('evName').value.trim(); 
+            const d = document.getElementById('evDate').value; 
+            if (!n) { alert('Введите название'); return; } if (!d) { alert('Выберите дату'); return; }
+            events.push({ name: n, date: d }); events.sort((a, b) => new Date(a.date) - new Date(b.date)); 
+            localStorage.setItem('shepot_events', JSON.stringify(events)); closeModal(); renderCalendar(); 
+        }
+
+        function deleteEvent(i) { if (confirm('Удалить?')) { events.splice(i, 1); localStorage.setItem('shepot_events', JSON.stringify(events)); renderCalendar(); } }
+
+        // ====== КАПСУЛА ======
+        function renderCapsules() {
+            const list = document.getElementById('capsuleList'); const now = new Date();
+            if (capsules.length === 0) { list.innerHTML = '<div class="no-data">💌 Пока нет писем<br><small>Напишите первое письмо в будущее</small></div>'; return; }
+            list.innerHTML = capsules.map((c, i) => { 
+                const open = new Date(c.openDate); const done = now >= open; const daysUntil = getDaysUntil(c.openDate);
+                return `<div class="capsule-item${done ? ' opened' : ''}"><button class="capsule-delete" onclick="deleteCapsule(${i})">×</button><div class="capsule-header"><div class="capsule-name">${c.title}</div></div><div class="capsule-date">📅 Откроется: ${c.openDate}</div><div class="capsule-status ${done ? 'opened' : 'sealed'}">${done ? '🔓 Открыто' : '🔒 Запечатано' + (daysUntil > 0 ? ' (через ' + daysUntil + ' дн.)' : '')}</div>${done ? '<div class="capsule-text">' + c.text + '</div>' : ''}</div>`;
+            }).join('');
+        }
+
+        function addCapsule() {
+            document.getElementById('modalContent').innerHTML = `
+                <div class="modal-title">💌 Письмо в будущее</div>
+                <div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;text-align:left;">Напишите сообщение для партнёра. Оно будет запечатано и откроется в выбранную дату.</div>
+                <div class="modal-label">Заголовок</div><input class="modal-input" id="capTitle" placeholder="Например: Нашей любви">
+                <div class="modal-label">Текст письма</div><textarea class="modal-input" id="capText" placeholder="Дорогой/Дорогая..." style="min-height:80px;resize:vertical;"></textarea>
+                <div class="modal-label">Дата открытия</div><input type="date" class="modal-date" id="capDate">
+                <div class="modal-buttons"><button class="btn-cancel" onclick="closeModal()">Отмена</button><button class="btn-save" onclick="saveCapsule()">💝 Запечатать</button></div>
+            `;
+            document.getElementById('modal').classList.add('show');
+        }
+
+        function saveCapsule() { 
+            const t = document.getElementById('capTitle').value.trim(); 
+            const x = document.getElementById('capText').value.trim(); 
+            const d = document.getElementById('capDate').value; 
+            if (!t) { alert('Введите заголовок'); return; } if (!x) { alert('Напишите текст'); return; } if (!d) { alert('Выберите дату'); return; }
+            if (new Date(d) <= new Date()) { alert('Дата должна быть в будущем'); return; }
+            capsules.push({ title: t, text: x, openDate: d }); localStorage.setItem('shepot_capsules', JSON.stringify(capsules)); closeModal(); renderCapsules(); 
+        }
+
+        function deleteCapsule(i) { if (confirm('Удалить?')) { capsules.splice(i, 1); localStorage.setItem('shepot_capsules', JSON.stringify(capsules)); renderCapsules(); } }
+
+        // ====== ФОТОАЛЬБОМ ======
+        function renderAlbum() {
+            const grid = document.getElementById('albumGrid');
+            if (photos.length === 0) { grid.innerHTML = '<div class="album-empty">📸 Пока нет фотографий<br><small>Добавьте первое совместное фото</small></div>'; return; }
+            let html = '';
+            photos.forEach((p) => { html += `<div class="album-photo"><img src="${p.data}" alt=""><button class="album-delete" onclick="deletePhoto(${p.id})">×</button><div class="album-photo-overlay"><div class="album-photo-caption">${p.caption || ''}</div></div></div>`; });
+            grid.innerHTML = html;
+        }
+
+        function addPhoto(input) {
+            const file = input.files[0]; if (!file) return;
+            if (file.size > 10 * 1024 * 1024) { alert('Максимум 10MB'); input.value = ''; return; }
+            const caption = prompt('Подпись к фото:') || '';
+            const reader = new FileReader();
+            reader.onload = function(e) { savePhoto(e.target.result, caption, renderAlbum); };
+            reader.readAsDataURL(file); input.value = '';
+        }
+
+        function deletePhoto(id) { if (confirm('Удалить?')) { deletePhotoDB(id, renderAlbum); } }
+
+        // ====== ПЛЕЙЛИСТ ======
+        function renderPlaylist() {
+            const list = document.getElementById('playlistList');
+            if (tracks.length === 0) { list.innerHTML = '<div class="no-data">🎵 Пока нет треков<br><small>Добавьте первую особенную песню</small></div>'; return; }
+            list.innerHTML = tracks.map((t, i) => `<div class="playlist-item${currentTrackIndex === i ? ' playing' : ''}"><button class="playlist-btn${currentTrackIndex === i ? ' playing' : ''}" onclick="playTrack(${i})">${currentTrackIndex === i ? '⏸' : '▶'}</button><div class="playlist-info"><div class="playlist-memory">${t.memory}</div></div><button class="playlist-delete" onclick="deleteTrack(${i})">×</button></div>`).join('');
+        }
+
+        function addTrack() {
+            document.getElementById('modalContent').innerHTML = `
+                <div class="modal-title">🎵 Добавить трек</div>
+                <div class="modal-label">С чем связан трек?</div><input class="modal-input" id="trMemory" placeholder="Например: Первый танец">
+                <div class="modal-label">Аудиофайл (MP3, M4A)</div><input type="file" id="trFile" accept="audio/*" style="margin-bottom:12px;color:var(--text-secondary);">
+                <div class="modal-buttons"><button class="btn-cancel" onclick="closeModal()">Отмена</button><button class="btn-save" onclick="saveTrack()">Добавить</button></div>
+            `;
+            document.getElementById('modal').classList.add('show');
+        }
+
+        function saveTrack() {
+            const m = document.getElementById('trMemory').value.trim();
+            const file = document.getElementById('trFile').files[0];
+            if (!file) { alert('Выберите файл'); return; }
+            if (file.size > 20 * 1024 * 1024) { alert('Максимум 20MB'); return; }
+            const reader = new FileReader();
+            reader.onload = function(e) { tracks.push({ memory: m || 'Любимая песня', audio: e.target.result }); localStorage.setItem('shepot_tracks', JSON.stringify(tracks)); closeModal(); renderPlaylist(); };
+            reader.readAsDataURL(file);
+        }
+
+        function playTrack(i) {
+            const track = tracks[i]; if (!track.audio) return;
+            const player = document.getElementById('audioPlayer');
+            if (currentTrackIndex === i) { player.paused ? player.play() : player.pause(); return; }
+            if (currentAudio) currentAudio.pause();
+            currentTrackIndex = i; currentAudio = player;
+            player.src = track.audio; player.play(); renderPlaylist();
+            player.onended = function() { currentTrackIndex = null; currentAudio = null; renderPlaylist(); };
+        }
+
+        function deleteTrack(i) { 
+            if (confirm('Удалить?')) { if (currentTrackIndex === i) { document.getElementById('audioPlayer').pause(); currentTrackIndex = null; currentAudio = null; } tracks.splice(i, 1); localStorage.setItem('shepot_tracks', JSON.stringify(tracks)); renderPlaylist(); }
+        }
+
+        function closeModal() { document.getElementById('modal').classList.remove('show'); }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+
+        updateCounts();
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

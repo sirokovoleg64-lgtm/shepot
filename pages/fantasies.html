@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Мои фантазии</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            text-align: center; padding: 30px 18px 100px; z-index: 1; width: 100%; min-height: 100vh; overflow-y: auto;
+        }
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 4px; padding-top: 20px; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 16px; }
+
+        .switch-row {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+            background: rgba(20, 16, 18, 0.5); border-radius: 20px; padding: 4px;
+        }
+        .switch-btn {
+            padding: 8px 18px; border-radius: 16px; border: none; background: transparent;
+            color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.3s;
+        }
+        .switch-btn.active { background: var(--gold); color: #0D1117; font-weight: 600; }
+
+        .description-box {
+            background: rgba(201, 169, 110, 0.06); border: 1px solid rgba(201, 169, 110, 0.12);
+            border-radius: 14px; padding: 14px 16px; width: 100%; max-width: 310px;
+            text-align: left; margin-bottom: 16px; font-size: 11px; color: var(--text-secondary); line-height: 1.6;
+        }
+        .description-box strong { color: var(--gold); }
+
+        .fantasy-input-row { display: flex; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 16px; }
+        .fantasy-input {
+            flex: 1; background: rgba(245, 240, 232, 0.05); border: 1px solid rgba(201, 169, 110, 0.15);
+            border-radius: 20px; padding: 10px 14px; color: var(--text-primary); font-size: 12px;
+            outline: none; font-family: var(--font-body); transition: all 0.3s; resize: none;
+        }
+        .fantasy-input:focus { border-color: var(--gold); }
+
+        .btn-send {
+            padding: 10px 20px; border-radius: 20px; border: none; background: var(--gold);
+            color: #0D1117; font-size: 13px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s; white-space: nowrap;
+        }
+        .btn-send:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3); }
+
+        .fantasies-list { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 310px; margin-bottom: 16px; }
+
+        .fantasy-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 16px;
+            padding: 14px 16px; text-align: left; transition: all 0.3s; position: relative;
+        }
+        .fantasy-card.responded { border-color: rgba(76, 175, 80, 0.3); }
+        .fantasy-card .fantasy-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); margin-bottom: 6px; opacity: 0.7; }
+        .fantasy-card .fantasy-text { font-size: 14px; color: var(--text-primary); line-height: 1.5; margin-bottom: 10px; font-family: var(--font-heading); }
+        .fantasy-card .fantasy-meta { font-size: 9px; color: var(--text-secondary); opacity: 0.6; }
+
+        .fantasy-response { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(201, 169, 110, 0.1); }
+        .fantasy-response .response-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .response-agreed { color: #4CAF50; }
+        .response-discuss { color: #FF9800; }
+        .response-declined { color: var(--rose); }
+
+        .response-buttons { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+        .btn-response {
+            padding: 6px 12px; border-radius: 15px; border: 1px solid rgba(201, 169, 110, 0.2);
+            background: transparent; color: var(--text-secondary); font-size: 11px; cursor: pointer; transition: all 0.3s;
+        }
+        .btn-response.agree { border-color: #4CAF50; color: #4CAF50; }
+        .btn-response.agree:hover { background: rgba(76, 175, 80, 0.1); }
+        .btn-response.discuss { border-color: #FF9800; color: #FF9800; }
+        .btn-response.discuss:hover { background: rgba(255, 152, 0, 0.1); }
+        .btn-response.decline { border-color: var(--rose); color: var(--rose); }
+        .btn-response.decline:hover { background: rgba(212, 165, 165, 0.1); }
+
+        .fantasy-delete {
+            position: absolute; top: 8px; right: 8px; background: transparent;
+            border: none; color: var(--text-secondary); cursor: pointer; font-size: 16px;
+            opacity: 0.4; transition: all 0.3s; padding: 2px 6px;
+        }
+        .fantasy-delete:hover { opacity: 1; color: var(--rose); }
+
+        .empty-state { text-align: center; color: var(--text-secondary); font-size: 12px; padding: 30px; line-height: 1.6; }
+        .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 6%; left: 12%;"></div>
+            <div class="sparkle" style="top: 18%; right: 18%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 22%; left: 22%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 14%; right: 16%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 38%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 34%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen">
+            <div class="page-title">💭 Мои фантазии</div>
+            <div class="page-sub">Поделитесь сокровенными желаниями</div>
+
+            <div class="switch-row">
+                <button class="switch-btn active" id="switchMy" onclick="switchTab('my')">Мои фантазии</button>
+                <button class="switch-btn" id="switchPartner" onclick="switchTab('partner')">Фантазии партнёра</button>
+            </div>
+
+            <div class="description-box" id="descriptionBox">
+                <strong>🔥 Как это работает?</strong><br><br>
+                <span id="descMy" style="display:block;">Напишите свою фантазию — партнёр увидит её и ответит: согласен, нужно обсудить или не согласен. Вы увидите ответ и сможете обсудить детали.</span>
+                <span id="descPartner" style="display:none;">Здесь фантазии, которыми поделился(ась) ваш(а) партнёр(ша). Ответьте на них — ваш ответ увидит только партнёр.</span>
+            </div>
+
+            <div class="fantasy-input-row" id="inputRow">
+                <textarea class="fantasy-input" id="fantasyInput" placeholder="Опишите свою фантазию..." rows="3" maxlength="500"></textarea>
+                <button class="btn-send" onclick="sendFantasy()">Отправить</button>
+            </div>
+
+            <div class="fantasies-list" id="fantasiesList"></div>
+
+            <button class="btn-back" onclick="window.location.href='beyond.html'">← Назад в За гранью</button>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="window.location.href='today.html'"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="window.location.href='questions.html'"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="window.location.href='games.html'"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab active" onclick="window.location.href='beyond.html'"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="window.location.href='moments.html'"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="window.location.href='we.html'"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        localStorage.removeItem('shepot_new_fantasies');
+
+        const myName = localStorage.getItem('shepot_my_name') || 'Я';
+        const partnerName = localStorage.getItem('shepot_partner_name') || 'Партнёр';
+
+        let myFantasies = JSON.parse(localStorage.getItem('shepot_my_fantasies') || '[]');
+        let partnerFantasies = JSON.parse(localStorage.getItem('shepot_partner_fantasies') || '[]');
+        let currentTab = 'my';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('switchMy').classList.toggle('active', tab === 'my');
+            document.getElementById('switchPartner').classList.toggle('active', tab === 'partner');
+            document.getElementById('descMy').style.display = tab === 'my' ? 'block' : 'none';
+            document.getElementById('descPartner').style.display = tab === 'partner' ? 'block' : 'none';
+            document.getElementById('inputRow').style.display = tab === 'my' ? 'flex' : 'none';
+            renderFantasies();
+        }
+
+        function sendFantasy() {
+            const input = document.getElementById('fantasyInput'); const text = input.value.trim();
+            if (!text) { showToast('⚠️ Напишите фантазию'); return; }
+            if (text.length < 5) { showToast('⚠️ Слишком коротко. Опишите подробнее'); return; }
+            const fantasy = { id: Date.now(), text, date: new Date().toISOString(), from: 'me', response: null };
+            myFantasies.push(fantasy); localStorage.setItem('shepot_my_fantasies', JSON.stringify(myFantasies));
+            partnerFantasies.push({ ...fantasy, from: 'partner' }); localStorage.setItem('shepot_partner_fantasies', JSON.stringify(partnerFantasies));
+            localStorage.setItem('shepot_new_fantasies', '1');
+            input.value = ''; renderFantasies(); showToast('✨ Фантазия отправлена!');
+        }
+
+        function respondToFantasy(id, response) {
+            const pi = partnerFantasies.findIndex(f => f.id === id); if (pi !== -1) { partnerFantasies[pi].response = response; localStorage.setItem('shepot_partner_fantasies', JSON.stringify(partnerFantasies)); }
+            const mi = myFantasies.findIndex(f => f.id === id); if (mi !== -1) { myFantasies[mi].response = response; localStorage.setItem('shepot_my_fantasies', JSON.stringify(myFantasies)); }
+            renderFantasies(); showToast('✅ Ответ отправлен!');
+        }
+
+        function deleteFantasy(id) {
+            if (!confirm('Удалить эту фантазию?')) return;
+            myFantasies = myFantasies.filter(f => f.id !== id); partnerFantasies = partnerFantasies.filter(f => f.id !== id);
+            localStorage.setItem('shepot_my_fantasies', JSON.stringify(myFantasies)); localStorage.setItem('shepot_partner_fantasies', JSON.stringify(partnerFantasies));
+            renderFantasies(); showToast('🗑️ Фантазия удалена');
+        }
+
+        function getResponseInfo(r) { const m = { agreed: { text: '✅ Согласен(а)', class: 'response-agreed', emoji: '🎉' }, discuss: { text: '💬 Надо обсудить', class: 'response-discuss', emoji: '🤔' }, declined: { text: '❌ Не согласен(а)', class: 'response-declined', emoji: '😔' } }; return m[r] || null; }
+
+        function renderFantasies() {
+            const list = document.getElementById('fantasiesList');
+            if (currentTab === 'my') {
+                if (myFantasies.length === 0) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">💭</div><div>У вас пока нет фантазий</div><div style="font-size:10px;opacity:0.7;margin-top:4px;">Напишите первую — партнёр увидит и ответит</div></div>'; return; }
+                list.innerHTML = myFantasies.slice().reverse().map(f => {
+                    const ri = getResponseInfo(f.response); const date = new Date(f.date).toLocaleDateString('ru-RU');
+                    return `<div class="fantasy-card ${f.response ? 'responded' : ''}"><button class="fantasy-delete" onclick="deleteFantasy(${f.id})">×</button><div class="fantasy-label">Моя фантазия</div><div class="fantasy-text">${escapeHtml(f.text)}</div><div class="fantasy-meta">📅 ${date}</div>${f.response ? `<div class="fantasy-response"><div class="response-label ${ri.class}">Ответ партнёра: ${ri.emoji} ${ri.text}</div></div>` : '<div class="fantasy-response"><div class="response-label" style="color:#FF9800;">⏳ Ожидает ответа партнёра...</div></div>'}</div>`;
+                }).join('');
+            } else {
+                const po = partnerFantasies.filter(f => f.from === 'partner');
+                if (po.length === 0) { list.innerHTML = '<div class="empty-state"><div class="empty-icon">💭</div><div>Партнёр пока не поделился фантазиями</div><div style="font-size:10px;opacity:0.7;margin-top:4px;">Как только партнёр напишет — вы увидите здесь</div></div>'; return; }
+                list.innerHTML = po.slice().reverse().map(f => {
+                    const ri = getResponseInfo(f.response); const date = new Date(f.date).toLocaleDateString('ru-RU');
+                    return `<div class="fantasy-card ${f.response ? 'responded' : ''}"><div class="fantasy-label">Фантазия ${partnerName}</div><div class="fantasy-text">${escapeHtml(f.text)}</div><div class="fantasy-meta">📅 ${date}</div>${f.response ? `<div class="fantasy-response"><div class="response-label ${ri.class}">Ваш ответ: ${ri.emoji} ${ri.text}</div></div>` : `<div class="fantasy-response"><div class="response-label" style="color:var(--gold);margin-bottom:8px;">Ваш ответ:</div><div class="response-buttons"><button class="btn-response agree" onclick="respondToFantasy(${f.id}, 'agreed')">✅ Согласен(а)</button><button class="btn-response discuss" onclick="respondToFantasy(${f.id}, 'discuss')">💬 Обсудить</button><button class="btn-response decline" onclick="respondToFantasy(${f.id}, 'declined')">❌ Не согласен(а)</button></div></div>`}</div>`;
+                }).join('');
+            }
+        }
+
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        function showToast(message) { const existing = document.querySelector('.toast'); if (existing) existing.remove(); const toast = document.createElement('div'); toast.className = 'toast'; toast.textContent = message; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+
+        switchTab('my');
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

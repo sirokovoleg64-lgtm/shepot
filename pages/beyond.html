@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — За гранью</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px 18px 70px;
+            z-index: 1;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .page-sub {
+            font-size: 10px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .beyond-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            width: 100%;
+            max-width: 310px;
+        }
+
+        .beyond-card {
+            background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 12px;
+            padding: 10px 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 3px; text-decoration: none;
+        }
+
+        .beyond-card:hover {
+            border-color: rgba(201, 169, 110, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .beyond-icon { font-size: 22px; }
+        .beyond-name { font-family: var(--font-heading); font-size: 11px; color: var(--text-primary); }
+        .beyond-desc { font-size: 8px; color: var(--text-secondary); line-height: 1.2; }
+        .beyond-badge {
+            font-size: 7px; background: rgba(201, 169, 110, 0.12); color: var(--gold);
+            padding: 1px 6px; border-radius: 6px;
+        }
+
+        /* Модальное окно возраста */
+        .age-modal {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.95); z-index: 100;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+
+        .age-modal.show { display: flex; }
+
+        .age-modal-content {
+            background: rgba(20, 16, 18, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--rose);
+            border-radius: 24px;
+            padding: 28px 20px;
+            width: 100%; max-width: 340px;
+            text-align: center;
+            animation: modalIn 0.3s ease-out;
+        }
+
+        .age-modal-warning { font-size: 48px; margin-bottom: 12px; }
+        .age-modal-title { font-family: var(--font-heading); font-size: 22px; color: var(--rose); margin-bottom: 8px; }
+        .age-modal-subtitle { font-size: 14px; color: var(--text-primary); margin-bottom: 16px; font-weight: 600; }
+
+        .age-modal-text {
+            font-size: 11px; color: var(--text-secondary); line-height: 1.7;
+            margin-bottom: 20px; text-align: left; padding: 0 10px;
+        }
+        .age-modal-text strong { color: var(--gold); }
+
+        .age-modal-buttons { display: flex; flex-direction: column; gap: 10px; }
+
+        .btn-confirm-age {
+            padding: 14px 24px; border-radius: 30px; border: none;
+            background: var(--rose); color: white; font-size: 15px;
+            cursor: pointer; font-weight: 600; transition: all 0.3s; font-family: var(--font-body);
+        }
+        .btn-confirm-age:hover { background: #c0392b; transform: scale(1.02); box-shadow: 0 4px 20px rgba(212, 165, 165, 0.3); }
+
+        .btn-exit-age {
+            padding: 12px 24px; border-radius: 30px;
+            border: 1px solid rgba(201, 169, 110, 0.3); background: transparent;
+            color: var(--text-secondary); font-size: 13px; cursor: pointer; transition: all 0.3s; font-family: var(--font-body);
+        }
+        .btn-exit-age:hover { border-color: var(--gold); color: var(--text-primary); }
+
+        .age-modal-footer { font-size: 9px; color: var(--text-secondary); opacity: 0.5; margin-top: 16px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 6%; left: 12%;"></div>
+            <div class="sparkle" style="top: 18%; right: 18%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 22%; left: 22%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 14%; right: 16%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 38%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 34%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen">
+            <div class="page-title">🔥 За гранью</div>
+            <div class="page-sub">18+ Только для взрослых</div>
+
+            <div class="beyond-grid">
+                <div class="beyond-card" onclick="navigateTo('cube.html')">
+                    <span class="beyond-icon">🎲</span>
+                    <div class="beyond-name">Кубик 18+</div>
+                    <div class="beyond-desc">Случайное действие</div>
+                    <span class="beyond-badge">🔞</span>
+                </div>
+                <div class="beyond-card" onclick="navigateTo('truthordare.html')">
+                    <span class="beyond-icon">💬</span>
+                    <div class="beyond-name">Правда или действие</div>
+                    <div class="beyond-desc">18+ вопросы и задания</div>
+                    <span class="beyond-badge">🔞</span>
+                </div>
+                <div class="beyond-card" onclick="navigateTo('strip.html')">
+                    <span class="beyond-icon">👗</span>
+                    <div class="beyond-name">На раздевание</div>
+                    <div class="beyond-desc">Игра с вопросами</div>
+                    <span class="beyond-badge">🔞</span>
+                </div>
+                <div class="beyond-card" onclick="navigateTo('kamasutra.html')">
+                    <span class="beyond-icon">🕉️</span>
+                    <div class="beyond-name">Камасутра</div>
+                    <div class="beyond-desc">64 позы</div>
+                    <span class="beyond-badge">🔞</span>
+                </div>
+                <div class="beyond-card" style="grid-column: 1 / -1; max-width: 310px; margin: 0 auto; width: 100%;" onclick="navigateTo('questions18.html')">
+                    <span class="beyond-icon">❓</span>
+                    <div class="beyond-name">Откровенные вопросы</div>
+                    <div class="beyond-desc">3 уровня сложности</div>
+                    <span class="beyond-badge">🔞</span>
+                </div>
+                <div class="beyond-card" style="grid-column: 1 / -1; max-width: 310px; margin: 0 auto; width: 100%;" onclick="navigateTo('fantasies.html')">
+                    <span class="beyond-icon">💭</span>
+                    <div class="beyond-name">Мои фантазии</div>
+                    <div class="beyond-desc">Поделитесь желаниями</div>
+                    <span class="beyond-badge">🔞</span>
+                </div>
+            </div>
+
+            <button class="btn-back" onclick="window.location.href='main.html'">← На главную</button>
+        </div>
+
+        <div class="age-modal" id="ageModal">
+            <div class="age-modal-content">
+                <div class="age-modal-warning">🔞</div>
+                <div class="age-modal-title">ПОДТВЕРЖДЕНИЕ ВОЗРАСТА</div>
+                <div class="age-modal-subtitle">Только для совершеннолетних</div>
+                <div class="age-modal-text">
+                    Этот раздел содержит материалы <strong>для взрослых (18+)</strong>.<br><br>
+                    Нажимая кнопку <strong>«Подтверждаю»</strong>, вы подтверждаете, что:
+                    <br><br>
+                    ✅ Вам <strong>исполнилось 18 лет</strong><br>
+                    ✅ Вы осознаёте характер контента<br>
+                    ✅ Доступ несовершеннолетних <strong>запрещён</strong>
+                </div>
+                <div class="age-modal-buttons">
+                    <button class="btn-confirm-age" onclick="confirmAge()">✅ Я подтверждаю, мне есть 18 лет</button>
+                    <button class="btn-exit-age" onclick="exitAgeRestricted()">🚫 Выйти</button>
+                </div>
+                <div class="age-modal-footer">
+                    Информация о подтверждении возраста хранится локально на вашем устройстве.
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="window.location.href='today.html'"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="window.location.href='questions.html'"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="window.location.href='games.html'"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab active" onclick="window.location.href='beyond.html'"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="window.location.href='moments.html'"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="window.location.href='we.html'"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        localStorage.removeItem('shepot_new_fantasies');
+
+        function isAgeConfirmed() {
+            const confirmed = localStorage.getItem('shepot_age_confirmed');
+            if (!confirmed) return false;
+            try {
+                const data = JSON.parse(confirmed);
+                const confirmedDate = new Date(data.date);
+                const now = new Date();
+                const daysSinceConfirmation = Math.floor((now - confirmedDate) / (1000 * 60 * 60 * 24));
+                return daysSinceConfirmation <= 30;
+            } catch (e) { return false; }
+        }
+
+        function confirmAge() {
+            localStorage.setItem('shepot_age_confirmed', JSON.stringify({ confirmed: true, date: new Date().toISOString() }));
+            document.getElementById('ageModal').classList.remove('show');
+        }
+
+        function exitAgeRestricted() { window.location.href = 'main.html'; }
+
+        function navigateTo(page) {
+            if (isAgeConfirmed()) {
+                window.location.href = page;
+            } else {
+                localStorage.setItem('shepot_pending_page', page);
+                document.getElementById('ageModal').classList.add('show');
+            }
+        }
+
+        if (!isAgeConfirmed()) {
+            document.getElementById('ageModal').classList.add('show');
+        }
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

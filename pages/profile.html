@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Профиль</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <script src="../js/qrcode.min.js"></script>
+    <style>
+        .page-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            padding: 20px 18px 120px;
+            z-index: 1;
+            width: 100%;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            padding-top: 10px;
+        }
+
+        .profile-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            max-width: 310px;
+        }
+
+        .profile-card {
+            background: rgba(20, 16, 18, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08);
+            border-radius: 14px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .profile-card:hover { border-color: rgba(201, 169, 110, 0.25); }
+
+        .profile-icon { font-size: 22px; flex-shrink: 0; width: 30px; text-align: center; }
+        .profile-info { flex: 1; }
+        .profile-name { font-family: var(--font-heading); font-size: 14px; color: var(--text-primary); }
+        .profile-val { font-size: 11px; color: var(--text-secondary); }
+        .profile-arrow { color: var(--gold); opacity: 0.4; font-size: 14px; flex-shrink: 0; }
+
+        .profile-divider {
+            width: 100%; max-width: 310px; height: 1px;
+            background: rgba(201, 169, 110, 0.08); margin: 6px 0;
+        }
+
+        .section-label {
+            font-size: 9px; text-transform: uppercase; letter-spacing: 3px;
+            color: var(--text-secondary); opacity: 0.5;
+            padding: 8px 0 4px 0; text-align: center; width: 100%; max-width: 310px;
+        }
+
+        .document-screen {
+            display: none; flex-direction: column; align-items: center;
+            padding: 20px 18px 100px; width: 100%;
+            min-height: 100vh; overflow-y: auto; text-align: left;
+        }
+        .document-screen.active { display: flex; }
+
+        .document-content {
+            width: 100%; max-width: 310px; font-size: 12px;
+            color: var(--text-secondary); line-height: 1.8;
+        }
+        .document-content h2 { font-family: var(--font-heading); font-size: 16px; color: var(--text-primary); margin: 16px 0 8px; }
+        .document-content h3 { font-family: var(--font-heading); font-size: 14px; color: var(--gold); margin: 14px 0 6px; }
+        .document-content p { margin: 6px 0; }
+        .document-content strong { color: var(--text-primary); }
+
+        .connect-method { text-align: left; margin-bottom: 12px; }
+        .connect-method-title { font-size: 11px; color: var(--gold); margin-bottom: 4px; }
+
+        .qr-box {
+            background: white; padding: 10px; border-radius: 14px;
+            display: inline-block; margin-bottom: 6px;
+            box-shadow: 0 0 20px rgba(201, 169, 110, 0.2);
+        }
+
+        .code-display {
+            font-family: 'Inter', monospace; font-size: 28px; font-weight: 600;
+            color: var(--gold); letter-spacing: 6px; margin: 8px 0;
+            text-shadow: 0 0 20px rgba(201, 169, 110, 0.4);
+        }
+
+        .code-input {
+            background: rgba(245, 240, 232, 0.05);
+            border: 1px solid rgba(201, 169, 110, 0.3); border-radius: 12px;
+            color: var(--text-primary); font-family: 'Inter', monospace;
+            font-size: 20px; letter-spacing: 6px; padding: 10px 14px;
+            width: 100%; max-width: 180px; outline: none;
+            text-align: center; margin: 0 auto 6px; box-sizing: border-box;
+        }
+        .code-input:focus { border-color: var(--gold); }
+
+        .connect-status { font-size: 11px; margin-top: 4px; }
+        .connect-status.success { color: #4CAF50; }
+        .connect-status.error { color: var(--rose); }
+
+        .gender-buttons { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
+        .gender-btn {
+            flex: 1; padding: 10px 14px; border-radius: 14px;
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            background: rgba(20, 16, 18, 0.4); color: var(--text-secondary);
+            font-size: 13px; cursor: pointer; transition: all 0.3s; font-family: var(--font-body);
+        }
+        .gender-btn.selected {
+            border-color: var(--gold); background: rgba(201, 169, 110, 0.2);
+            color: var(--gold); font-weight: 600;
+        }
+
+        .btn-small {
+            padding: 6px 16px; font-size: 11px; border-radius: 20px;
+            border: 1px solid rgba(201, 169, 110, 0.3); background: transparent;
+            color: var(--text-secondary); cursor: pointer; transition: all 0.3s;
+        }
+        .btn-small:hover { border-color: var(--gold); color: var(--text-primary); }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainProfile">
+            <div class="page-title">Профиль</div>
+
+            <div class="profile-list">
+                <div class="profile-card" onclick="openEditProfile()">
+                    <div class="profile-icon">👤</div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="displayMyName">Я</div>
+                        <div class="profile-val">Партнёр: <span id="displayPartnerName">Партнёр</span></div>
+                    </div>
+                    <div class="profile-arrow">→</div>
+                </div>
+
+                <div class="profile-divider"></div>
+
+                <div class="profile-card" onclick="openEditDate()">
+                    <div class="profile-icon">📅</div>
+                    <div class="profile-info">
+                        <div class="profile-name">Начало отношений</div>
+                        <div class="profile-val" id="displayStartDate">1 января 2025</div>
+                    </div>
+                    <div class="profile-arrow">→</div>
+                </div>
+
+                <div class="profile-divider"></div>
+
+                <div class="profile-card" onclick="openConnectPartner()">
+                    <div class="profile-icon">🔗</div>
+                    <div class="profile-info">
+                        <div class="profile-name">Подключить партнёра</div>
+                        <div class="profile-val" id="connectStatus">Через код, QR или ссылку</div>
+                    </div>
+                    <div class="profile-arrow">→</div>
+                </div>
+
+                <div class="profile-divider"></div>
+
+                <div class="profile-card" onclick="openPrivacy()">
+                    <div class="profile-icon">🔒</div>
+                    <div class="profile-info">
+                        <div class="profile-name">Приватность</div>
+                        <div class="profile-val">Данные хранятся на устройствах</div>
+                    </div>
+                    <div class="profile-arrow">→</div>
+                </div>
+
+                <div class="section-label">Документы</div>
+
+                <div class="profile-card" onclick="showDocument('privacy')">
+                    <div class="profile-icon">📄</div>
+                    <div class="profile-info">
+                        <div class="profile-name">Политика конфиденциальности</div>
+                        <div class="profile-val">Как мы обрабатываем данные</div>
+                    </div>
+                    <div class="profile-arrow">→</div>
+                </div>
+
+                <div class="profile-card" onclick="showDocument('terms')">
+                    <div class="profile-icon">📋</div>
+                    <div class="profile-info">
+                        <div class="profile-name">Пользовательское соглашение</div>
+                        <div class="profile-val">Условия использования</div>
+                    </div>
+                    <div class="profile-arrow">→</div>
+                </div>
+
+                <div class="section-label">О приложении</div>
+
+                <div class="profile-card" onclick="openAbout()">
+                    <div class="profile-icon">ℹ️</div>
+                    <div class="profile-info">
+                        <div class="profile-name">О приложении</div>
+                        <div class="profile-val">Версия 1.0</div>
+                    </div>
+                    <div class="profile-arrow">→</div>
+                </div>
+            </div>
+
+            <button class="btn-back" onclick="navigate('main')">← На главную</button>
+        </div>
+
+        <div class="document-screen" id="privacyScreen">
+            <div class="document-content">
+                <h2>Политика конфиденциальности</h2>
+                <p><strong>Последнее обновление:</strong> 2025 год</p>
+                <h3>1. Какие данные мы собираем</h3>
+                <p>Приложение «Шёпот» собирает только те данные, которые вы вводите сами:</p>
+                <p>• <strong>Имена</strong> — ваше имя и имя партнёра</p>
+                <p>• <strong>Пол</strong> — для корректного отображения интерфейса</p>
+                <p>• <strong>Дата начала отношений</strong> — для отображения счётчика дней</p>
+                <p>• <strong>Контент</strong> — сообщения в чате, желания, фантазии, заметки, фото, аудио</p>
+                <p>• <strong>Настроение</strong> — оценки близости, нежности, страсти</p>
+                <p>• <strong>Код пары</strong> — для синхронизации между устройствами</p>
+                <h3>2. Как мы храним данные</h3>
+                <p>Все данные хранятся <strong>локально на ваших устройствах</strong> (localStorage браузера). Мы не используем облачные серверы для хранения ваших личных данных.</p>
+                <h3>3. Синхронизация между устройствами</h3>
+                <p>Приложение создано для <strong>двух партнёров</strong>. Вы подключаете устройства друг друга через QR-код или код пары. Данные синхронизируются напрямую между устройствами и не передаются на сторонние серверы.</p>
+                <h3>4. Контент 18+</h3>
+                <p>Раздел «За гранью» содержит материалы для взрослых. Доступ к нему подтверждается отдельно с указанием возраста.</p>
+                <h3>5. Удаление данных</h3>
+                <p>Вы можете удалить любые данные через интерфейс приложения. При очистке localStorage или удалении приложения все данные будут безвозвратно удалены.</p>
+            </div>
+            <button class="btn-back" onclick="backToProfile()">← Назад в профиль</button>
+        </div>
+
+        <div class="document-screen" id="termsScreen">
+            <div class="document-content">
+                <h2>Пользовательское соглашение</h2>
+                <p><strong>Последнее обновление:</strong> 2025 год</p>
+                <h3>1. Общие положения</h3>
+                <p>Используя приложение «Шёпот», вы соглашаетесь с условиями настоящего соглашения.</p>
+                <h3>2. Возрастные ограничения</h3>
+                <p>Приложение содержит контент <strong>18+</strong>. Использование лицами младше 18 лет запрещено.</p>
+                <h3>3. Правила использования</h3>
+                <p>• Приложение предназначено для <strong>личного использования двумя партнёрами</strong></p>
+                <p>• Запрещено загружать оскорбительный или противозаконный контент</p>
+                <p>• Запрещено нарушать права третьих лиц</p>
+                <p>• Вы несёте ответственность за контент, который создаёте в приложении</p>
+                <h3>4. Ответственность</h3>
+                <p>Приложение предоставляется «как есть». Мы не несём ответственности за возможные сбои, потерю данных или последствия использования приложения.</p>
+                <h3>5. Изменения</h3>
+                <p>Мы можем обновлять условия соглашения. Актуальная версия всегда доступна в разделе «Профиль».</p>
+            </div>
+            <button class="btn-back" onclick="backToProfile()">← Назад в профиль</button>
+        </div>
+
+        <div class="modal" id="modalProfile">
+            <div class="modal-content">
+                <div class="modal-title">Редактировать профиль</div>
+                <input type="text" class="modal-input" id="inputMyName" placeholder="Твоё имя">
+                <input type="text" class="modal-input" id="inputPartnerName" placeholder="Имя партнёра">
+                <div class="gender-buttons">
+                    <button class="gender-btn" id="genderMaleModal" onclick="selectGenderModal('male')">👨 Мужчина</button>
+                    <button class="gender-btn" id="genderFemaleModal" onclick="selectGenderModal('female')">👩 Женщина</button>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="closeModal('modalProfile')">Отмена</button>
+                    <button class="btn-save" onclick="saveProfile()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="modalDate">
+            <div class="modal-content">
+                <div class="modal-title">Дата начала отношений</div>
+                <input type="date" class="modal-date" id="inputStartDate">
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="closeModal('modalDate')">Отмена</button>
+                    <button class="btn-save" onclick="saveDate()">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" id="modalConnect">
+            <div class="modal-content">
+                <div class="modal-title">🔗 Подключить партнёра</div>
+                
+                <div class="connect-method">
+                    <div class="connect-method-title">📱 Рядом — QR-код</div>
+                    <div class="qr-box"><div id="qrContainerProfile"></div></div>
+                    <button class="btn-small" onclick="refreshProfileQR()">🔄 Обновить</button>
+                </div>
+                
+                <div style="height:1px;background:rgba(201,169,110,0.1);margin:12px 0;"></div>
+                
+                <div class="connect-method">
+                    <div class="connect-method-title">🔢 На связи — Код</div>
+                    <div class="code-display" id="profileMyCode">------</div>
+                    <div style="font-size:10px;color:var(--text-secondary);margin:8px 0 4px;">Введите код партнёра:</div>
+                    <input type="text" class="code-input" id="profilePartnerCode" placeholder="______" maxlength="6" autocomplete="off">
+                    <div class="connect-status" id="profileConnectStatus"></div>
+                    <button class="btn-save" onclick="connectPartner()" style="margin-top:6px;font-size:12px;padding:8px 18px;">Подключить</button>
+                </div>
+                
+                <div style="height:1px;background:rgba(201,169,110,0.1);margin:12px 0;"></div>
+                
+                <div class="connect-method">
+                    <div class="connect-method-title">🔗 На расстоянии — Ссылка</div>
+                    <div class="code-display" id="profileLink" style="font-size:12px;letter-spacing:1px;">shepot.app/join/------</div>
+                    <button class="btn-save" onclick="copyProfileLink()" style="margin-top:6px;font-size:12px;padding:8px 18px;">📋 Копировать</button>
+                    <div id="profileLinkCopied" style="font-size:10px;color:#4CAF50;margin-top:4px;display:none;">Скопировано!</div>
+                </div>
+                
+                <div class="modal-buttons" style="margin-top:12px;">
+                    <button class="btn-cancel" onclick="closeModal('modalConnect')">Закрыть</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        let savedMyName = localStorage.getItem('shepot_my_name') || 'Я';
+        let savedPartnerName = localStorage.getItem('shepot_partner_name') || 'Партнёр';
+        let savedGender = localStorage.getItem('shepot_my_gender') || 'male';
+        const savedStartDate = localStorage.getItem('shepot_start_date') || '2025-01-01';
+        let profilePairCode = '';
+
+        document.getElementById('displayMyName').textContent = savedMyName;
+        document.getElementById('displayPartnerName').textContent = savedPartnerName;
+        
+        const startDateObj = new Date(savedStartDate);
+        const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+        document.getElementById('displayStartDate').textContent = startDateObj.getDate() + ' ' + months[startDateObj.getMonth()] + ' ' + startDateObj.getFullYear();
+
+        function updateConnectStatus() {
+            const partnerCode = localStorage.getItem('shepot_partner_code');
+            const el = document.getElementById('connectStatus');
+            if (partnerCode) { el.textContent = '✓ Партнёр подключен'; el.style.color = '#4CAF50'; }
+            else { el.textContent = 'Через код, QR или ссылку'; el.style.color = ''; }
+        }
+        updateConnectStatus();
+
+        function openConnectPartner() {
+            profilePairCode = localStorage.getItem('shepot_pair_code');
+            if (!profilePairCode) {
+                profilePairCode = 'SHEPOT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                localStorage.setItem('shepot_pair_code', profilePairCode);
+            }
+            
+            const codePart = profilePairCode.split('-')[1];
+            let numeric = '';
+            for (let c of codePart) { numeric += /\d/.test(c) ? c : (c.charCodeAt(0) % 10).toString(); }
+            while (numeric.length < 6) numeric += '0';
+            numeric = numeric.substring(0, 6);
+            
+            document.getElementById('profileMyCode').textContent = numeric;
+            document.getElementById('profileLink').textContent = 'shepot.app/join/' + codePart;
+            document.getElementById('profilePartnerCode').value = '';
+            document.getElementById('profileConnectStatus').textContent = '';
+            document.getElementById('profileLinkCopied').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('qrContainerProfile').innerHTML = '';
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(document.getElementById('qrContainerProfile'), {
+                        text: profilePairCode, width: 120, height: 120,
+                        colorDark: '#0D1117', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.M
+                    });
+                }
+            }, 100);
+            
+            document.getElementById('modalConnect').classList.add('show');
+        }
+
+        function refreshProfileQR() {
+            profilePairCode = 'SHEPOT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            localStorage.setItem('shepot_pair_code', profilePairCode);
+            const codePart = profilePairCode.split('-')[1];
+            let numeric = '';
+            for (let c of codePart) { numeric += /\d/.test(c) ? c : (c.charCodeAt(0) % 10).toString(); }
+            while (numeric.length < 6) numeric += '0';
+            numeric = numeric.substring(0, 6);
+            document.getElementById('profileMyCode').textContent = numeric;
+            document.getElementById('profileLink').textContent = 'shepot.app/join/' + codePart;
+            document.getElementById('qrContainerProfile').innerHTML = '';
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(document.getElementById('qrContainerProfile'), {
+                    text: profilePairCode, width: 120, height: 120,
+                    colorDark: '#0D1117', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+        }
+
+        function copyProfileLink() {
+            const link = document.getElementById('profileLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                const el = document.getElementById('profileLinkCopied');
+                el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 2000);
+            });
+        }
+
+        function connectPartner() {
+            const input = document.getElementById('profilePartnerCode').value.replace(/\s/g, '');
+            const myNumeric = document.getElementById('profileMyCode').textContent;
+            const statusEl = document.getElementById('profileConnectStatus');
+
+            if (input.length !== 6 || !/^\d{6}$/.test(input)) {
+                statusEl.textContent = 'Введите 6 цифр'; statusEl.className = 'connect-status error'; return;
+            }
+            if (input === myNumeric) {
+                statusEl.textContent = 'Это ваш код. Введите код партнёра.'; statusEl.className = 'connect-status error'; return;
+            }
+            localStorage.setItem('shepot_partner_code', input);
+            statusEl.textContent = '✓ Партнёр подключен!'; statusEl.className = 'connect-status success';
+            updateConnectStatus();
+            setTimeout(() => closeModal('modalConnect'), 1500);
+        }
+
+        function showDocument(type) {
+            document.getElementById('mainProfile').style.display = 'none';
+            document.getElementById('privacyScreen').classList.remove('active');
+            document.getElementById('termsScreen').classList.remove('active');
+            if (type === 'privacy') document.getElementById('privacyScreen').classList.add('active');
+            else if (type === 'terms') document.getElementById('termsScreen').classList.add('active');
+        }
+
+        function backToProfile() {
+            document.getElementById('privacyScreen').classList.remove('active');
+            document.getElementById('termsScreen').classList.remove('active');
+            document.getElementById('mainProfile').style.display = 'flex';
+        }
+
+        function openEditProfile() {
+            document.getElementById('inputMyName').value = savedMyName;
+            document.getElementById('inputPartnerName').value = savedPartnerName;
+            document.getElementById('genderMaleModal').classList.toggle('selected', savedGender === 'male');
+            document.getElementById('genderFemaleModal').classList.toggle('selected', savedGender === 'female');
+            document.getElementById('modalProfile').classList.add('show');
+        }
+
+        function selectGenderModal(gender) {
+            savedGender = gender;
+            document.getElementById('genderMaleModal').classList.toggle('selected', gender === 'male');
+            document.getElementById('genderFemaleModal').classList.toggle('selected', gender === 'female');
+        }
+
+        function saveProfile() {
+            const myName = document.getElementById('inputMyName').value.trim() || 'Я';
+            const partnerName = document.getElementById('inputPartnerName').value.trim() || 'Партнёр';
+            localStorage.setItem('shepot_my_name', myName);
+            localStorage.setItem('shepot_partner_name', partnerName);
+            localStorage.setItem('shepot_my_gender', savedGender);
+            savedMyName = myName; savedPartnerName = partnerName;
+            document.getElementById('displayMyName').textContent = myName;
+            document.getElementById('displayPartnerName').textContent = partnerName;
+            closeModal('modalProfile');
+            alert('✅ Профиль обновлён!');
+        }
+
+        function openEditDate() {
+            document.getElementById('inputStartDate').value = savedStartDate;
+            document.getElementById('modalDate').classList.add('show');
+        }
+
+        function saveDate() {
+            const date = document.getElementById('inputStartDate').value;
+            if (!date) return;
+            localStorage.setItem('shepot_start_date', date);
+            const d = new Date(date);
+            document.getElementById('displayStartDate').textContent = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+            closeModal('modalDate'); alert('✅ Дата сохранена!');
+        }
+
+        function openPrivacy() {
+            alert('🔒 Приватность\n\nВсе данные хранятся локально на ваших устройствах (localStorage).\n\nСинхронизация между устройствами происходит через код пары.\n\nМы не используем облачные серверы и не передаём данные третьим лицам.');
+        }
+
+        function openAbout() {
+            alert('Шёпот\n\nВерсия 1.0\nПриложение для пар, которые хотят быть ближе.\n\nСоздано с любовью ❤️');
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+        function navigate(page) {
+            const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'};
+            if (pages[page]) window.location.href = pages[page];
+        }
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

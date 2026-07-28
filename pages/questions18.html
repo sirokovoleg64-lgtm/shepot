@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Откровенные вопросы</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            text-align: center; padding: 40px 18px 100px; z-index: 1; width: 100%; min-height: 100vh; overflow-y: auto;
+        }
+
+        .page-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-primary); margin-bottom: 2px; padding-top: 30px; }
+        .page-sub { font-size: 11px; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: 14px; }
+
+        .game-description {
+            width: 100%; max-width: 310px; background: rgba(201, 169, 110, 0.06);
+            border: 1px solid rgba(201, 169, 110, 0.12); border-radius: 14px;
+            padding: 12px 16px; margin-bottom: 14px; text-align: left;
+        }
+        .game-description p { font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin: 0; }
+        .game-description strong { color: var(--gold); }
+
+        .loader {
+            width: 40px; height: 40px; border: 3px solid rgba(201, 169, 110, 0.1);
+            border-top: 3px solid var(--gold); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .category-grid { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 310px; margin-bottom: 14px; }
+
+        .category-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.08); border-radius: 16px;
+            padding: 14px 16px; cursor: pointer; transition: all 0.3s;
+            display: flex; justify-content: space-between; align-items: center; text-align: left; gap: 12px;
+            position: relative; overflow: hidden;
+        }
+        .category-card:hover { border-color: rgba(201, 169, 110, 0.3); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+        .category-card.completed { border-color: rgba(76, 175, 80, 0.3); }
+        .category-card .left { display: flex; align-items: center; gap: 12px; }
+        .category-card .icon { font-size: 28px; }
+        .category-card .info .name { font-family: var(--font-heading); font-size: 14px; color: var(--text-primary); }
+        .category-card .info .desc { font-size: 11px; color: var(--text-secondary); }
+        .category-card .right { text-align: right; }
+        .category-card .count { font-size: 12px; color: var(--gold); font-weight: 600; }
+        .category-card .progress-mini { width: 60px; height: 4px; background: rgba(201, 169, 110, 0.15); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+        .category-card .progress-mini .fill { height: 100%; background: var(--gold); border-radius: 4px; transition: width 0.6s ease; }
+        .category-badge { position: absolute; top: 8px; right: 8px; font-size: 8px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; padding: 2px 6px; border-radius: 6px; display: none; }
+        .category-badge.show { display: block; }
+        .category-status { 
+            font-size: 9px; padding: 3px 8px; border-radius: 10px; margin-top: 4px; display: none;
+        }
+        .category-status.waiting { background: rgba(255, 152, 0, 0.15); color: #FF9800; display: block; }
+        .category-status.ready { background: rgba(76, 175, 80, 0.15); color: #4CAF50; animation: pulse 2s infinite; display: block; }
+        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.7} }
+
+        .question-screen { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .question-screen.active { display: flex; }
+
+        .question-card {
+            background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px);
+            border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 20px;
+            padding: 24px 20px; width: 100%; max-width: 310px; margin-bottom: 14px; text-align: left; transition: all 0.3s;
+        }
+        .question-number { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
+        .question-text { font-family: var(--font-heading); font-size: 18px; color: var(--text-primary); line-height: 1.5; margin-bottom: 16px; }
+
+        .question-answered { display: none; background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #4CAF50; text-align: center; margin-top: 8px; }
+        .question-answered.show { display: block; }
+
+        .question-actions { display: flex; gap: 8px; width: 100%; max-width: 310px; flex-wrap: wrap; }
+        .question-actions .btn-action {
+            flex: 1; padding: 10px 12px; border-radius: 30px; border: none;
+            background: transparent; color: var(--text-secondary); font-size: 13px;
+            cursor: pointer; transition: all 0.3s; font-family: var(--font-body); text-align: center;
+            min-width: 60px; border: 1px solid rgba(201, 169, 110, 0.15);
+        }
+        .question-actions .btn-action:hover { border-color: var(--gold); color: var(--text-primary); background: rgba(201, 169, 110, 0.05); }
+        .question-actions .btn-action.yes { border-color: #4CAF50; color: #4CAF50; }
+        .question-actions .btn-action.yes:hover { background: rgba(76, 175, 80, 0.1); }
+        .question-actions .btn-action.yes.selected { background: #4CAF50; color: white; font-weight: 600; }
+        .question-actions .btn-action.no { border-color: var(--rose); color: var(--rose); }
+        .question-actions .btn-action.no:hover { background: rgba(212, 165, 165, 0.1); }
+        .question-actions .btn-action.no.selected { background: var(--rose); color: #0D1117; font-weight: 600; }
+        .question-actions .btn-action.neutral { border-color: rgba(201, 169, 110, 0.15); color: var(--text-secondary); }
+        .question-actions .btn-action.neutral:hover { border-color: var(--text-secondary); }
+        .question-actions .btn-action.neutral.selected { background: var(--text-secondary); color: #0D1117; font-weight: 600; }
+        .question-actions .btn-action:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+
+        .btn-prev {
+            flex: 1; padding: 8px 16px; border-radius: 20px;
+            border: 1px solid rgba(201, 169, 110, 0.2); background: transparent;
+            color: var(--text-secondary); font-size: 11px; cursor: pointer; transition: all 0.3s; font-family: var(--font-body);
+        }
+        .btn-prev:hover { border-color: var(--gold); color: var(--text-primary); }
+
+        .question-progress { width: 100%; max-width: 310px; margin-bottom: 14px; }
+        .question-progress .header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+        .question-progress .bar { width: 100%; height: 6px; background: rgba(201, 169, 110, 0.15); border-radius: 10px; overflow: hidden; }
+        .question-progress .bar .fill { height: 100%; background: linear-gradient(90deg, var(--gold), #D4B87A); border-radius: 10px; transition: width 0.6s ease; width: 0%; }
+
+        .daily-progress {
+            width: 100%; max-width: 310px; display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 12px; background: rgba(20, 16, 18, 0.3); border-radius: 12px; margin-bottom: 12px;
+        }
+        .daily-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(201, 169, 110, 0.2); transition: all 0.3s; }
+        .daily-dot.done { background: var(--gold); border-color: var(--gold); }
+        .daily-dot.current { border-color: var(--gold); animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{transform:scale(1)}50%{transform:scale(1.2)} }
+        .daily-label { font-size: 11px; color: var(--text-secondary); display: flex; gap: 4px; align-items: center; }
+
+        .completion-message {
+            background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 16px; padding: 20px 16px; width: 100%; max-width: 310px; margin-bottom: 16px; text-align: center;
+        }
+        .completion-icon { font-size: 40px; margin-bottom: 12px; }
+        .completion-title { font-family: var(--font-heading); font-size: 18px; color: #4CAF50; margin-bottom: 8px; }
+        .completion-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .partner-status {
+            background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3);
+            border-radius: 12px; padding: 12px 14px; margin-top: 12px; font-size: 12px; color: #FF9800; line-height: 1.5;
+        }
+        .btn-view-result {
+            padding: 12px 24px; border-radius: 25px; border: 2px solid var(--gold); 
+            background: rgba(201, 169, 110, 0.1); color: var(--gold); font-size: 14px; cursor: pointer; 
+            transition: all 0.3s; font-family: var(--font-heading); margin-top: 16px;
+        }
+        .btn-view-result:hover { background: var(--gold); color: #0D1117; transform: scale(1.05); }
+
+        .result-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 100; align-items: center; justify-content: center; }
+        .result-overlay.show { display: flex; }
+        .result-box { background: rgba(20, 16, 18, 0.95); backdrop-filter: blur(20px); border: 1px solid var(--gold); border-radius: 24px; padding: 24px 18px; width: 90%; max-width: 320px; text-align: center; max-height: 80vh; overflow-y: auto; }
+        .result-title { font-family: var(--font-heading); font-size: 20px; color: var(--gold); margin-bottom: 16px; }
+        .result-section { margin-bottom: 14px; text-align: left; }
+        .result-section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+        .result-section-title.match { color: #4CAF50; }
+        .result-section-title.conflict { color: var(--rose); }
+        .result-item { background: rgba(201, 169, 110, 0.05); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; font-size: 12px; color: var(--text-primary); line-height: 1.4; }
+        .result-item.match { border-left: 2px solid #4CAF50; }
+        .result-item.conflict { border-left: 2px solid var(--rose); }
+        .result-advice { background: rgba(201, 169, 110, 0.08); border: 1px solid rgba(201, 169, 110, 0.2); border-radius: 12px; padding: 12px 14px; margin-top: 12px; font-size: 11px; color: var(--text-secondary); line-height: 1.6; text-align: left; }
+        .result-advice strong { color: var(--gold); }
+        .btn-close-result { padding: 10px 28px; border-radius: 30px; border: none; background: var(--gold); color: #0D1117; font-size: 14px; cursor: pointer; font-weight: 600; margin-top: 16px; }
+
+        .navigation-buttons { display: flex; gap: 8px; width: 100%; max-width: 310px; margin-bottom: 8px; }
+
+        .completed-screen { display: none; flex-direction: column; align-items: center; width: 100%; padding: 20px 0; }
+        .completed-screen.active { display: flex; }
+        .completed-icon { font-size: 50px; margin-bottom: 16px; }
+        .completed-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; margin-bottom: 16px; font-family: var(--font-heading); }
+
+        .all-done-message {
+            background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 16px; padding: 20px 16px; width: 100%; max-width: 310px; margin-bottom: 16px; text-align: center;
+        }
+        .all-done-icon { font-size: 40px; margin-bottom: 12px; }
+        .all-done-title { font-family: var(--font-heading); font-size: 18px; color: #4CAF50; margin-bottom: 8px; }
+        .all-done-text { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 6%; left: 12%;"></div>
+            <div class="sparkle" style="top: 18%; right: 18%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 22%; left: 22%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 14%; right: 16%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 38%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 34%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen" id="mainScreen">
+            <div id="mainContent">
+                <div class="page-title">❓ Откровенные вопросы</div>
+                <div class="page-sub">Выбери уровень сложности</div>
+
+                <div class="game-description">
+                    <p><strong>3 вопроса в день</strong> — отвечайте честно.<br>Вы не видите ответы друг друга — только совпадения.<br><br><strong>Честность без страха ❤️</strong></p>
+                </div>
+
+                <div id="loader" class="loader"></div>
+                <div id="errorMsg" style="display:none;color:var(--rose);font-size:13px;margin:10px 0;">Не удалось загрузить вопросы</div>
+                <div class="category-grid" id="categoryGrid" style="display:none;"></div>
+
+                <button class="btn-back" onclick="window.location.href='beyond.html'">← Назад в За гранью</button>
+            </div>
+
+            <div class="question-screen" id="questionScreen">
+                <div class="page-title">❓ Откровенные вопросы</div>
+                <div class="page-sub" id="questionCategoryLabel">Категория</div>
+
+                <div class="daily-progress" id="dailyProgress">
+                    <span class="daily-label">📅 Сегодня</span>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <span class="daily-dot current" id="dot1"></span>
+                        <span class="daily-dot" id="dot2"></span>
+                        <span class="daily-dot" id="dot3"></span>
+                    </div>
+                </div>
+
+                <div class="navigation-buttons"><button class="btn-prev" onclick="previousQuestion()" id="btnPrev">← Назад</button></div>
+
+                <div id="completionArea"></div>
+
+                <div class="question-card" id="questionCard">
+                    <div class="question-number" id="questionNumber">Вопрос 1 из 3</div>
+                    <div class="question-text" id="questionText">Текст вопроса</div>
+                    <div class="question-answered" id="questionAnswered">✅ Вы уже ответили на этот вопрос</div>
+                </div>
+
+                <div class="question-progress" id="questionProgress">
+                    <div class="header"><span>Прогресс</span><span id="questionProgressText">0 из 50</span></div>
+                    <div class="bar"><div class="fill" id="questionProgressFill" style="width:0%;"></div></div>
+                </div>
+
+                <div class="question-actions" id="questionActions">
+                    <button class="btn-action no" onclick="answerQuestion('no')">👎 Нет</button>
+                    <button class="btn-action neutral" onclick="answerQuestion('neutral')">🤷 Нейтрально</button>
+                    <button class="btn-action yes" onclick="answerQuestion('yes')">❤️ Да</button>
+                </div>
+
+                <button class="btn-back" onclick="backToMain()">📂 Назад к категориям</button>
+            </div>
+
+            <div class="completed-screen" id="completedScreen">
+                <div class="completed-icon">🎉</div>
+                <div class="completed-text" id="completedText"></div>
+                <button class="btn-back" onclick="backToMain()">📂 К категориям</button>
+            </div>
+        </div>
+
+        <div class="result-overlay" id="resultOverlay">
+            <div class="result-box" id="resultBox"></div>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab" onclick="window.location.href='today.html'"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="window.location.href='questions.html'"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="window.location.href='games.html'"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab active" onclick="window.location.href='beyond.html'"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="window.location.href='moments.html'"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="window.location.href='we.html'"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        localStorage.removeItem('shepot_new_matches');
+
+        let questionsData = null;
+        let currentLevel = null;
+        let dailyQuestions = {};
+        let progress = { easy: [], medium: [], hard: [] };
+        let levelQuestions = [];
+        let myDailyAnswers = JSON.parse(localStorage.getItem('shepot_18_daily_me') || '{}');
+        let partnerDailyAnswers = JSON.parse(localStorage.getItem('shepot_18_daily_partner') || '{}');
+
+        try { const saved = localStorage.getItem('shepot_questions18_progress'); if (saved) progress = JSON.parse(saved); } catch (e) {}
+
+        function getToday() { return new Date().toISOString().split('T')[0]; }
+        function getDailyKey(level) { return getToday() + '_' + level; }
+        function getEl(id) { return document.getElementById(id); }
+        function hideEl(id) { const el = getEl(id); if (el) el.style.display = 'none'; }
+        function showEl(id, d = 'block') { const el = getEl(id); if (el) el.style.display = d; }
+
+        function loadQuestions() {
+            const loader = getEl('loader'), grid = getEl('categoryGrid'), errorMsg = getEl('errorMsg');
+            if (loader) loader.style.display = 'block'; if (grid) grid.style.display = 'none'; if (errorMsg) errorMsg.style.display = 'none';
+            fetch('../data/questions18.json')
+                .then(res => { if (!res.ok) throw new Error('Файл не найден'); return res.json(); })
+                .then(data => { questionsData = data.categories || data; if (loader) loader.style.display = 'none'; if (grid) grid.style.display = 'flex'; renderCategories(); updateAllStatuses(); })
+                .catch(err => { if (loader) loader.style.display = 'none'; if (errorMsg) { errorMsg.style.display = 'block'; errorMsg.textContent = '⚠️ Не удалось загрузить вопросы.'; } });
+        }
+
+        function renderCategories() {
+            const grid = getEl('categoryGrid'); if (!grid || !questionsData) return;
+            const levels = [{ key: 'easy', icon: '🟢', name: 'Лёгкий', desc: 'Начальный уровень' },{ key: 'medium', icon: '🟡', name: 'Средний', desc: 'Более глубокие вопросы' },{ key: 'hard', icon: '🔴', name: 'Хардкор', desc: 'Самые откровенные' }];
+            grid.innerHTML = levels.map(l => {
+                const data = questionsData[l.key]; const total = data && Array.isArray(data) ? data.length : 0;
+                const viewed = progress[l.key] ? progress[l.key].length : 0; const percent = total > 0 ? Math.round((viewed / total) * 100) : 0;
+                const isCompleted = viewed >= total && total > 0;
+                const key = getDailyKey(l.key);
+                const myCount = Object.keys(myDailyAnswers[key] || {}).length;
+                const pCount = Object.keys(partnerDailyAnswers[key] || {}).length;
+                let statusHTML = '';
+                if (myCount >= 3 && pCount >= 3) statusHTML = '<div class="category-status ready">✨ Результат готов!</div>';
+                else if (myCount >= 3 && pCount < 3) statusHTML = '<div class="category-status waiting">⏳ Ждём партнёра</div>';
+                else if (myCount < 3 && pCount >= 3) statusHTML = '<div class="category-status waiting">💫 Партнёр ответил</div>';
+                return `<div class="category-card ${isCompleted ? 'completed' : ''}" onclick="selectCategory('${l.key}')">${isCompleted ? '<div class="category-badge show">✓ Пройдено</div>' : ''}<div class="left"><div class="icon">${l.icon}</div><div class="info"><div class="name">${l.name}</div><div class="desc">${l.desc}</div>${statusHTML}</div></div><div class="right"><div class="count">${viewed}/${total}</div><div class="progress-mini"><div class="fill" style="width:${percent}%;"></div></div></div></div>`;
+            }).join('');
+        }
+
+        function updateAllStatuses() { if (questionsData) renderCategories(); }
+
+        function selectCategory(level) {
+            if (!questionsData) return;
+            const data = questionsData[level]; if (!data || !Array.isArray(data) || data.length === 0) return;
+            currentLevel = level; levelQuestions = data;
+            const key = getDailyKey(level);
+
+            if (!dailyQuestions[level]) {
+                const viewed = progress[level] || [];
+                const available = data.filter((q, idx) => !viewed.includes(idx));
+                if (available.length === 0) { const ct = getEl('completedText'); if (ct) ct.textContent = 'Вы прошли все ' + data.length + ' вопросов в категории «' + getLevelName(level) + '»!'; hideEl('mainContent'); const qs = getEl('questionScreen'); if (qs) qs.classList.remove('active'); const cs = getEl('completedScreen'); if (cs) cs.classList.add('active'); return; }
+                const shuffled = [...available]; for (let i = shuffled.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; }
+                dailyQuestions[level] = shuffled.slice(0, Math.min(3, shuffled.length));
+            }
+
+            hideEl('mainContent'); const qs = getEl('questionScreen'); if (qs) qs.classList.add('active');
+            const cs = getEl('completedScreen'); if (cs) cs.classList.remove('active');
+            showQuestion();
+        }
+
+        function getLevelName(level) { const n = { easy: 'Лёгкий', medium: 'Средний', hard: 'Хардкор' }; return n[level] || level; }
+        function getLevelIcon(level) { const i = { easy: '🟢', medium: '🟡', hard: '🔴' }; return i[level] || '❓'; }
+
+        function showQuestion() {
+            if (!currentLevel) return;
+            const key = getDailyKey(currentLevel);
+            const viewed = progress[currentLevel] || []; const total = levelQuestions.length; const done = viewed.length;
+            const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+            const pt = getEl('questionProgressText'), pf = getEl('questionProgressFill'), cl = getEl('questionCategoryLabel');
+            if (pt) pt.textContent = done + ' из ' + total; if (pf) pf.style.width = percent + '%';
+            if (cl) cl.textContent = getLevelIcon(currentLevel) + ' ' + getLevelName(currentLevel);
+            updateDots();
+
+            const qs = dailyQuestions[currentLevel];
+            const myAns = myDailyAnswers[key] || {};
+            const pAns = partnerDailyAnswers[key] || {};
+            const answeredCount = Object.keys(myAns).length;
+            const bothDone = answeredCount >= qs.length && Object.keys(pAns).length >= qs.length;
+
+            const completionArea = getEl('completionArea');
+            const questionCard = getEl('questionCard');
+            const questionProgress = getEl('questionProgress');
+            const questionActions = getEl('questionActions');
+            const btnPrev = getEl('btnPrev');
+
+            if (answeredCount >= qs.length) {
+                if (questionCard) questionCard.style.display = 'none';
+                if (questionProgress) questionProgress.style.display = 'none';
+                if (questionActions) questionActions.style.display = 'none';
+                if (btnPrev) btnPrev.style.display = 'inline-block';
+
+                if (bothDone) {
+                    if (completionArea) completionArea.innerHTML = '<div class="completion-message"><div class="completion-icon">✨</div><div class="completion-title">Вы оба ответили!</div><div class="completion-text">Все вопросы пройдены. Смотрите сравнение!</div><button class="btn-view-result" onclick="showResult()">💫 Смотреть результат</button></div>';
+                } else {
+                    if (completionArea) completionArea.innerHTML = '<div class="all-done-message"><div class="all-done-icon">✅</div><div class="all-done-title">Все вопросы на сегодня отвечены!</div><div class="all-done-text">Завтра будут новые вопросы.</div><div class="partner-status">⏳ Ждём, когда партнёр тоже ответит.<br>Результаты сравнения появятся здесь автоматически.</div></div>';
+                }
+                updateAllStatuses();
+                return;
+            }
+
+            if (completionArea) completionArea.innerHTML = '';
+            if (questionCard) questionCard.style.display = 'block';
+            if (questionProgress) questionProgress.style.display = 'block';
+
+            const question = qs[answeredCount];
+            const realIndex = levelQuestions.indexOf(question);
+            const isAnswered = viewed.includes(realIndex);
+
+            const qn = getEl('questionNumber'), qt = getEl('questionText');
+            if (qn) qn.textContent = 'Вопрос ' + (answeredCount + 1) + ' из ' + qs.length;
+            if (qt) qt.textContent = question;
+            if (btnPrev) btnPrev.style.display = answeredCount > 0 ? 'inline-block' : 'none';
+
+            const qa = getEl('questionAnswered');
+            if (isAnswered) { if (qa) qa.classList.add('show'); if (questionActions) questionActions.style.display = 'none'; }
+            else { if (qa) qa.classList.remove('show'); if (questionActions) questionActions.style.display = 'flex'; document.querySelectorAll('.btn-action').forEach(b => { b.classList.remove('selected'); b.disabled = false; }); }
+        }
+
+        function updateDots() {
+            const dots = [getEl('dot1'), getEl('dot2'), getEl('dot3')];
+            const qs = dailyQuestions[currentLevel] || [];
+            const key = getDailyKey(currentLevel);
+            const myAns = myDailyAnswers[key] || {};
+            const answeredCount = Object.keys(myAns).length;
+            for (let i = 0; i < 3; i++) { const dot = dots[i]; if (!dot) continue; dot.className = 'daily-dot'; if (i < answeredCount) dot.classList.add('done'); else if (i === answeredCount && i < qs.length) dot.classList.add('current'); }
+        }
+
+        function answerQuestion(answer) {
+            const key = getDailyKey(currentLevel);
+            const qs = dailyQuestions[currentLevel];
+            if (!qs) return;
+            const myAns = myDailyAnswers[key] || {};
+            if (Object.keys(myAns).length >= qs.length) { showToast('Вы уже ответили на все вопросы'); return; }
+
+            const currentIdx = Object.keys(myAns).length;
+            const question = qs[currentIdx];
+            const realIndex = levelQuestions.indexOf(question);
+            const viewed = progress[currentLevel] || [];
+            if (viewed.includes(realIndex)) { showToast('Вы уже ответили на этот вопрос'); return; }
+
+            const buttons = document.querySelectorAll('.btn-action.yes, .btn-action.no, .btn-action.neutral');
+            buttons.forEach(b => { b.disabled = true; if ((answer === 'yes' && b.classList.contains('yes')) || (answer === 'no' && b.classList.contains('no')) || (answer === 'neutral' && b.classList.contains('neutral'))) b.classList.add('selected'); });
+
+            myAns[currentIdx] = answer;
+            myDailyAnswers[key] = myAns;
+            localStorage.setItem('shepot_18_daily_me', JSON.stringify(myDailyAnswers));
+            viewed.push(realIndex);
+            progress[currentLevel] = viewed;
+            localStorage.setItem('shepot_questions18_progress', JSON.stringify(progress));
+            if (Object.keys(myAns).length >= qs.length) localStorage.setItem('shepot_new_matches', '1');
+
+            const qa = getEl('questionAnswered'), qac = getEl('questionActions');
+            if (qa) qa.classList.add('show'); if (qac) qac.style.display = 'none';
+            showToast('✅ Ответ сохранён!');
+            setTimeout(() => { if (qa) qa.classList.remove('show'); if (qac) qac.style.display = 'flex'; buttons.forEach(b => { b.disabled = false; b.classList.remove('selected'); }); showQuestion(); }, 1500);
+        }
+
+        function previousQuestion() {
+            if (!currentLevel) return;
+            const key = getDailyKey(currentLevel);
+            const myAns = myDailyAnswers[key] || {};
+            const answeredCount = Object.keys(myAns).length;
+            if (answeredCount === 0) { showToast('Нет вопросов для возврата'); return; }
+            if (confirm('Вернуться к предыдущему вопросу? Последний ответ будет удалён.')) {
+                delete myAns[answeredCount - 1];
+                myDailyAnswers[key] = myAns;
+                localStorage.setItem('shepot_18_daily_me', JSON.stringify(myDailyAnswers));
+                const viewed = progress[currentLevel] || [];
+                viewed.pop();
+                progress[currentLevel] = viewed;
+                localStorage.setItem('shepot_questions18_progress', JSON.stringify(progress));
+                showQuestion();
+            }
+        }
+
+        function showResult() {
+            const key = getDailyKey(currentLevel);
+            const qs = dailyQuestions[currentLevel];
+            const myAns = myDailyAnswers[key] || {}, pAns = partnerDailyAnswers[key] || {};
+            const map = { 'yes':'Да','no':'Нет','neutral':'Нейтрально' };
+            let matches = [], conflicts = [];
+            for (let i = 0; i < qs.length; i++) {
+                const m = myAns[i], p = pAns[i];
+                if (m === p) matches.push({ q: qs[i], a: map[m] });
+                else conflicts.push({ q: qs[i], my: map[m] || '—', partner: map[p] || '—' });
+            }
+            let html = '<div class="result-title">💫 Сравнение ответов</div>';
+            if (matches.length > 0) { html += '<div class="result-section"><div class="result-section-title match">✅ Совпало ('+matches.length+'/'+qs.length+')</div>'; matches.forEach(m => html += '<div class="result-item match">'+m.q+'<br><span style="color:#4CAF50;">Оба: '+m.a+'</span></div>'); html += '</div>'; }
+            if (conflicts.length > 0) { html += '<div class="result-section"><div class="result-section-title conflict">💡 Разошлись ('+conflicts.length+'/'+qs.length+')</div>'; conflicts.forEach(c => html += '<div class="result-item conflict">'+c.q+'<br><span style="color:var(--rose);">Ты: '+c.my+'</span> · <span style="color:var(--gold);">Партнёр: '+c.partner+'</span></div>'); html += '</div>'; html += '<div class="result-advice"><strong>Обсудите:</strong><br><br>Узнайте почему вы ответили по-разному. Это сближает.</div>'; }
+            if (conflicts.length === 0) html += '<div class="result-advice"><strong>🎉 У вас полное совпадение!</strong><br><br>Вы на одной волне.</div>';
+            html += '<button class="btn-close-result" onclick="closeResult()">Понятно</button>';
+            document.getElementById('resultBox').innerHTML = html; document.getElementById('resultOverlay').classList.add('show');
+        }
+
+        function closeResult() { document.getElementById('resultOverlay').classList.remove('show'); updateAllStatuses(); if (document.getElementById('questionScreen').classList.contains('active')) showQuestion(); }
+
+        function backToMain() {
+            const mc = getEl('mainContent'), qs = getEl('questionScreen'), cs = getEl('completedScreen');
+            if (mc) mc.style.display = 'block'; if (qs) qs.classList.remove('active'); if (cs) cs.classList.remove('active');
+            updateAllStatuses();
+        }
+
+        function showToast(message) { const existing = document.querySelector('.toast'); if (existing) existing.remove(); const toast = document.createElement('div'); toast.className = 'toast'; toast.textContent = message; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+
+        loadQuestions();
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

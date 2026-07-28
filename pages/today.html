@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шёпот — Сегодня</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        .page-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            text-align: center; padding: 30px 18px 120px; z-index: 1; width: 100%; min-height: 100vh; overflow-y: auto;
+        }
+
+        .counter-block { margin-bottom: 24px; }
+        .counter-label { font-size: 9px; text-transform: uppercase; letter-spacing: 4px; color: var(--text-secondary); margin-bottom: 8px; }
+        .counter-row { display: flex; align-items: baseline; justify-content: center; gap: 4px; }
+        .counter-unit { text-align: center; min-width: 48px; }
+        .counter-num { font-family: 'Inter', sans-serif; font-size: 42px; font-weight: 200; color: var(--text-primary); line-height: 1; }
+        .counter-word { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); margin-top: 4px; }
+        .counter-date { font-size: 9px; color: var(--text-secondary); opacity: 0.6; margin-top: 6px; cursor: pointer; transition: all 0.3s; }
+        .counter-date:hover { color: var(--gold); }
+
+        .quote-card { background: rgba(20, 16, 18, 0.35); border: 1px solid rgba(201, 169, 110, 0.06); border-radius: 14px; padding: 14px 16px; margin-bottom: 24px; width: 100%; max-width: 300px; }
+        .quote-text { font-family: var(--font-heading); font-style: italic; font-size: 13px; color: var(--text-secondary); line-height: 1.6; opacity: 0.8; }
+
+        .section-label { font-size: 9px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-secondary); margin-bottom: 8px; }
+
+        .task-card { background: rgba(20, 16, 18, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 18px; padding: 16px 18px; width: 100%; max-width: 300px; margin-bottom: 24px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px; }
+        .task-card:hover { border-color: rgba(201, 169, 110, 0.25); transform: translateY(-1px); }
+        .task-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(201, 169, 110, 0.25); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; transition: all 0.3s; }
+        .task-card.done .task-check { background: var(--gold); border-color: var(--gold); color: #0D1117; }
+        .task-card.done { border-color: rgba(76, 175, 80, 0.3); }
+        .task-card.done .task-text { text-decoration: line-through; opacity: 0.4; }
+        .task-text { font-size: 13px; color: var(--text-primary); text-align: left; line-height: 1.4; flex: 1; }
+
+        .mood-block { width: 100%; max-width: 300px; margin-bottom: 24px; }
+        .mood-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .mood-label { font-size: 10px; color: var(--text-secondary); width: 55px; text-align: right; flex-shrink: 0; letter-spacing: 1px; }
+        .mood-slider { flex: 1; -webkit-appearance: none; height: 3px; border-radius: 2px; background: rgba(201, 169, 110, 0.15); outline: none; cursor: pointer; }
+        .mood-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--gold); cursor: pointer; box-shadow: 0 0 10px rgba(201, 169, 110, 0.3); transition: all 0.3s; }
+        .mood-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .mood-val { font-size: 12px; color: var(--gold); width: 20px; text-align: left; font-weight: 600; }
+
+        .peace-btn { background: transparent; border: 1px solid rgba(201, 169, 110, 0.12); border-radius: 30px; padding: 10px 24px; color: var(--text-secondary); font-size: 11px; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; margin-bottom: 16px; }
+        .peace-btn:hover { border-color: rgba(201, 169, 110, 0.35); color: var(--text-primary); background: rgba(201, 169, 110, 0.05); }
+
+        /* Модалки ритуала */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: rgba(20, 16, 18, 0.98); backdrop-filter: blur(20px); border: 1px solid var(--gold); border-radius: 24px; padding: 24px 20px; width: 100%; max-width: 340px; max-height: 85vh; overflow-y: auto; text-align: center; animation: modalIn 0.3s ease-out; }
+
+        .modal-steps-preview { text-align: left; font-size: 11px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 16px; padding: 10px 14px; background: rgba(201, 169, 110, 0.05); border-radius: 12px; }
+
+        .ritual-input { width: 100%; background: rgba(245, 240, 232, 0.05); border: 1px solid rgba(201, 169, 110, 0.15); border-radius: 12px; padding: 10px 14px; color: var(--text-primary); font-size: 13px; outline: none; font-family: var(--font-body); margin-bottom: 10px; resize: vertical; min-height: 60px; text-align: left; box-sizing: border-box; }
+        .ritual-input:focus { border-color: var(--gold); }
+
+        .ritual-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 4px; text-align: left; }
+        .ritual-hint { font-size: 9px; color: var(--text-secondary); opacity: 0.6; margin-bottom: 10px; text-align: left; font-style: italic; }
+
+        .emojis-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; }
+        .emoji-btn { font-size: 28px; cursor: pointer; padding: 4px 8px; border-radius: 12px; border: 2px solid transparent; background: transparent; transition: all 0.3s; }
+        .emoji-btn:hover { background: rgba(201, 169, 110, 0.1); }
+        .emoji-btn.selected { border-color: var(--gold); background: rgba(201, 169, 110, 0.15); }
+
+        .progress-steps { display: flex; gap: 6px; justify-content: center; margin-bottom: 16px; }
+        .progress-step { width: 30px; height: 4px; border-radius: 2px; background: rgba(201, 169, 110, 0.15); transition: all 0.3s; }
+        .progress-step.done { background: var(--gold); }
+        .progress-step.current { background: var(--gold); animation: pulse 1.5s infinite; }
+
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 10px; margin: 8px 0; }
+        .status-waiting { background: rgba(255, 152, 0, 0.15); color: #FF9800; }
+        .status-done { background: rgba(76, 175, 80, 0.15); color: #4CAF50; }
+
+        .peace-step-card { background: rgba(201, 169, 110, 0.05); border: 1px solid rgba(201, 169, 110, 0.1); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; text-align: left; display: flex; align-items: center; gap: 10px; }
+        .peace-step-num { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(201, 169, 110, 0.3); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--gold); flex-shrink: 0; }
+        .peace-step-num.done { background: #4CAF50; border-color: #4CAF50; color: white; }
+        .peace-step-info { flex: 1; }
+        .peace-step-name { font-size: 12px; color: var(--text-primary); }
+        .peace-step-desc { font-size: 9px; color: var(--text-secondary); }
+
+        .gesture-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+        .gesture-btn { padding: 10px 8px; border-radius: 30px; border: 1px solid rgba(201, 169, 110, 0.2); background: rgba(20, 16, 18, 0.4); color: var(--text-primary); font-size: 11px; cursor: pointer; transition: all 0.3s; text-align: center; }
+        .gesture-btn:hover { border-color: var(--gold); background: rgba(201, 169, 110, 0.1); }
+        .gesture-btn.selected { border-color: var(--gold); background: rgba(201, 169, 110, 0.2); }
+
+        /* Кнопки ритуала — скруглённые */
+        .ritual-btn {
+            padding: 10px 20px; border-radius: 30px; border: none;
+            font-size: 13px; cursor: pointer; font-weight: 600;
+            transition: all 0.3s; font-family: var(--font-body);
+        }
+        .ritual-btn.primary { background: var(--gold); color: #0D1117; }
+        .ritual-btn.primary:hover { box-shadow: 0 4px 15px rgba(201, 169, 110, 0.3); transform: translateY(-1px); }
+        .ritual-btn.secondary { background: transparent; border: 1px solid rgba(201, 169, 110, 0.3); color: var(--text-secondary); }
+        .ritual-btn.secondary:hover { border-color: var(--gold); color: var(--text-primary); }
+        .ritual-btn.small { padding: 6px 14px; font-size: 11px; }
+
+        .hearts-animation { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 200; }
+        .floating-heart { position: absolute; font-size: 24px; animation: floatHeart 2s ease-out forwards; }
+        @keyframes floatHeart { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-300px) scale(0.3); } }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="sparkles">
+            <div class="sparkle" style="top: 8%; left: 14%;"></div>
+            <div class="sparkle" style="top: 20%; right: 20%; animation-delay: 0.5s;"></div>
+            <div class="sparkle" style="bottom: 24%; left: 24%; animation-delay: 1s;"></div>
+            <div class="sparkle" style="bottom: 16%; right: 18%; animation-delay: 1.5s;"></div>
+            <div class="sparkle" style="top: 42%; left: 6%; animation-delay: 0.7s;"></div>
+            <div class="sparkle" style="top: 38%; right: 6%; animation-delay: 1.2s;"></div>
+        </div>
+
+        <div class="page-screen">
+            <div class="counter-block">
+                <div class="counter-label">Мы вместе</div>
+                <div class="counter-row"><div class="counter-unit"><div class="counter-num" id="daysCount">0</div><div class="counter-word">дней</div></div></div>
+                <div class="counter-date" id="counterDate" onclick="changeStartDate()"></div>
+            </div>
+
+            <div class="quote-card"><div class="quote-text" id="quoteText">Загрузка...</div></div>
+
+            <div class="section-label">Задание дня</div>
+            <div class="task-card" id="taskCard" onclick="toggleTask()"><div class="task-check" id="taskCheck">✓</div><div class="task-text" id="taskText">Загрузка...</div></div>
+
+            <div class="section-label">Настроение</div>
+            <div class="mood-block">
+                <div class="mood-row"><span class="mood-label">Близость</span><input type="range" class="mood-slider" min="0" max="10" value="5" oninput="updateMood(this, 'v1')"><span class="mood-val" id="v1">5</span></div>
+                <div class="mood-row"><span class="mood-label">Нежность</span><input type="range" class="mood-slider" min="0" max="10" value="5" oninput="updateMood(this, 'v2')"><span class="mood-val" id="v2">5</span></div>
+                <div class="mood-row"><span class="mood-label">Страсть</span><input type="range" class="mood-slider" min="0" max="10" value="5" oninput="updateMood(this, 'v3')"><span class="mood-val" id="v3">5</span></div>
+            </div>
+
+            <button class="peace-btn" onclick="startPeace()">🕊 Мы поссорились</button>
+            <button class="btn-back" onclick="navigate('main')">← На главную</button>
+        </div>
+
+        <div class="modal-overlay" id="peaceModal0"><div class="modal-box"><div class="modal-title">🕊 Ритуал примирения</div><div class="modal-desc"><strong>Ссоры — это нормально. Главное — как вы из них выходите.</strong></div><div class="modal-steps-preview">Этот ритуал поможет вам:<br>🗣 <strong>Высказаться</strong> — честно и без обвинений<br>👂 <strong>Услышать</strong> — понять чувства друг друга<br>💞 <strong>Восстановить мост</strong> — через 3 простых шага</div><div class="modal-desc"><strong>Как это работает:</strong><br>1️⃣ <strong>Дневник</strong> — вы пишете о своих чувствах<br>2️⃣ <strong>Чтение</strong> — читаете ответы друг друга<br>3️⃣ <strong>Мостик</strong> — вместе восстанавливаете связь</div><div class="modal-desc" style="text-align:center;font-size:10px;opacity:0.7;">⏱ Примерно 10-15 минут<br>🤝 Прогресс синхронизируется</div><div class="modal-buttons"><button class="ritual-btn primary" onclick="startDiary()">✨ Начать ритуал</button><button class="ritual-btn secondary" onclick="closePeace()">Не сейчас</button></div></div></div>
+        <div class="modal-overlay" id="peaceModal1"><div class="modal-box" id="diaryBox"></div></div>
+        <div class="modal-overlay" id="peaceModal2"><div class="modal-box" id="readingBox"></div></div>
+        <div class="modal-overlay" id="peaceModal3"><div class="modal-box" id="bridgeBox"></div></div>
+        <div class="modal-overlay" id="peaceModalFinal"><div class="modal-box" id="finalBox"></div></div>
+        <div class="hearts-animation" id="heartsAnimation"></div>
+
+        <div class="tab-bar">
+            <div class="tab active" onclick="navigate('today')"><span class="tab-icon">🏠</span> Сегодня</div>
+            <div class="tab" onclick="navigate('questions')"><span class="tab-icon">💬</span> Вопросы</div>
+            <div class="tab" onclick="navigate('games')"><span class="tab-icon">🎲</span> Игры</div>
+            <div class="tab" onclick="navigate('beyond')"><span class="tab-icon">🔥</span> За гранью</div>
+            <div class="tab" onclick="navigate('moments')"><span class="tab-icon">📸</span> Моменты</div>
+            <div class="tab" onclick="navigate('we')"><span class="tab-icon">💌</span> Мы</div>
+        </div>
+    </div>
+
+    <script>
+        localStorage.removeItem('shepot_new_matches');
+        let allTasks = [], todayTask = null, taskDone = false;
+
+        fetch('../data/tasks.json').then(r => r.json()).then(d => { allTasks = d.tasks; loadTask(); }).catch(() => { allTasks = ["Сделайте друг другу комплимент","Приготовьте ужин вместе","Посмотрите фильм в обнимку","Напишите любовную записку","Сделайте друг другу массаж","Сходите на прогулку за руку"]; loadTask(); });
+
+        function loadTask() {
+            const today = new Date().toISOString().split('T')[0];
+            const saved = localStorage.getItem('shepot_task');
+            if (saved) { const p = JSON.parse(saved); if (p.date === today) { todayTask = p.task; taskDone = p.done || false; document.getElementById('taskText').textContent = todayTask; if (taskDone) document.getElementById('taskCard').classList.add('done'); return; } }
+            if (allTasks.length > 0) {
+                const used = JSON.parse(localStorage.getItem('shepot_used_tasks') || '[]');
+                let avail = allTasks.filter((_, i) => !used.includes(i));
+                if (avail.length === 0) { localStorage.setItem('shepot_used_tasks', '[]'); avail = [...allTasks]; }
+                const ri = Math.floor(Math.random() * avail.length);
+                todayTask = avail[ri]; taskDone = false;
+                localStorage.setItem('shepot_task', JSON.stringify({ date: today, task: todayTask, done: false }));
+                used.push(allTasks.indexOf(avail[ri])); localStorage.setItem('shepot_used_tasks', JSON.stringify(used));
+                document.getElementById('taskText').textContent = todayTask; document.getElementById('taskCard').classList.remove('done');
+            }
+        }
+
+        function toggleTask() { taskDone = !taskDone; const c = document.getElementById('taskCard'); if (taskDone) c.classList.add('done'); else c.classList.remove('done'); localStorage.setItem('shepot_task', JSON.stringify({ date: new Date().toISOString().split('T')[0], task: todayTask, done: taskDone })); }
+
+        fetch('../data/quotes.json').then(r => r.json()).then(d => {
+            const today = new Date().toISOString().split('T')[0];
+            const saved = localStorage.getItem('shepot_quote');
+            if (saved) { const p = JSON.parse(saved); if (p.date === today) { document.getElementById('quoteText').textContent = '«' + p.quote + '»'; return; } }
+            const used = JSON.parse(localStorage.getItem('shepot_used_quotes') || '[]');
+            let avail = d.quotes.filter((_, i) => !used.includes(i));
+            if (avail.length === 0) { localStorage.setItem('shepot_used_quotes', '[]'); avail = [...d.quotes]; }
+            const q = avail[Math.floor(Math.random() * avail.length)];
+            localStorage.setItem('shepot_quote', JSON.stringify({ date: today, quote: q }));
+            used.push(d.quotes.indexOf(q)); localStorage.setItem('shepot_used_quotes', JSON.stringify(used));
+            document.getElementById('quoteText').textContent = '«' + q + '»';
+        }).catch(() => { document.getElementById('quoteText').textContent = '«Любовь — это когда счастье другого важнее своего»'; });
+
+        function updateCounter() {
+            const sd = localStorage.getItem('shepot_start_date');
+            const el = document.getElementById('counterDate');
+            if (sd) { const s = new Date(sd); document.getElementById('daysCount').textContent = Math.floor((new Date() - s) / 86400000); el.textContent = 'с ' + s.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }); }
+            else { document.getElementById('daysCount').textContent = Math.floor((new Date() - new Date(new Date().setFullYear(new Date().getFullYear() - 1))) / 86400000); el.textContent = 'Нажмите, чтобы установить дату'; }
+        }
+        updateCounter();
+
+        function changeStartDate() { const d = prompt('Введите дату (ГГГГ-ММ-ДД):', localStorage.getItem('shepot_start_date') || ''); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(new Date(d).getTime())) { localStorage.setItem('shepot_start_date', d); updateCounter(); showToast('📅 Дата обновлена!'); } }
+
+        function updateMood(s, id) { document.getElementById(id).textContent = s.value; localStorage.setItem('shepot_mood', JSON.stringify({ closeness: document.querySelectorAll('.mood-slider')[0]?.value || 5, tenderness: document.querySelectorAll('.mood-slider')[1]?.value || 5, passion: document.querySelectorAll('.mood-slider')[2]?.value || 5 })); }
+
+        (function() { const m = localStorage.getItem('shepot_mood'); if (m) { try { const d = JSON.parse(m); const s = document.querySelectorAll('.mood-slider'); if (s.length >= 3) { s[0].value = d.closeness || 5; s[1].value = d.tenderness || 5; s[2].value = d.passion || 5; document.getElementById('v1').textContent = d.closeness || 5; document.getElementById('v2').textContent = d.tenderness || 5; document.getElementById('v3').textContent = d.passion || 5; } } catch(e) {} } })();
+
+        let peaceDiary = { q1: '', q2: '', q3: '', q4: '' }, peaceStep = 0, bridgeSteps = { step1: false, step2: false, step3: '' }, selectedEmoji = '';
+
+        function startPeace() { document.getElementById('peaceModal0').classList.add('show'); }
+        function closePeace() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show')); peaceStep = 0; peaceDiary = { q1: '', q2: '', q3: '', q4: '' }; bridgeSteps = { step1: false, step2: false, step3: '' }; selectedEmoji = ''; }
+        function startDiary() { document.getElementById('peaceModal0').classList.remove('show'); peaceStep = 1; selectedEmoji = ''; renderDiaryStep(1); document.getElementById('peaceModal1').classList.add('show'); }
+
+        function renderDiaryStep(step) {
+            const box = document.getElementById('diaryBox');
+            const ph = '<div class="progress-steps"><div class="progress-step current"></div><div class="progress-step"></div><div class="progress-step"></div></div>';
+            if (step === 1) box.innerHTML = `${ph}<div class="modal-title">📝 Дневник ссоры</div><div class="modal-desc" style="text-align:center;font-size:10px;opacity:0.7;">Заполните честно. Партнёр увидит это, когда вы оба закончите.</div><div class="ritual-label">1/4 • Что произошло?</div><div class="ritual-hint">Опиши ситуацию своими словами. Без обвинений, просто факты и чувства.</div><textarea class="ritual-input" id="diaryQ1" placeholder="Я почувствовал(а)... когда..."></textarea><div class="modal-buttons"><button class="ritual-btn secondary" onclick="closePeace()">← Назад</button><button class="ritual-btn primary" onclick="nextDiaryStep(1)">Далее →</button></div>`;
+            else if (step === 2) { const emojis = ['😤','😢','😔','😞','🤬','😐','💔','😣','😩','😶']; box.innerHTML = `${ph}<div class="modal-title">📝 Дневник ссоры</div><div class="ritual-label">2/4 • Что я сейчас чувствую?</div><div class="ritual-hint">Выбери эмоцию, которая ближе всего</div><div class="emojis-row">${emojis.map(e => `<button class="emoji-btn ${selectedEmoji === e ? 'selected' : ''}" onclick="selectEmoji('${e}')">${e}</button>`).join('')}</div><input class="ritual-input" id="diaryQ2" placeholder="Опиши свои чувства словами..." value="${peaceDiary.q2}" style="min-height:auto;"><div class="modal-buttons"><button class="ritual-btn secondary" onclick="renderDiaryStep(1);document.getElementById('diaryQ1').value=peaceDiary.q1;">← Назад</button><button class="ritual-btn primary" onclick="nextDiaryStep(2)">Далее →</button></div>`; }
+            else if (step === 3) box.innerHTML = `${ph}<div class="modal-title">📝 Дневник ссоры</div><div class="ritual-label">3/4 • Что мне нужно от партнёра прямо сейчас?</div><div class="ritual-hint">Объятия? Слова? Время подумать? Извинения? Будь конкретным(ой).</div><textarea class="ritual-input" id="diaryQ3" placeholder="Мне нужно..."></textarea><div class="modal-buttons"><button class="ritual-btn secondary" onclick="prevDiaryStep(2)">← Назад</button><button class="ritual-btn primary" onclick="nextDiaryStep(3)">Далее →</button></div>`;
+            else if (step === 4) box.innerHTML = `${ph}<div class="modal-title">📝 Дневник ссоры</div><div class="ritual-label">4/4 • Я хочу помириться, потому что...</div><div class="ritual-hint">Вспомни, за что ты любишь этого человека. Что делает ваши отношения ценными?</div><textarea class="ritual-input" id="diaryQ4" placeholder="Я хочу помириться, потому что..."></textarea><div class="modal-buttons"><button class="ritual-btn secondary" onclick="prevDiaryStep(3)">← Назад</button><button class="ritual-btn primary" onclick="submitDiary()">✨ Отправить партнёру</button></div>`;
+        }
+
+        function selectEmoji(e) { selectedEmoji = e; peaceDiary.q2 = e; renderDiaryStep(2); }
+        function nextDiaryStep(s) { if (s === 1) { peaceDiary.q1 = document.getElementById('diaryQ1')?.value?.trim() || ''; if (!peaceDiary.q1) { showToast('⚠️ Заполните поле'); return; } } else if (s === 2) { peaceDiary.q2 = document.getElementById('diaryQ2')?.value?.trim() || selectedEmoji; if (!peaceDiary.q2) { showToast('⚠️ Выберите эмоцию или напишите'); return; } } else if (s === 3) { peaceDiary.q3 = document.getElementById('diaryQ3')?.value?.trim() || ''; if (!peaceDiary.q3) { showToast('⚠️ Заполните поле'); return; } } renderDiaryStep(s + 1); }
+        function prevDiaryStep(s) { if (s === 2) peaceDiary.q2 = document.getElementById('diaryQ2')?.value?.trim() || selectedEmoji; if (s === 3) peaceDiary.q3 = document.getElementById('diaryQ3')?.value?.trim() || ''; renderDiaryStep(s); }
+
+        function submitDiary() {
+            peaceDiary.q4 = document.getElementById('diaryQ4')?.value?.trim() || ''; if (!peaceDiary.q4) { showToast('⚠️ Заполните поле'); return; }
+            localStorage.setItem('shepot_peace_diary_me', JSON.stringify(peaceDiary)); document.getElementById('peaceModal1').classList.remove('show');
+            if (localStorage.getItem('shepot_peace_diary_partner')) showReadingStage(); else showToast('⏳ Дневник отправлен! Ждём партнёра...');
+        }
+
+        function showReadingStage() {
+            peaceStep = 2; const pd = JSON.parse(localStorage.getItem('shepot_peace_diary_partner') || '{}');
+            document.getElementById('readingBox').innerHTML = `<div class="progress-steps"><div class="progress-step done"></div><div class="progress-step current"></div><div class="progress-step"></div></div><div class="modal-title">👂 Услышать друг друга</div><div class="modal-desc" style="text-align:center;font-size:10px;opacity:0.7;">Читайте с открытым сердцем. Не перебивайте, не спорьте — просто поймите.</div><div style="text-align:left;margin:12px 0;"><div style="font-size:10px;color:var(--gold);margin-bottom:6px;">📝 Что чувствует партнёр:</div><div style="background:rgba(201,169,110,0.05);border-radius:10px;padding:10px;margin-bottom:8px;"><div style="font-size:9px;color:var(--text-secondary);">Что произошло:</div><div style="font-size:12px;color:var(--text-primary);margin-bottom:8px;">${escapeHtml(pd.q1 || '—')}</div><div style="font-size:9px;color:var(--text-secondary);">Чувства:</div><div style="font-size:12px;color:var(--text-primary);margin-bottom:8px;">${escapeHtml(pd.q2 || '—')}</div><div style="font-size:9px;color:var(--text-secondary);">Что нужно:</div><div style="font-size:12px;color:var(--text-primary);margin-bottom:8px;">${escapeHtml(pd.q3 || '—')}</div><div style="font-size:9px;color:var(--text-secondary);">Почему хочет помириться:</div><div style="font-size:12px;color:var(--text-primary);">${escapeHtml(pd.q4 || '—')}</div></div></div><div class="status-badge status-done">✅ Я услышал(а) партнёра</div><div class="modal-buttons"><button class="ritual-btn primary" onclick="startBridge()">💞 Я готов(а) мириться</button></div>`;
+            document.getElementById('peaceModal2').classList.add('show');
+        }
+
+        function startBridge() { document.getElementById('peaceModal2').classList.remove('show'); peaceStep = 3; bridgeSteps = { step1: false, step2: false, step3: '' }; renderBridge(); document.getElementById('peaceModal3').classList.add('show'); }
+
+        function renderBridge() {
+            document.getElementById('bridgeBox').innerHTML = `<div class="progress-steps"><div class="progress-step done"></div><div class="progress-step done"></div><div class="progress-step current"></div></div><div class="modal-title">🌉 Восстановить мост</div><div class="modal-desc" style="text-align:center;font-size:10px;opacity:0.7;">Три простых шага, чтобы снова стать ближе.</div><div class="peace-step-card"><div class="peace-step-num ${bridgeSteps.step1?'done':''}">${bridgeSteps.step1?'✓':'1'}</div><div class="peace-step-info"><div class="peace-step-name">Скажи хорошее</div><div class="peace-step-desc">Напиши партнёру, за что ты ему благодарен(на)</div>${!bridgeSteps.step1?`<textarea class="ritual-input" id="bridgeStep1" placeholder="Я ценю тебя за... Спасибо тебе за..." style="margin-top:8px;min-height:50px;"></textarea><button class="ritual-btn primary small" onclick="completeBridgeStep1()" style="margin-top:6px;">✓ Готово</button>`:'<div style="font-size:10px;color:#4CAF50;margin-top:4px;">✓ Выполнено</div>'}</div></div><div class="peace-step-card"><div class="peace-step-num ${bridgeSteps.step2?'done':''}">${bridgeSteps.step2?'✓':'2'}</div><div class="peace-step-info"><div class="peace-step-name">Жест примирения</div><div class="peace-step-desc">Сделай что-то приятное прямо сейчас</div>${!bridgeSteps.step2?`<div class="gesture-options" style="margin-top:6px;"><button class="gesture-btn" onclick="selectGesture(this,'Обнять на 30 секунд')">🤗 Обнять</button><button class="gesture-btn" onclick="selectGesture(this,'Принести чай/вкусняшку')">🍵 Угостить</button><button class="gesture-btn" onclick="selectGesture(this,'Сказать комплимент вслух')">💬 Комплимент</button><button class="gesture-btn" onclick="selectGesture(this,'Посидеть рядом молча')">🧘 Рядом</button></div><button class="ritual-btn primary small" id="gestureConfirmBtn" onclick="completeBridgeStep2()" style="margin-top:4px;" disabled>✓ Готово</button>`:'<div style="font-size:10px;color:#4CAF50;margin-top:4px;">✓ Выполнено</div>'}</div></div><div class="peace-step-card"><div class="peace-step-num ${bridgeSteps.step3?'done':''}">${bridgeSteps.step3?'✓':'3'}</div><div class="peace-step-info"><div class="peace-step-name">Договорённость</div><div class="peace-step-desc">В следующий раз мы попробуем...</div>${!bridgeSteps.step3?`<input class="ritual-input" id="bridgeStep3" placeholder="Например: сразу говорить о чувствах, не повышать голос..." style="margin-top:8px;min-height:auto;"><button class="ritual-btn primary small" onclick="completeBridgeStep3()" style="margin-top:6px;">✓ Готово</button>`:'<div style="font-size:10px;color:#4CAF50;margin-top:4px;">✓ Записано</div>'}</div></div>`;
+        }
+
+        function selectGesture(b, g) { document.querySelectorAll('.gesture-btn').forEach(x => x.classList.remove('selected')); b.classList.add('selected'); bridgeSteps.step2 = g; document.getElementById('gestureConfirmBtn').disabled = false; }
+        function completeBridgeStep1() { const v = document.getElementById('bridgeStep1')?.value?.trim(); if (!v) { showToast('⚠️ Напишите что-нибудь'); return; } bridgeSteps.step1 = v; renderBridge(); }
+        function completeBridgeStep2() { if (!bridgeSteps.step2) { showToast('⚠️ Выберите жест'); return; } renderBridge(); }
+        function completeBridgeStep3() { const v = document.getElementById('bridgeStep3')?.value?.trim(); if (!v) { showToast('⚠️ Заполните договорённость'); return; } bridgeSteps.step3 = v; renderBridge(); if (bridgeSteps.step1 && bridgeSteps.step2 && bridgeSteps.step3) setTimeout(() => showFinal(), 1000); }
+
+        function showFinal() {
+            document.getElementById('peaceModal3').classList.remove('show');
+            const pc = parseInt(localStorage.getItem('shepot_peace_count') || '0') + 1; localStorage.setItem('shepot_peace_count', pc);
+            localStorage.removeItem('shepot_peace_diary_me'); localStorage.removeItem('shepot_peace_diary_partner');
+            document.getElementById('finalBox').innerHTML = `<div class="modal-title">💞 Мост восстановлен!</div><div style="font-size:50px;margin:16px 0;">🌉💖</div><div style="font-size:11px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px;">«Лучшая пара не та, что не ссорится,<br>а та, что умеет мириться»</div><div style="font-size:11px;color:var(--gold);margin-bottom:16px;">Вы справились в ${pc}-й раз.<br>С каждой ссорой вы становитесь ближе.</div><div class="modal-buttons"><button class="ritual-btn primary" onclick="closeAllPeace()">💞 Обнять и забыть</button></div>`;
+            document.getElementById('peaceModalFinal').classList.add('show'); spawnHearts();
+        }
+
+        function closeAllPeace() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show')); peaceStep = 0; peaceDiary = { q1: '', q2: '', q3: '', q4: '' }; bridgeSteps = { step1: false, step2: false, step3: '' }; selectedEmoji = ''; showToast('💞 Вы помирились! Становитесь только сильнее'); }
+
+        function spawnHearts() { const c = document.getElementById('heartsAnimation'); let h = ''; for (let i = 0; i < 20; i++) { h += `<span class="floating-heart" style="left:${Math.random()*100}%;bottom:0;font-size:${16+Math.random()*30}px;animation-delay:${Math.random()*1.5}s;">❤️</span>`; } c.innerHTML = h; setTimeout(() => c.innerHTML = '', 3000); }
+
+        function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+        function showToast(m) { const e = document.querySelector('.toast'); if (e) e.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
+
+        function navigate(p) { const pages = {'today':'today.html','questions':'questions.html','games':'games.html','beyond':'beyond.html','moments':'moments.html','we':'we.html','main':'main.html'}; if (pages[p]) window.location.href = pages[p]; }
+    </script>
+    <!-- ===== PWA ИНИЦИАЛИЗАЦИЯ ===== -->
+    <script src="../js/pwa-init.js"></script>
+</body>
+</html>

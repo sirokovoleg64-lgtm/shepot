@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Шёпот</title>
+    
+    <!-- ===== PWA ===== -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#C9A96E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- ===== ИКОНКИ (все в папке img/) ===== -->
+    <link rel="apple-touch-icon" href="img/icon-192x192.png">
+    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+    
+    <!-- Отключаем поиск favicon.ico в корне -->
+    <link rel="icon" href="data:,">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            background: #0D1117;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Playfair Display', serif;
+            overflow: hidden;
+        }
+        
+        .phone {
+            width: 100vw;
+            height: 100vh;
+            max-width: 100vw;
+            max-height: 100vh;
+            background: linear-gradient(160deg, #1A0A10 0%, #1C0D16 40%, #140C18 70%, #0D1117 100%);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .phone::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(ellipse at 30% 40%, rgba(140, 60, 90, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(100, 50, 100, 0.10) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 30%, rgba(120, 50, 80, 0.08) 0%, transparent 40%);
+            animation: smokeShift 15s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        .phone::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 180px;
+            background:
+                radial-gradient(ellipse at 45% 50%, rgba(180, 90, 110, 0.10) 0%, transparent 40%),
+                radial-gradient(ellipse at 55% 50%, rgba(160, 80, 120, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(200, 140, 120, 0.06) 0%, transparent 60%);
+            border-radius: 50%;
+            animation: embraceGlow 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes smokeShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, -1%) rotate(1deg); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg); }
+        }
+        
+        @keyframes embraceGlow {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+        }
+        
+        .splash {
+            text-align: center;
+            animation: fadeIn 1.5s ease;
+            z-index: 1;
+            position: relative;
+        }
+        
+        .splash .flame {
+            font-size: 60px;
+            display: block;
+            margin-bottom: 20px;
+            animation: flicker 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(201, 169, 110, 0.5));
+        }
+        
+        .splash h1 {
+            font-size: 48px;
+            color: #F5F0E8;
+            letter-spacing: 10px;
+            margin: 0;
+            text-shadow: 0 0 40px rgba(201, 169, 110, 0.3);
+        }
+        
+        .splash p {
+            color: rgba(245, 240, 232, 0.3);
+            font-size: 13px;
+            letter-spacing: 6px;
+            margin-top: 10px;
+        }
+        
+        .loader {
+            margin: 30px auto 0;
+            width: 30px;
+            height: 30px;
+            border: 2px solid rgba(201, 169, 110, 0.1);
+            border-top: 2px solid #C9A96E;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        .fade-out {
+            animation: fadeOut 0.6s ease forwards;
+        }
+        
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+        
+        @media (min-width: 431px) {
+            body { background: #000; }
+            .phone {
+                width: 390px;
+                height: 844px;
+                max-width: 390px;
+                max-height: 844px;
+                border-radius: 40px;
+                box-shadow: 0 0 60px rgba(201, 169, 110, 0.15), 0 0 0 2px rgba(201, 169, 110, 0.1);
+            }
+        }
+        
+        @media (max-width: 430px) {
+            .phone {
+                width: 100vw;
+                height: 100vh;
+                max-width: 100vw;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="splash" id="splashScreen">
+            <span class="flame">🔥</span>
+            <h1>Шёпот</h1>
+            <p>то, о чём молчат</p>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===== РЕГИСТРАЦИЯ SERVICE WORKER =====
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => {
+                    console.log('[PWA] Service Worker зарегистрирован');
+                })
+                .catch((error) => {
+                    console.log('[PWA] Ошибка регистрации:', error);
+                });
+        }
+
+        // ===== ЛОГИКА РЕДИРЕКТА =====
+        setTimeout(() => {
+            const splash = document.getElementById('splashScreen');
+            splash.classList.add('fade-out');
+            
+            setTimeout(() => {
+                const hasName = localStorage.getItem('shepot_my_name');
+                if (hasName) {
+                    window.location.href = 'pages/main.html';
+                } else {
+                    window.location.href = 'pages/step2-how.html';
+                }
+            }, 500);
+        }, 3000);
+    </script>
+</body>
+</html>
